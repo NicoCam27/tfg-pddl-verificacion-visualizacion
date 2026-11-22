@@ -1,0 +1,320 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from simulador_pddl.simulacion.simulacion import Simulacion
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from simulador_pddl.acciones import Accion
+    from simulador_pddl.interfaz.interfaz import _ComandoPanel
+    from simulador_pddl.objetivos import Objetivo
+    from simulador_pddl.objetos import Caja, Dron, Localizacion, Persona, Transportador
+    from simulador_pddl.simulacion import InformeVerificacion
+
+
+class Mundo:
+    """Mundo es el punto de entrada de la biblioteca: ejecuta y verifica un plan.
+
+    Un mundo se construye a partir de un plan y del problema que el plan debería
+    resolver. Al construirlo solo se comprueba lo que se ve sin ejecutar el plan:
+    que cada acción y cada objetivo usen objetos declarados, que ningún objetivo
+    sea imposible de lograr, que ningún dron se mueva mientras hace otra cosa y
+    que ningún brazo haga dos cosas a la vez. Si algo falla, se lanza una
+    excepción. Lo demás se comprueba al ejecutarlo con
+    ``simulacion_texto()`` o ``simulacion_visual()``: si cada acción se puede
+    aplicar en el estado de ese momento (por ejemplo, si dos drones intentan
+    coger la misma caja a la vez, uno de los dos falla) y si se logran los
+    objetivos. Un fallo en ese momento no lanza ninguna excepción: la ejecución
+    se detiene en la acción que falla, y el ``InformeVerificacion`` que devuelven
+    da el veredicto ``"NO EJECUTABLE"`` y el mensaje de ese fallo.
+
+    Todos los argumentos menos ``acciones`` se pasan por nombre, para que cada
+    lista diga lo que contiene. Cada lista puede ser una lista o una tupla.
+
+    Args:
+        acciones: Las acciones del plan.
+        localizaciones: Las localizaciones del problema.
+        drones: Los drones del problema.
+        cajas: Las cajas del problema.
+        personas: Las personas del problema.
+        transportadores: Los transportadores del problema. Opcional: ``None``
+            (por defecto) significa que el problema no tiene transportadores, así
+            que se rechaza un plan que use alguno.
+        objetivos: Los objetivos que tiene que lograr el plan. Opcional: ``None``
+            (por defecto) o una lista vacía significan que no hay objetivos, así que
+            el plan puede resultar ejecutable, pero nunca válido.
+
+    Raises:
+        TypeError: Si un argumento no es una lista o una tupla (salvo ``None`` en
+            ``transportadores`` y ``objetivos``) o contiene algo que no es del
+            tipo esperado, o si un objetivo se refiere a algo que no es un objeto
+            del dominio.
+        ValueError: Si una acción o un objetivo usa un objeto que no está en su
+            lista (o un transportador, si no se dan transportadores), si ningún
+            plan puede lograr un objetivo, si un dron se mueve mientras hace otra
+            cosa o si un brazo hace dos cosas a la vez.
+
+    Example:
+        mundo = Mundo(
+            acciones,
+            localizaciones=[deposito, localizacion1],
+            drones=[dron],
+            cajas=[caja],
+            personas=[persona],
+            objetivos=objetivos,
+        )
+        informe = mundo.simulacion_texto()
+        print(informe.veredicto)
+    """
+
+    def __init__(
+        self,
+        acciones: Sequence[Accion],
+        *,
+        localizaciones: Sequence[Localizacion],
+        drones: Sequence[Dron],
+        cajas: Sequence[Caja],
+        personas: Sequence[Persona],
+        transportadores: Sequence[Transportador] | None = None,
+        objetivos: Sequence[Objetivo] | None = None,
+    ) -> None:
+        # Mundo es solo la fachada pública: Simulacion comprueba el plan y lo
+        # ejecuta. Las excepciones de la sección Raises salen de esa comprobación.
+        self._simulacion = Simulacion(
+            acciones,
+            localizaciones=localizaciones,
+            drones=drones,
+            cajas=cajas,
+            personas=personas,
+            transportadores=transportadores,
+            objetivos=objetivos,
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"Mundo(acciones={len(self._simulacion._acciones)}, "
+            f"objetivos={len(self._simulacion._objetivos)})"
+        )
+
+    # ------------------------------------------------------------------
+    # Uso en terminal, sin pygame
+    # ------------------------------------------------------------------
+
+    def simulacion_texto(self, paso_tiempo: float = 0.1) -> InformeVerificacion:
+        """Ejecuta el plan en la terminal y devuelve su informe.
+
+        Imprime cada inicio y final de acción, lo que narra cada dron y, al
+        terminar, el resumen del informe. La ejecución llega al final del plan o
+        se detiene en la primera acción que falla, así que el veredicto nunca es
+        ``"INCOMPLETO"``.
+
+        La ejecución sigue desde donde esté la simulación: una segunda llamada no
+        vuelve a ejecutar el plan, solo da otra vez su informe. Para ejecutarlo de
+        nuevo desde el principio, hay que llamar antes a ``reiniciar()``.
+
+        Args:
+            paso_tiempo: Los segundos simulados que avanza la simulación en cada
+                actualización. Opcional: 0.1 por defecto. El veredicto no depende
+                de él.
+
+        Returns:
+            El ``InformeVerificacion`` de la ejecución.
+
+        Raises:
+            TypeError: Si ``paso_tiempo`` no es un int o un float.
+            ValueError: Si ``paso_tiempo`` no es mayor que 0.
+        """
+        return self._simulacion._simulacion_texto(paso_tiempo)
+
+    def verificar(self) -> InformeVerificacion:
+        """Devuelve el informe del plan en el estado actual, sin ejecutar nada.
+
+        Juzga el punto al que haya llegado la ejecución, p. ej. después de
+        ``simulacion_texto()`` o de cerrar ``simulacion_visual()``. Mientras el
+        plan no haya terminado, el veredicto es ``"INCOMPLETO"``, o
+        ``"NO EJECUTABLE"`` si ya ha fallado una acción. Por eso un mundo recién
+        construido da ``"INCOMPLETO"``: para comprobar un plan, primero hay que
+        ejecutarlo. La única excepción es un plan vacío, que ya está terminado
+        desde el principio y se juzga sobre el estado inicial.
+
+        Returns:
+            El ``InformeVerificacion`` del estado actual.
+        """
+        return self._simulacion._crear_informe()
+
+    def reiniciar(self) -> None:
+        """Vuelve al instante 0, con los objetos como estaban al construir el mundo.
+
+        También olvida lo que pasó en la ejecución: qué acciones empezaron o
+        terminaron, el error, si lo hubo, y cuándo se cumplió cada objetivo. Así
+        el plan se puede volver a ejecutar desde el principio con
+        ``simulacion_texto()`` o ``simulacion_visual()``. Un informe devuelto
+        antes conserva el resultado de su ejecución.
+        """
+        self._simulacion._reiniciar()
+
+    # ------------------------------------------------------------------
+    # Simulación visual
+    # ------------------------------------------------------------------
+
+    def simulacion_visual(
+        self,
+        ancho: int | None = None,
+        alto: int | None = None,
+        titulo: str = "Simulación PDDL",
+        fps: int = 60,
+    ) -> InformeVerificacion:
+        """Ejecuta el plan en una ventana de pygame y devuelve su informe.
+
+        La ventana, que se puede redimensionar, tiene botones para reproducir,
+        pausar y reiniciar el plan, y un deslizador para la velocidad: a 1x, un
+        segundo simulado dura un segundo real. Si una acción falla, la ejecución
+        se detiene y la ventana sigue abierta mostrando el error. El método
+        vuelve cuando se cierra la ventana.
+
+        La ventana muestra la simulación tal como esté: un mundo recién
+        construido o reiniciado se abre en pausa, y el plan avanza al pulsar
+        "Reproducir". Si el plan ya se ha ejecutado, p. ej. con
+        ``simulacion_texto()``, se abre terminado, o detenido en la acción que
+        falló, y "Reiniciar" lo vuelve a poner al principio.
+
+        Args:
+            ancho: El ancho de la ventana, en píxeles. Opcional: ``None`` (por
+                defecto) usa el ancho por defecto de ``Renderizador``. Un ancho
+                menor que ``Renderizador.ANCHO_MINIMO`` se sube a ese mínimo.
+            alto: El alto de la ventana, en píxeles. Opcional: ``None`` (por
+                defecto) usa el alto por defecto de ``Renderizador``. Un alto
+                menor que ``Renderizador.ALTO_MINIMO`` se sube a ese mínimo.
+            titulo: El título de la ventana. Opcional: ``"Simulación PDDL"`` por
+                defecto.
+            fps: Los fotogramas que se dibujan por segundo. Opcional: 60 por
+                defecto.
+
+        Returns:
+            El ``InformeVerificacion`` del plan en el momento en que se cierra la
+            ventana. Si para entonces el plan no había terminado, su veredicto es
+            ``"INCOMPLETO"`` (``InformeVerificacion.INCOMPLETO``).
+
+        Raises:
+            TypeError: Si ``ancho`` o ``alto`` no es un entero o ``None``,
+                ``titulo`` no es una cadena o ``fps`` no es un entero.
+            ValueError: Si ``fps`` no es mayor que 0.
+        """
+        # Los argumentos se comprueban antes de arrancar pygame: si alguno es
+        # incorrecto, se lanza el error sin llegar a abrir la ventana.
+        self._validar_argumentos_ventana(ancho, alto, titulo, fps)
+
+        # Se importa aquí, no al nivel del módulo, para que usar Mundo solo para
+        # verificar o para simular en texto no necesite pygame.
+        import pygame
+
+        from simulador_pddl.interfaz import PanelControl
+        from simulador_pddl.renderizado import Renderizador
+
+        simulacion = self._simulacion
+
+        renderizador = Renderizador(ancho=ancho, alto=alto, titulo=titulo)
+        renderizador._poner_localizaciones(simulacion._localizaciones)
+
+        control = PanelControl(renderizador._ancho, renderizador._alto)
+        # El renderizador reserva el alto del panel para no dibujar el mundo debajo.
+        renderizador._reservar_panel(control._alto_panel)
+        # "Reproducir" se crea activado, pero puede no quedar nada que reproducir
+        # (p. ej. si simulacion_texto() ya ejecutó el plan). Se iguala aquí al
+        # estado de la simulación para que el primer fotograma ya lo respete.
+        control._boton_reproducir._activado = simulacion._puede_reproducir
+        reloj = pygame.time.Clock()
+
+        en_curso = True
+        try:
+            while en_curso:
+                for evento in pygame.event.get():
+                    if evento.type == pygame.QUIT:
+                        en_curso = False
+                        break
+
+                    # Un cambio de tamaño lo gestiona el renderizador. Después se
+                    # recoloca el panel, que conserva la velocidad elegida, y el
+                    # renderizador le reserva su nuevo alto, que cambia con el tamaño.
+                    if renderizador._gestionar_evento(evento):
+                        control._redimensionar(renderizador._ancho, renderizador._alto)
+                        renderizador._reservar_panel(control._alto_panel)
+                        continue
+
+                    self._aplicar_comando(control._gestionar_evento(evento))
+
+                # El break anterior solo sale del for: este sale también del while,
+                # sin actualizar ni dibujar otro fotograma.
+                if not en_curso:
+                    break
+
+                # tick() espera lo necesario para no pasar de fps y devuelve los
+                # milisegundos reales desde el fotograma anterior. Se usa tiempo real
+                # para que solo el deslizador acelere o frene la simulación.
+                dt = reloj.tick(fps) / 1000.0
+
+                simulacion._velocidad = control._deslizador._valor
+                simulacion._actualizar(dt)
+
+                # "Reproducir" se atenúa cuando no hay nada que reproducir (el plan ha
+                # terminado o ha fallado una acción), para que se vea sin pulsarlo.
+                control._boton_reproducir._activado = simulacion._puede_reproducir
+
+                renderizador._dibujar(simulacion)
+                control._dibujar(renderizador._pantalla, simulacion)
+
+                pygame.display.flip()
+        finally:
+            renderizador._cerrar()
+
+        return simulacion._crear_informe()
+
+    @staticmethod
+    def _validar_argumentos_ventana(
+        ancho: object, alto: object, titulo: object, fps: object
+    ) -> None:
+        """Lanza un error si un argumento de ``simulacion_visual()`` es incorrecto.
+
+        Raises:
+            TypeError: Si ``ancho`` o ``alto`` no es un entero o ``None``,
+                ``titulo`` no es una cadena o ``fps`` no es un entero.
+            ValueError: Si ``fps`` no es mayor que 0.
+        """
+        # bool es una subclase de int, así que True y False se rechazan expresamente.
+        # Un tamaño menor que el mínimo no es un error: Renderizador lo sube al
+        # mínimo.
+        for nombre_tamano, tamano in (("ancho", ancho), ("alto", alto)):
+            if tamano is not None and (
+                isinstance(tamano, bool) or not isinstance(tamano, int)
+            ):
+                msg_tipo_tamano = (
+                    f"'{nombre_tamano}' debe ser un entero o None, "
+                    f"se recibió {tamano!r}"
+                )
+                raise TypeError(msg_tipo_tamano)
+
+        if not isinstance(titulo, str):
+            msg_tipo_titulo = f"'titulo' debe ser una cadena, se recibió {titulo!r}"
+            raise TypeError(msg_tipo_titulo)
+
+        if isinstance(fps, bool) or not isinstance(fps, int):
+            msg_tipo_fps = f"'fps' debe ser un entero, se recibió {fps!r}"
+            raise TypeError(msg_tipo_fps)
+        if fps < 1:
+            msg_rango_fps = f"'fps' debe ser mayor que 0, se recibió {fps!r}"
+            raise ValueError(msg_rango_fps)
+
+    def _aplicar_comando(self, comando: _ComandoPanel | None) -> None:
+        """Aplica el comando de un botón del panel de control, si lo hay.
+
+        ``"reproducir"`` solo llega si queda algo que reproducir: en otro caso, el
+        botón está desactivado.
+        """
+        if comando == "reproducir":
+            self._simulacion._reproducir()
+        elif comando == "pausar":
+            self._simulacion._pausar()
+        elif comando == "reiniciar":
+            self.reiniciar()

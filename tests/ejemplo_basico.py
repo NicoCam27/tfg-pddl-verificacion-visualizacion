@@ -1,36 +1,53 @@
-from pddl_simulator import *
+from simulador_pddl import *
 
-deposito = Location("deposito")
-ubicacion1 = Location("ubicacion1")
-ubicacion2 = Location("ubicacion2")
+# Objetos del dominio
+deposito = Localizacion("deposito")
+localizacion1 = Localizacion("localizacion1")
+localizacion2 = Localizacion("localizacion2")
 
-ubicaciones = [deposito, ubicacion1, ubicacion2]
+izq = Brazo("izq")
+der = Brazo("der")
 
-izq = Arm("izq",)
-der = Arm("der")
+dron1 = Dron("dron1", deposito, [izq, der])
 
-dron1 = Drone("dron1", deposito, [izq, der])
+caja1 = Caja("caja1", deposito, "comida")
+caja2 = Caja("caja2", deposito, "medicina")
 
-caja1 = Box("caja1", deposito, "comida")
-caja2 = Box("caja2", deposito, "medicina")
+persona1 = Persona("persona1", localizacion1, "comida")
+persona2 = Persona("persona2", localizacion2, "medicina")
 
-persona1 = Person("persona1", ubicacion1, "comida")
-persona2 = Person("persona2", ubicacion2, "medicina")
-
-contenidos = ['comida', 'medicina']
-
-actions = [
-	create_action_load(dron1, izq, caja1, 0, 1, 1),
-	create_action_load(dron1, der, caja2, 1, 1, 1),
-	create_action_move(dron1, deposito, ubicacion1, 2, 1, 1),
-	create_action_unload(dron1, izq, caja1, persona1, 3, 1, 1),
-	create_action_move(dron1, ubicacion1, ubicacion2, 4, 1, 1),
-	create_action_unload(dron1, der, caja2, persona2, 5, 1, 1),
-	create_action_move(dron1, ubicacion2, deposito, 6, 1, 1)
+# Plan: cada acción indica cuándo empieza (inicio_sim) y cuánto dura (duracion_sim)
+acciones = [
+    CogerCaja(dron1, izq, caja1, inicio_sim=0, duracion_sim=1),
+    CogerCaja(dron1, der, caja2, inicio_sim=1, duracion_sim=1),
+    Mover(dron1, deposito, localizacion1, inicio_sim=2, duracion_sim=1),
+    EntregarCaja(dron1, izq, caja1, persona1, inicio_sim=3, duracion_sim=1),
+    Mover(dron1, localizacion1, localizacion2, inicio_sim=4, duracion_sim=1),
+    EntregarCaja(dron1, der, caja2, persona2, inicio_sim=5, duracion_sim=1),
+    Mover(dron1, localizacion2, deposito, inicio_sim=6, duracion_sim=1),
 ]
 
-drones=[dron1]
-boxes=[caja1, caja2]
-people=[persona1, persona2]
+# Objetos del problema: una lista por tipo
+localizaciones = [deposito, localizacion1, localizacion2]
+drones = [dron1]
+cajas = [caja1, caja2]
+personas = [persona1, persona2]
 
-new_world = World(actions, ubicaciones, drones, boxes, people)
+# Objetivos: lo que debe cumplirse cuando el plan termina
+objetivos = [
+    PersonaTieneContenido(persona1, "comida"),
+    PersonaTieneContenido(persona2, "medicina"),
+    DronEnLocalizacion(dron1, deposito),
+]
+
+nuevo_mundo = Mundo(
+    acciones,
+    localizaciones=localizaciones,
+    drones=drones,
+    cajas=cajas,
+    personas=personas,
+    objetivos=objetivos,
+)
+
+# Simula el plan en la terminal y devuelve el informe con el veredicto
+informe = nuevo_mundo.simulacion_texto()

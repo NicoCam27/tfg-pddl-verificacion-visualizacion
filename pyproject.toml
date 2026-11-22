@@ -1,8 +1,126 @@
-[project]
-name = "pddl_simulator"
-version = "0.1.0"
-requires-python = ">=3.11"
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
 
+# --------------------------------------------------
+# El paquete
+# --------------------------------------------------
+[project]
+name = "simulador_pddl"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "pygame>=2.6"
 ]
+
+# Herramientas que solo hacen falta para desarrollar el paquete
+# pip install -e . --group dev
+[dependency-groups]
+dev = [
+    "mypy>=2.4",
+    "ruff>=0.17",
+]
+
+# --------------------------------------------------
+# Configuración de las herramientas
+# --------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "src"
+packages = ["simulador_pddl"]
+exclude = ['/old/', '/codegen/']
+
+# Paquetes con todos los tipos anotados: se comprueban con las opciones estrictas.
+[[tool.mypy.overrides]]
+module = [
+    "simulador_pddl.acciones.*",
+    "simulador_pddl.objetivos.*",
+    "simulador_pddl.objetos.*",
+    "simulador_pddl.renderizado.*",
+    "simulador_pddl.simulacion.*",
+    "simulador_pddl.interfaz.*",
+    "simulador_pddl.mundo.*",
+]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_any_generics = true
+warn_return_any = true
+strict_equality = true
+
+
+[tool.ruff]
+# La versión de Python se toma de requires-python, más arriba.
+# El código antiguo (old/) y codegen/ quedan fuera del alcance.
+extend-exclude = ["**/old/", "src/simulador_pddl/codegen/"]
+
+[tool.ruff.lint]
+future-annotations = true
+select = [
+    "F",        # Pyflakes – nombres no definidos, importaciones sin usar o con asterisco y errores básicos
+    "E",        # Pycodestyle – errores de estilo
+    "W",        # Pycodestyle – avisos de estilo
+    "C90",      # McCabe – complejidad de las funciones
+    "I",        # isort – orden de las importaciones
+    "N",        # PEP8 Naming – convenciones de nombres
+    "D",        # Pydocstyle – formato de los docstrings
+    "UP",       # Pyupgrade – actualiza la sintaxis a versiones más recientes de Python
+    "S",        # Flake8-bandit – problemas de seguridad
+    "BLE",      # Flake8-blind-except – except que capturan Exception o BaseException sin distinguir
+    "FBT",      # Flake8-boolean-trap – argumentos booleanos posicionales, poco claros en la llamada
+    "B",        # Flake8-bugbear – patrones habituales de errores
+    "A",        # Flake8-builtins – nombres que ocultan los nombres integrados de Python
+    "COM",      # Flake8-commas – comas finales
+    "C4",       # Flake8-comprehensions – buenas prácticas en las comprensiones
+    "T10",      # Flake8-debugger – llamadas al depurador (p. ej., pdb)
+    "EM",       # Flake8-errmsg – estilo de los mensajes de error
+    "ISC",      # Flake8-implicit-str-concat – concatenación implícita de cadenas
+    "LOG",      # Flake8-logging – uso correcto de logging
+    "G",        # Flake8-logging-format – formato de los mensajes de logging
+    "INP",      # Flake8-no-pep420 – exige ficheros __init__.py (sin paquetes de espacio de nombres implícitos)
+    "PIE",      # Flake8-pie – mejoras varias del código Python
+    "RSE",      # Flake8-raise – uso correcto de raise
+    "RET",      # Flake8-return – problemas en las sentencias return
+    "SLF",      # Flake8-self – acceso a miembros privados desde fuera de su clase
+    "SIM",      # Flake8-simplify – sugerencias para simplificar el código
+    "TID",      # Flake8-tidy-imports – estilo de las importaciones (p. ej., sin importaciones relativas)
+    "TC",       # Flake8-type-checking – importaciones que solo usan las anotaciones, bajo TYPE_CHECKING
+    "ARG",      # Flake8-unused-arguments – argumentos de función sin usar
+    "PTH",      # Flake8-use-pathlib – propone pathlib en lugar de os.path
+    "TD",       # Flake8-todos – formato de los comentarios TODO
+    "FIX",      # Flake8-fixme – comentarios FIXME, TODO, XXX y HACK
+    "PGH",      # Pygrep-hooks – patrones prohibidos, buscados con expresiones regulares
+    "PL",       # Pylint – reglas de Pylint
+    "TRY",      # Tryceratops – buenas prácticas con try/except
+    "FLY",      # Flynt – propone f-strings en lugar de concatenaciones
+    "PERF",     # Perflint – problemas de rendimiento
+    "FURB",     # Refurb – modernización del código
+    "RUF",      # Ruff – reglas propias de Ruff
+]
+ignore = [
+    "COM812",  # Flake8-commas - Falta la coma final. Entra en conflicto con el formateador; Ruff recomienda desactivarla.
+    "ISC001",  # Flake8-implicit-str-concat - Concatenación implícita en una línea. Igual que COM812.
+    "D107",    # Pydocstyle - Falta el docstring de `__init__`. El constructor se documenta en el de la clase.
+    "D100",    # Pydocstyle - Falta el docstring del módulo. No todos los módulos lo necesitan.
+    "D105",    # Pydocstyle - Falta el docstring de un método mágico. Solo lo llevan los que no son obvios.
+    "SLF001",  # Flake8-self - Acceso a miembros privados. Aquí "_" significa "no es para el usuario", no "solo esta clase".
+    "PLR0913", # Pylint - Demasiados argumentos. Las acciones, Mundo y el informe necesitan todos los suyos.
+    "PLR0917", # Pylint - Demasiados argumentos posicionales. Así una acción cabe en una línea: CogerCaja(dron1, izq, caja1, 0).
+    "FIX002",  # Flake8-fixme - La línea contiene un TODO. Se permiten; TD002 y TD003 exigen autor e incidencia.
+]
+
+[tool.ruff.lint.per-file-ignores]
+# PLC0415 - `import` debería estar al principio del fichero. Estos dos ficheros
+# importan dentro de funciones a propósito, cada uno con un comentario que dice por qué.
+"src/simulador_pddl/objetos/utilidades_objetos.py" = ["PLC0415"] # Evita una importación circular con las clases de los objetos.
+"src/simulador_pddl/mundo/mundo.py" = ["PLC0415"] # Así pygame no hace falta para la simulación en texto.
+# FBT003 - Valor booleano posicional en una llamada. Font.render(text, antialias,
+# color) de pygame no admite argumentos por nombre, así que su True debe ser posicional.
+"src/simulador_pddl/renderizado/renderizador.py" = ["FBT003"]
+"src/simulador_pddl/interfaz/interfaz.py" = ["FBT003"]
+
+[tool.ruff.lint.flake8-type-checking]
+strict = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
