@@ -4,8 +4,8 @@ Los inicios y los finales de las acciones se aplican de instante en instante,
 en orden temporal, sea cual sea el tamaño del paso con el que avanza la
 simulación. Cada prueba ejecuta el mismo plan con varios pasos, desde uno más
 pequeño que cualquier acción hasta uno más largo que el plan entero, y comprueba
-que el veredicto, el error y el instante en que se logra un objetivo son
-siempre los mismos.
+que el veredicto, el error, el instante en que se logra un objetivo y el
+instante en que termina la ejecución son siempre los mismos.
 """
 
 import contextlib
@@ -97,6 +97,35 @@ def crear_cadena_corta() -> Mundo:
     )
 
 
+def crear_mover_largo() -> Mundo:
+    """Crea un plan de un solo ``Mover`` que empieza en t=0 y termina en t=7.
+
+    Con un paso de 0.1, el último tic acaba en t=7.1: por el redondeo, setenta
+    sumas se quedan justo por debajo de 7 y hace falta una más.
+    """
+    deposito = Localizacion("deposito")
+    localizacion1 = Localizacion("localizacion1")
+    dron = Dron("dron1", deposito, [Brazo("brazo")])
+
+    acciones = [
+        Mover(
+            dron=dron,
+            origen=deposito,
+            destino=localizacion1,
+            inicio_sim=0,
+            duracion_sim=7,
+        ),
+    ]
+
+    return Mundo(
+        acciones,
+        localizaciones=[deposito, localizacion1],
+        drones=[dron],
+        cajas=[],
+        personas=[],
+    )
+
+
 def crear_carrera_por_transportador() -> Mundo:
     """Crea un plan en el que una caja se saca de un transportador demasiado pronto.
 
@@ -143,7 +172,7 @@ def crear_carrera_por_transportador() -> Mundo:
 
 
 class TestVeredictoNoDependeDelPaso(unittest.TestCase):
-    """El veredicto y los instantes de los objetivos son iguales con cualquier paso."""
+    """El veredicto y los instantes de la ejecución son iguales con cualquier paso."""
 
     def test_acciones_cortas_encadenadas_son_validas_con_cualquier_paso(self) -> None:
         """Comprueba que una cadena de acciones cortas es válida con cada paso.
@@ -190,6 +219,22 @@ class TestVeredictoNoDependeDelPaso(unittest.TestCase):
             tiempos_logrados.add(informe.estados_objetivos[0].logrado_en)
 
         self.assertEqual(len(tiempos_logrados), 1, tiempos_logrados)
+
+    def test_la_ejecucion_termina_en_el_ultimo_suceso_con_cualquier_paso(self) -> None:
+        """Comprueba que la ejecución termina en el final del plan con cada paso.
+
+        El reloj se queda en el instante del último suceso, no en el final del
+        último tic, y es el instante que imprime ``simulacion_texto()``.
+        """
+        for paso_tiempo in PASOS_TIEMPO:
+            with self.subTest(paso_tiempo=paso_tiempo):
+                mundo = crear_mover_largo()
+                salida = io.StringIO()
+                with contextlib.redirect_stdout(salida):
+                    mundo.simulacion_texto(paso_tiempo)
+
+                self.assertEqual(mundo._simulacion._tiempo_simulacion, 7)
+                self.assertIn("Ejecución terminada en t=7.00s", salida.getvalue())
 
 
 if __name__ == "__main__":

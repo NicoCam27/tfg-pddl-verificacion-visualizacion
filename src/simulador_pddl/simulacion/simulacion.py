@@ -385,12 +385,13 @@ class Simulacion:
     # ------------------------------------------------------------------
 
     def _actualizar(self, dt: float) -> None:
-        """Avanza el tiempo simulado ``dt * _velocidad`` segundos.
+        """Avanza el tiempo simulado ``dt * _velocidad`` segundos como máximo.
 
         Cada acción empieza y termina en su instante exacto, en orden temporal,
-        así que el resultado no depende del tamaño de ``dt``. No hace nada
-        mientras la simulación está en pausa o después de que una acción haya
-        fallado, y la pone en pausa cuando termina el plan.
+        así que el resultado no depende del tamaño de ``dt``. Cuando termina el
+        plan, el reloj se detiene en el instante del último suceso y la
+        simulación se pone en pausa. No hace nada mientras está en pausa o
+        después de que una acción haya fallado.
         """
         if not self._reproduciendo or self._tiene_error:
             return
@@ -421,10 +422,14 @@ class Simulacion:
             if self._tiene_error:
                 return
 
-        self._tiempo_simulacion = tiempo_objetivo
-
+        # Si el plan ha terminado, el reloj se queda en el instante de su último
+        # suceso y no avanza hasta el final del tic, que no tiene por qué ser un
+        # instante del plan: depende de paso_tiempo y del redondeo de las sumas.
         if self._terminada:
             self._reproduciendo = False
+            return
+
+        self._tiempo_simulacion = tiempo_objetivo
 
     def _tiempo_siguiente_suceso(self, limite: float) -> float | None:
         """Devuelve el primer instante, no posterior a ``limite``, con un suceso.
