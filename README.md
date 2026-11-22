@@ -284,8 +284,8 @@ python -m unittest discover -s tests/regression -p "test_*.py"
 
 ## Tecnologías utilizadas
 
-- Python 3.12
-- Pygame 2.6
+- Python 3.12.10
+- Pygame 2.6.1
 - PDDL (Planning Domain Definition Language)
 - Git
 - GitHub
