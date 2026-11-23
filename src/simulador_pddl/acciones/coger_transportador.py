@@ -68,7 +68,7 @@ class CogerTransportador(Accion):
             # otro dron puede cogerlo mientras tanto.
             self._dron._iniciar_coger_transportador(self._transportador, self._brazo)
             self._iniciada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None
@@ -79,7 +79,7 @@ class CogerTransportador(Accion):
             # ``at end``: el brazo queda formalmente reservado para el transportador.
             self._dron._terminar_coger_transportador(self._transportador, self._brazo)
             self._terminada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None

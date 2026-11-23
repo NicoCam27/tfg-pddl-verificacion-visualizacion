@@ -68,7 +68,7 @@ class SoltarTransportador(Accion):
             # transportador.
             self._dron._iniciar_soltar_transportador(self._transportador, self._brazo)
             self._iniciada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None
@@ -79,7 +79,7 @@ class SoltarTransportador(Accion):
             # ``at end``: el dron suelta el transportador, que vuelve a estar libre.
             self._dron._terminar_soltar_transportador(self._transportador, self._brazo)
             self._terminada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None

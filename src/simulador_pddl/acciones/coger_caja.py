@@ -66,7 +66,7 @@ class CogerCaja(Accion):
             # acción solapada puede cogerla.
             self._dron._iniciar_coger_caja(self._brazo, self._caja)
             self._iniciada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None
@@ -77,7 +77,7 @@ class CogerCaja(Accion):
             # ``at end``: el brazo pasa formalmente a sujetar la caja.
             self._dron._terminar_coger_caja(self._brazo, self._caja)
             self._terminada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None

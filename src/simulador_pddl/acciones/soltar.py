@@ -66,7 +66,7 @@ class Soltar(Accion):
             # ``at start``: se comprueba que se puede soltar. La caja sigue en el brazo.
             self._dron._iniciar_soltar(self._brazo, self._caja)
             self._iniciada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None
@@ -77,7 +77,7 @@ class Soltar(Accion):
             # ``at end``: el brazo suelta la caja, que vuelve a estar disponible.
             self._dron._terminar_soltar(self._brazo, self._caja)
             self._terminada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None

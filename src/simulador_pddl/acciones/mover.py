@@ -72,7 +72,7 @@ class Mover(Accion):
         try:
             self._dron._exigir_en(self._origen)
             self._iniciada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None
@@ -83,7 +83,7 @@ class Mover(Accion):
             # ``at end``: el dron y todo lo que lleva consigo llegan al destino.
             self._dron._mover(self._destino)
             self._terminada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None

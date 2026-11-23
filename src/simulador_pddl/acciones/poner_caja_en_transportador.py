@@ -78,7 +78,7 @@ class PonerCajaEnTransportador(Accion):
                 self._brazo, self._caja, self._transportador
             )
             self._iniciada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None
@@ -91,7 +91,7 @@ class PonerCajaEnTransportador(Accion):
                 self._brazo, self._caja, self._transportador
             )
             self._terminada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None

@@ -71,7 +71,7 @@ class EntregarCaja(Accion):
             # en el brazo.
             self._dron._iniciar_entregar_caja(self._brazo, self._caja, self._persona)
             self._iniciada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None
@@ -82,7 +82,7 @@ class EntregarCaja(Accion):
             # ``at end``: la caja se da a la persona y el brazo queda libre.
             self._dron._terminar_entregar_caja(self._brazo, self._caja, self._persona)
             self._terminada = True
-        except (TypeError, ValueError) as e:
+        except ValueError as e:
             return str(e)
         else:
             return None
