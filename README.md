@@ -305,12 +305,11 @@ tfg-pddl-verificacion-visualizacion/
 ├── src/
 │   └── simulador_pddl/
 │       ├── acciones/       Acciones del dominio (Mover, CogerCaja, EntregarCaja, ...)
-│       ├── interfaz/       Botones y control de velocidad de la ventana
 │       ├── mundo/          Mundo, el punto de entrada de la biblioteca
 │       ├── objetivos/      Objetivos del problema
 │       ├── objetos/        Objetos del dominio (Localizacion, Dron, Caja, ...)
-│       ├── renderizado/    Dibujo de la simulación con Pygame
 │       ├── simulacion/     Motor de simulación y veredicto
+│       ├── visualizacion/  Ventana de Pygame: dibujo de la simulación y panel de control
 │       └── __init__.py
 ├── tests/
 │   ├── regression/         Pruebas de regresión

@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 import pygame
 
 from simulador_pddl.acciones import Mover, MoverTransportador
-from simulador_pddl.interfaz.interfaz import _truncar
 from simulador_pddl.objetos import Caja
+from simulador_pddl.visualizacion.panel_control import _truncar
 
 if TYPE_CHECKING:
     from simulador_pddl.objetos import Dron, Localizacion, Persona, Transportador

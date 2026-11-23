@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from simulador_pddl.acciones import Accion
-    from simulador_pddl.interfaz.interfaz import _ComandoPanel
     from simulador_pddl.objetivos import Objetivo
     from simulador_pddl.objetos import (
         Caja,
@@ -19,6 +18,7 @@ if TYPE_CHECKING:
         Transportador,
     )
     from simulador_pddl.simulacion import InformeVerificacion
+    from simulador_pddl.visualizacion.panel_control import _ComandoPanel
 
 
 class Mundo:
@@ -226,8 +226,7 @@ class Mundo:
         # verificar o para simular en texto no necesite pygame.
         import pygame
 
-        from simulador_pddl.interfaz import PanelControl
-        from simulador_pddl.renderizado import Renderizador
+        from simulador_pddl.visualizacion import PanelControl, Renderizador
 
         simulacion = self._simulacion
 

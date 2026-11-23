@@ -36,9 +36,8 @@ module = [
     "simulador_pddl.acciones.*",
     "simulador_pddl.objetivos.*",
     "simulador_pddl.objetos.*",
-    "simulador_pddl.renderizado.*",
     "simulador_pddl.simulacion.*",
-    "simulador_pddl.interfaz.*",
+    "simulador_pddl.visualizacion.*",
     "simulador_pddl.mundo.*",
 ]
 disallow_untyped_defs = true
@@ -116,8 +115,8 @@ ignore = [
 "src/simulador_pddl/mundo/mundo.py" = ["PLC0415"] # Así pygame no hace falta para la simulación en texto.
 # FBT003 - Valor booleano posicional en una llamada. Font.render(text, antialias,
 # color) de pygame no admite argumentos por nombre, así que su True debe ser posicional.
-"src/simulador_pddl/renderizado/renderizador.py" = ["FBT003"]
-"src/simulador_pddl/interfaz/interfaz.py" = ["FBT003"]
+"src/simulador_pddl/visualizacion/renderizador.py" = ["FBT003"]
+"src/simulador_pddl/visualizacion/panel_control.py" = ["FBT003"]
 
 [tool.ruff.lint.flake8-type-checking]
 strict = true

@@ -37,9 +37,8 @@ from simulador_pddl import (
     SacarCajaDeTransportador,
     Transportador,
 )
-from simulador_pddl.interfaz import PanelControl, interfaz
-from simulador_pddl.renderizado import Renderizador
 from simulador_pddl.simulacion import InformeVerificacion
+from simulador_pddl.visualizacion import PanelControl, Renderizador, panel_control
 
 # Los contenidos de los problemas de este módulo. Un contenido no cambia al
 # ejecutar un plan, así que todas las pruebas pueden compartirlos.
@@ -250,7 +249,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
             with self.subTest(boton=boton._texto):
                 ancho_etiqueta = boton._fuente.size(boton._texto)[0]
                 ancho_disponible = (
-                    boton._rectangulo.width - 2 * interfaz._MARGEN_ETIQUETA_BOTON
+                    boton._rectangulo.width - 2 * panel_control._MARGEN_ETIQUETA_BOTON
                 )
                 self.assertLessEqual(ancho_etiqueta, ancho_disponible)
 
