@@ -129,7 +129,7 @@ Este ejemplo y otros dos están en el directorio `tests/` (`ejemplo_basico.py`, 
 | `Dron` | `Dron(nombre, localizacion, brazos)` | Un dron, con su localización y su lista de brazos. |
 | `Caja` | `Caja(nombre, localizacion, contenido)` | Una caja, con su contenido. |
 | `Contenido` | `Contenido(nombre)` | Lo que lleva una caja y lo que necesita una persona (por ejemplo `Contenido("comida")`). Dos contenidos con el mismo nombre son el mismo. |
-| `Persona` | `Persona(nombre, localizacion, necesidades)` | Una persona, con lo que necesita: un contenido o una lista de contenidos. |
+| `Persona` | `Persona(nombre, localizacion, necesidades)` | Una persona, con lo que necesita: un contenido o una lista de contenidos distintos. |
 | `Transportador` | `Transportador(nombre, localizacion, capacidad)` | Un transportador en el que caben `capacidad` cajas. Es opcional. |
 
 ### Acciones

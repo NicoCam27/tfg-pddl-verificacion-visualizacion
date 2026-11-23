@@ -198,23 +198,19 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         )
         self.assertFalse(acciones[0].iniciada)
 
-    # TODO(NicoCam27): cuando se implemente el objeto Contenido, no existirán
-    # necesidades repetidas y este caso se quitará.
-    # NOMULTIPLECONTENT-1
     def test_caja_ya_entregada_no_se_puede_volver_a_entregar(self) -> None:
         """Comprueba que entregar una caja que la persona ya tiene falla al empezar.
 
-        La persona necesita el contenido dos veces, así que el segundo
-        ``EntregarCaja`` pasa la comprobación de necesidades. Nombra la caja que
-        entregó el primero, que ya no está en el brazo: el error tiene que decir
-        que la persona ya la tiene, no solo que el brazo está vacío. Nada cambia
-        después del error.
+        La primera entrega cubre la necesidad, y una persona no puede necesitar
+        dos veces el mismo contenido, así que el segundo ``EntregarCaja`` falla
+        porque la persona ya no lo necesita. El brazo también está vacío, pero
+        la necesidad se comprueba antes. Nada cambia después del error.
         """
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
         caja = Caja("caja1", deposito, COMIDA)
-        persona = Persona("persona1", deposito, necesidades=[COMIDA, COMIDA])
+        persona = Persona("persona1", deposito, necesidades=COMIDA)
 
         acciones = [
             CogerCaja(dron, brazo, caja, inicio_sim=0, duracion_sim=1),
@@ -234,10 +230,11 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         self.assertEqual(informe.veredicto, informe.NO_EJECUTABLE)
         self.assertEqual(
             informe.error,
-            "la caja caja1 no se puede entregar a la persona persona1, ya la posee",
+            "la caja caja1 no se puede entregar a la persona persona1: tiene "
+            "'comida', y la persona no necesita nada",
         )
         self.assertEqual(persona.posee, [caja])
-        self.assertEqual(persona.necesidades, [COMIDA])
+        self.assertEqual(persona.necesidades, [])
         self.assertIs(caja.propietario_actual, persona)
         self.assertIsNone(brazo.contenido)
 

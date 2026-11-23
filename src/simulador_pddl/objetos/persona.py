@@ -24,8 +24,9 @@ class Persona:
         nombre: El nombre de la persona en el dominio.
         localizacion: La localización donde está la persona.
         necesidades: El contenido que necesita la persona, o una lista o una tupla
-            de contenidos. Opcional: por defecto la persona no necesita nada. En
-            todos los casos la persona guarda sus necesidades como una lista.
+            de contenidos, sin repetir contenidos. Opcional: por defecto la persona
+            no necesita nada. En todos los casos la persona guarda sus necesidades
+            como una lista.
     """
 
     def __init__(
@@ -71,20 +72,11 @@ class Persona:
         """Entrega la caja a la persona y quita su contenido de las necesidades.
 
         Aquí no se comprueba nada: quien llama se asegura de que la persona
-        necesita el contenido de la caja y de que aún no la posee.
+        necesita el contenido de la caja.
         """
         self._posee.append(caja)
         caja._entregar_a(self)
         self._necesidades.remove(caja.contenido)
-
-    def _exigir_no_poseida(self, caja: Caja) -> None:
-        """Lanza ``ValueError`` si la persona ya posee ``caja``."""
-        if caja in self._posee:
-            msg_caja_poseida = (
-                f"la caja {caja.nombre} no se puede entregar a la persona "
-                f"{self._nombre}, ya la posee"
-            )
-            raise ValueError(msg_caja_poseida)
 
     # ------------------------------------------------------------------
     # Propiedades

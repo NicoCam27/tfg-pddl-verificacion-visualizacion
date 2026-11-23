@@ -106,10 +106,16 @@ def validar_objeto_contenido(contenido: object) -> None:
 
 
 def validar_necesidades(necesidades: object) -> None:
-    """Lanza ``TypeError`` si ``necesidades`` no tiene un tipo válido.
+    """Lanza un error si ``necesidades`` no tiene un tipo válido o repite un contenido.
 
     Los valores válidos son ``None``, un ``Contenido``, y una lista o una tupla de
-    objetos ``Contenido``.
+    objetos ``Contenido`` distintos. Dos contenidos con el mismo nombre son el
+    mismo contenido.
+
+    Raises:
+        TypeError: Si ``necesidades`` no es ``None``, un ``Contenido`` ni una lista
+            o una tupla de objetos ``Contenido``.
+        ValueError: Si un contenido aparece más de una vez.
     """
     from simulador_pddl.objetos.contenido import Contenido
 
@@ -126,6 +132,17 @@ def validar_necesidades(necesidades: object) -> None:
             f"de objetos Contenido, se recibió {necesidades!r}"
         )
         raise TypeError(msg_necesidades)
+
+    if isinstance(necesidades, (list, tuple)):
+        vistos: set[Contenido] = set()
+        for necesidad in necesidades:
+            if necesidad in vistos:
+                msg_necesidades_unicas = (
+                    "'necesidades' no puede repetir contenidos, "
+                    f"{con_articulo(necesidad)} aparece más de una vez"
+                )
+                raise ValueError(msg_necesidades_unicas)
+            vistos.add(necesidad)
 
 
 def validar_lista_brazos(brazos: object) -> None:

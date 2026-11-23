@@ -376,17 +376,13 @@ class Dron:
         """Comprueba que la caja se puede entregar a la persona.
 
         El dron y la persona tienen que estar en la misma localización, la
-        persona tiene que necesitar el contenido de la caja y no poseerla ya, y
-        el brazo tiene que sujetar la caja. Todavía no cambia nada: la caja sigue
-        en el brazo, y se entrega a la persona al final.
+        persona tiene que necesitar el contenido de la caja, y el brazo tiene que
+        sujetar la caja. Todavía no cambia nada: la caja sigue en el brazo, y se
+        entrega a la persona al final.
         """
         _exigir_misma_localizacion(self, persona)
 
         self._exigir_necesidad_persona(persona, caja)
-
-        # Antes que el brazo: si la persona ya posee la caja, el brazo está vacío,
-        # y el error tiene que decir que ya la posee.
-        persona._exigir_no_poseida(caja)
 
         brazo._exigir_sujetando(caja)
 

@@ -178,6 +178,26 @@ class TestExcepcionesObjetos(unittest.TestCase):
         with self.assertRaises(ValueError):
             Dron("dron1", self.deposito, [self.brazo, self.brazo])
 
+    def test_necesidades_de_una_persona_tienen_que_ser_distintas(self) -> None:
+        """Comprueba que un contenido repetido en las necesidades lanza ``ValueError``.
+
+        Dos contenidos con el mismo nombre son el mismo contenido, aunque sean
+        objetos distintos.
+        """
+        for necesidades in (
+            [COMIDA, COMIDA],
+            [COMIDA, Contenido("comida")],
+            (COMIDA, MEDICINA, COMIDA),
+        ):
+            with self.subTest(necesidades=necesidades):
+                with self.assertRaises(ValueError) as contexto:
+                    Persona("persona1", self.deposito, necesidades)
+                self.assertEqual(
+                    str(contexto.exception),
+                    "'necesidades' no puede repetir contenidos, "
+                    "el contenido comida aparece más de una vez",
+                )
+
     def test_persona_incorrecta(self) -> None:
         """Comprueba que una persona rechaza argumentos incorrectos."""
         for nombre in NO_CADENAS:
