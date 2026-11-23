@@ -8,7 +8,7 @@ de si logra los objetivos del problema, en la terminal o en una ventana de
 pygame.
 
 Todo lo que necesita un usuario se puede importar desde aquí:
-    Objetos: Localizacion, Dron, Brazo, Caja, Persona, Transportador.
+    Objetos: Localizacion, Dron, Brazo, Caja, Contenido, Persona, Transportador.
     Acciones: Mover, CogerCaja, EntregarCaja, Soltar, CogerTransportador,
         SoltarTransportador, MoverTransportador, PonerCajaEnTransportador,
         SacarCajaDeTransportador.
@@ -22,23 +22,24 @@ objetivos.
 
 Ejemplo:
     from simulador_pddl import (
-        Brazo, Caja, CogerCaja, Dron, EntregarCaja, Localizacion, Mover, Mundo,
-        Persona, PersonaTieneContenido,
+        Brazo, Caja, CogerCaja, Contenido, Dron, EntregarCaja, Localizacion,
+        Mover, Mundo, Persona, PersonaTieneContenido,
     )
 
     deposito = Localizacion("deposito")
     localizacion1 = Localizacion("localizacion1")
+    comida = Contenido("comida")
     brazo_izquierdo = Brazo("brazo-izquierdo")
     dron1 = Dron("dron1", deposito, [brazo_izquierdo])
-    caja1 = Caja("caja1", deposito, "comida")
-    persona1 = Persona("persona1", localizacion1, "comida")
+    caja1 = Caja("caja1", deposito, comida)
+    persona1 = Persona("persona1", localizacion1, comida)
 
     acciones = [
         CogerCaja(dron1, brazo_izquierdo, caja1, inicio_sim=0, duracion_sim=1),
         Mover(dron1, deposito, localizacion1, inicio_sim=1, duracion_sim=2),
         EntregarCaja(dron1, brazo_izquierdo, caja1, persona1, inicio_sim=3),
     ]
-    objetivos = [PersonaTieneContenido(persona1, "comida")]
+    objetivos = [PersonaTieneContenido(persona1, comida)]
 
     mundo = Mundo(
         acciones,
@@ -46,6 +47,7 @@ Ejemplo:
         drones=[dron1],
         cajas=[caja1],
         personas=[persona1],
+        contenidos=[comida],
         objetivos=objetivos,
     )
     informe = mundo.simulacion_texto()
@@ -74,6 +76,7 @@ from simulador_pddl.objetivos import (
 from simulador_pddl.objetos import (
     Brazo,
     Caja,
+    Contenido,
     Dron,
     Localizacion,
     Persona,
@@ -87,6 +90,7 @@ __all__ = [
     "Caja",
     "CogerCaja",
     "CogerTransportador",
+    "Contenido",
     "Dron",
     "DronEnLocalizacion",
     "EntregarCaja",

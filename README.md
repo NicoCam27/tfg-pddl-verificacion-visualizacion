@@ -50,9 +50,6 @@ Ejemplo básico:
 from simulador_pddl import *
 
 # Objetos del dominio
-from simulador_pddl import *
-
-# Objetos del dominio
 deposito = Localizacion("deposito")
 localizacion1 = Localizacion("localizacion1")
 localizacion2 = Localizacion("localizacion2")
@@ -62,11 +59,14 @@ der = Brazo("der")
 
 dron1 = Dron("dron1", deposito, [izq, der])
 
-caja1 = Caja("caja1", deposito, "comida")
-caja2 = Caja("caja2", deposito, "medicina")
+comida = Contenido("comida")
+medicina = Contenido("medicina")
 
-persona1 = Persona("persona1", localizacion1, "comida")
-persona2 = Persona("persona2", localizacion2, "medicina")
+caja1 = Caja("caja1", deposito, comida)
+caja2 = Caja("caja2", deposito, medicina)
+
+persona1 = Persona("persona1", localizacion1, comida)
+persona2 = Persona("persona2", localizacion2, medicina)
 
 # Plan: cada acción indica cuándo empieza (inicio_sim) y cuánto dura (duracion_sim)
 acciones = [
@@ -84,11 +84,12 @@ localizaciones = [deposito, localizacion1, localizacion2]
 drones = [dron1]
 cajas = [caja1, caja2]
 personas = [persona1, persona2]
+contenidos = [comida, medicina]
 
 # Objetivos: lo que debe cumplirse cuando el plan termina
 objetivos = [
-    PersonaTieneContenido(persona1, "comida"),
-    PersonaTieneContenido(persona2, "medicina"),
+    PersonaTieneContenido(persona1, comida),
+    PersonaTieneContenido(persona2, medicina),
     DronEnLocalizacion(dron1, deposito),
 ]
 
@@ -98,6 +99,7 @@ nuevo_mundo = Mundo(
     drones=drones,
     cajas=cajas,
     personas=personas,
+    contenidos=contenidos,
     objetivos=objetivos,
 )
 
@@ -125,7 +127,8 @@ Este ejemplo y otros dos están en el directorio `tests/` (`ejemplo_basico.py`, 
 | `Localizacion` | `Localizacion(nombre)` | Un lugar. Dos localizaciones con el mismo nombre son la misma. |
 | `Brazo` | `Brazo(nombre)` | Un brazo de un dron. Sujeta como máximo una caja, o queda reservado por el transportador que lleva. |
 | `Dron` | `Dron(nombre, localizacion, brazos)` | Un dron, con su localización y su lista de brazos. |
-| `Caja` | `Caja(nombre, localizacion, contenido)` | Una caja, con su contenido (por ejemplo `"comida"`). |
+| `Caja` | `Caja(nombre, localizacion, contenido)` | Una caja, con su contenido. |
+| `Contenido` | `Contenido(nombre)` | Lo que lleva una caja y lo que necesita una persona (por ejemplo `Contenido("comida")`). Dos contenidos con el mismo nombre son el mismo. |
 | `Persona` | `Persona(nombre, localizacion, necesidades)` | Una persona, con lo que necesita: un contenido o una lista de contenidos. |
 | `Transportador` | `Transportador(nombre, localizacion, capacidad)` | Un transportador en el que caben `capacidad` cajas. Es opcional. |
 
@@ -183,13 +186,16 @@ der = Brazo("der")
 
 dron1 = Dron("dron1", deposito, [izq, der])
 
-caja1 = Caja("caja1", deposito, "comida")
-caja2 = Caja("caja2", deposito, "medicina")
+comida = Contenido("comida")
+medicina = Contenido("medicina")
+
+caja1 = Caja("caja1", deposito, comida)
+caja2 = Caja("caja2", deposito, medicina)
 
 transportador1 = Transportador("transportador1", deposito, 2)
 
-persona1 = Persona("persona1", localizacion1, "comida")
-persona2 = Persona("persona2", localizacion2, "medicina")
+persona1 = Persona("persona1", localizacion1, comida)
+persona2 = Persona("persona2", localizacion2, medicina)
 
 acciones = [
     CogerCaja(dron1, izq, caja1, 0, 1),
@@ -208,14 +214,15 @@ acciones = [
 drones = [dron1]
 cajas = [caja1, caja2]
 personas = [persona1, persona2]
+contenidos = [comida, medicina]
 transportadores = [transportador1]
 
 
 # El problema se resuelve cuando cada persona tiene lo que necesita y el dron ha
 # vuelto al depósito. El transportador se queda donde se sacó la última caja.
 objetivos = [
-    PersonaTieneContenido(persona1, "comida"),
-    PersonaTieneContenido(persona2, "medicina"),
+    PersonaTieneContenido(persona1, comida),
+    PersonaTieneContenido(persona2, medicina),
     DronEnLocalizacion(dron1, deposito),
     TransportadorEnLocalizacion(transportador1, localizacion2),
 ]
@@ -226,6 +233,7 @@ nuevo_mundo = Mundo(
     drones=drones,
     cajas=cajas,
     personas=personas,
+    contenidos=contenidos,
     transportadores=transportadores,
     objetivos=objetivos,
 )

@@ -2,7 +2,8 @@
 
 Una ``Simulacion`` se construye a partir de las acciones del plan, los objetos
 del problema y, si los hay, sus objetivos. Al construirse comprueba que cada
-acción y cada objetivo solo se refieren a objetos declarados, que ningún
+acción y cada objetivo solo se refieren a objetos declarados, que las cajas y
+las personas solo usan contenidos declarados, que ningún
 objetivo es imposible de lograr desde el estado inicial y que a ningún dron se
 le pide moverse mientras hace otra cosa, ni a un brazo hacer dos cosas a la vez.
 
@@ -33,6 +34,7 @@ from simulador_pddl.objetivos import Objetivo
 from simulador_pddl.objetos import (
     Brazo,
     Caja,
+    Contenido,
     Dron,
     Localizacion,
     Persona,
@@ -113,6 +115,8 @@ class Simulacion:
         drones: Los drones del problema.
         cajas: Las cajas del problema.
         personas: Las personas del problema.
+        contenidos: Los contenidos del problema: los de las cajas, las
+            necesidades de las personas y los de los objetivos.
         transportadores: Los transportadores del problema. Opcional: ``None``
             (por defecto) significa que el problema no tiene transportadores, así
             que se rechaza un plan que use alguno.
@@ -134,6 +138,7 @@ class Simulacion:
         drones: Sequence[Dron],
         cajas: Sequence[Caja],
         personas: Sequence[Persona],
+        contenidos: Sequence[Contenido],
         transportadores: Sequence[Transportador] | None = None,
         objetivos: Sequence[Objetivo] | None = None,
     ) -> None:
@@ -143,6 +148,8 @@ class Simulacion:
         self._drones = _lista_tipada(drones, Dron, "drones")
         self._cajas = _lista_tipada(cajas, Caja, "cajas")
         self._personas = _lista_tipada(personas, Persona, "personas")
+        self._contenidos = _lista_tipada(contenidos, Contenido, "contenidos")
+        self._exigir_contenidos_declarados()
 
         # Los transportadores son opcionales: un problema sin ellos es válido, no
         # un error. Sin una lista de transportadores esto es None.
@@ -253,12 +260,40 @@ class Simulacion:
             if not isinstance(objeto, Brazo):
                 self._exigir_dentro(objeto, self._lista_declarada(objeto))
 
+    def _exigir_contenidos_declarados(self) -> None:
+        """Lanza ``ValueError`` si una caja o una persona usa un contenido no declarado.
+
+        Un contenido mal escrito daría un veredicto falso sobre el plan, así que
+        se rechaza al construir: la caja no se podría entregar, o la necesidad no
+        se podría cubrir.
+        """
+        for caja in self._cajas:
+            if caja.contenido not in self._contenidos:
+                msg_contenido_caja = (
+                    f"{con_articulo(caja.contenido)} de la caja {caja.nombre} no "
+                    f"aparece en la lista de {tipo_en_plural(caja.contenido)} dada"
+                )
+                raise ValueError(msg_contenido_caja)
+
+        for persona in self._personas:
+            for necesidad in persona.necesidades:
+                if necesidad not in self._contenidos:
+                    msg_necesidad_persona = (
+                        f"{con_articulo(necesidad)} que necesita la persona "
+                        f"{persona.nombre} no aparece en la lista de "
+                        f"{tipo_en_plural(necesidad)} dada"
+                    )
+                    raise ValueError(msg_necesidad_persona)
+
     def _lista_declarada(
-        self, objeto: Caja | Dron | Localizacion | Persona | Transportador
+        self,
+        objeto: Caja | Contenido | Dron | Localizacion | Persona | Transportador,
     ) -> Sequence[object]:
         """Devuelve la lista de objetos del tipo de ``objeto`` que se dio."""
         if isinstance(objeto, Caja):
             return self._cajas
+        if isinstance(objeto, Contenido):
+            return self._contenidos
         if isinstance(objeto, Dron):
             return self._drones
         if isinstance(objeto, Localizacion):

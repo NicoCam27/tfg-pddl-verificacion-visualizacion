@@ -25,14 +25,17 @@ objetos y los tiempos de la acción, p. ej.
 Ejemplo:
     from simulador_pddl import Mundo
     from simulador_pddl.acciones import CogerCaja, EntregarCaja, Mover
-    from simulador_pddl.objetos import Brazo, Caja, Dron, Localizacion, Persona
+    from simulador_pddl.objetos import (
+        Brazo, Caja, Contenido, Dron, Localizacion, Persona,
+    )
 
     deposito = Localizacion("deposito")
     localizacion1 = Localizacion("localizacion1")
+    comida = Contenido("comida")
     brazo_izquierdo = Brazo("brazo-izquierdo")
     dron1 = Dron("dron1", deposito, [brazo_izquierdo])
-    caja1 = Caja("caja1", deposito, "comida")
-    persona1 = Persona("persona1", localizacion1, "comida")
+    caja1 = Caja("caja1", deposito, comida)
+    persona1 = Persona("persona1", localizacion1, comida)
 
     acciones = [
         CogerCaja(dron1, brazo_izquierdo, caja1, inicio_sim=0, duracion_sim=1),
@@ -46,6 +49,7 @@ Ejemplo:
         drones=[dron1],
         cajas=[caja1],
         personas=[persona1],
+        contenidos=[comida],
     )
     informe = mundo.simulacion_texto()
 """

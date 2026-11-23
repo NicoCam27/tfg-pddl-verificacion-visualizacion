@@ -24,6 +24,7 @@ from simulador_pddl import (
     Brazo,
     Caja,
     CogerCaja,
+    Contenido,
     Dron,
     EntregarCaja,
     Localizacion,
@@ -39,6 +40,13 @@ from simulador_pddl import (
 from simulador_pddl.interfaz import PanelControl, interfaz
 from simulador_pddl.renderizado import Renderizador
 from simulador_pddl.simulacion import InformeVerificacion
+
+# Los contenidos de los problemas de este módulo. Un contenido no cambia al
+# ejecutar un plan, así que todas las pruebas pueden compartirlos.
+COMIDA = Contenido("comida")
+MEDICINA = Contenido("medicina")
+CONTENIDOS = (COMIDA, MEDICINA)
+
 
 TAMANO_VENTANA = (1000, 700)
 
@@ -56,11 +64,11 @@ def crear_mundo() -> Mundo:
     izquierda = Brazo("izquierda")
     derecha = Brazo("derecha")
     dron = Dron("dron1", deposito, [izquierda, derecha])
-    caja1 = Caja("caja1", deposito, "comida")
-    caja2 = Caja("caja2", deposito, "medicina")
+    caja1 = Caja("caja1", deposito, COMIDA)
+    caja2 = Caja("caja2", deposito, MEDICINA)
     transportador = Transportador("transportador1", deposito, 2)
-    persona1 = Persona("persona1", loc1, "comida")
-    persona2 = Persona("persona2", loc2, ["medicina"])
+    persona1 = Persona("persona1", loc1, COMIDA)
+    persona2 = Persona("persona2", loc2, [MEDICINA])
 
     acciones = [
         CogerCaja(dron, izquierda, caja1, 0, 1),
@@ -73,8 +81,8 @@ def crear_mundo() -> Mundo:
         EntregarCaja(dron, izquierda, caja2, persona2, 9, 1),
     ]
     objetivos = [
-        PersonaTieneContenido(persona1, "comida"),
-        PersonaTieneContenido(persona2, "medicina"),
+        PersonaTieneContenido(persona1, COMIDA),
+        PersonaTieneContenido(persona2, MEDICINA),
     ]
 
     return Mundo(
@@ -83,6 +91,7 @@ def crear_mundo() -> Mundo:
         drones=[dron],
         cajas=[caja1, caja2],
         personas=[persona1, persona2],
+        contenidos=CONTENIDOS,
         transportadores=[transportador],
         objetivos=objetivos,
     )

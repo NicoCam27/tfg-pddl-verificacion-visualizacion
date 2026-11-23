@@ -5,20 +5,17 @@ from typing import TYPE_CHECKING
 from simulador_pddl.objetos.utilidades_objetos import (
     con_articulo,
     con_preposicion_a,
-    validar_contenido,
     validar_nombre,
+    validar_objeto_contenido,
     validar_objeto_localizacion,
 )
 
 if TYPE_CHECKING:
+    from simulador_pddl.objetos.contenido import Contenido
     from simulador_pddl.objetos.dron import Dron
     from simulador_pddl.objetos.localizacion import Localizacion
     from simulador_pddl.objetos.persona import Persona
     from simulador_pddl.objetos.transportador import Transportador
-
-
-# TODO(NicoCam27): contenido debería ser un objeto Contenido en lugar de una cadena.
-# CONTENT-1
 
 
 class Caja:
@@ -33,18 +30,20 @@ class Caja:
     Args:
         nombre: El nombre de la caja en el dominio.
         localizacion: La localización donde empieza la caja.
-        contenido: Lo que contiene la caja, p. ej. ``"comida"``. Solo se puede
-            entregar a una persona que lo necesita.
+        contenido: Lo que contiene la caja, p. ej. ``Contenido("comida")``. Solo
+            se puede entregar a una persona que lo necesita.
     """
 
     DISPONIBLE = "disponible"
     TRANSPORTADA = "transportada"
     ENTREGADA = "entregada"
 
-    def __init__(self, nombre: str, localizacion: Localizacion, contenido: str) -> None:
+    def __init__(
+        self, nombre: str, localizacion: Localizacion, contenido: Contenido
+    ) -> None:
         validar_nombre(nombre)
         validar_objeto_localizacion(localizacion)
-        validar_contenido(contenido)
+        validar_objeto_contenido(contenido)
 
         self._nombre = nombre
         self._localizacion = localizacion
@@ -145,8 +144,8 @@ class Caja:
         return self._localizacion
 
     @property
-    def contenido(self) -> str:
-        """Lo que contiene la caja, p. ej. ``"comida"``."""
+    def contenido(self) -> Contenido:
+        """Lo que contiene la caja, p. ej. ``Contenido("comida")``."""
         return self._contenido
 
     @property

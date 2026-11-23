@@ -4,10 +4,16 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from simulador_pddl.objetos import Dron, Localizacion, Persona, Transportador
+    from simulador_pddl.objetos import (
+        Contenido,
+        Dron,
+        Localizacion,
+        Persona,
+        Transportador,
+    )
 
 # Los objetos a los que puede referirse un objetivo: nunca un brazo ni una caja.
-type ObjetoReferenciado = Dron | Localizacion | Persona | Transportador
+type ObjetoReferenciado = Contenido | Dron | Localizacion | Persona | Transportador
 
 
 class Objetivo(ABC):
@@ -19,11 +25,11 @@ class Objetivo(ABC):
     Mientras se ejecuta, también se anota cuándo empieza y deja de cumplirse cada
     uno (ver ``EstadoObjetivo``).
 
-    El usuario construye los objetivos que da la biblioteca, pero no define
-    otros: los métodos que hay que implementar son privados. Una subclase tiene
-    que implementar ``_se_cumple()``, ``_describir()``, ``_explicar_fallo()`` y
-    ``_objetos_referenciados()``, y puede sobrescribir ``_validar_alcanzable()``
-    si hay estados iniciales en los que no se puede lograr.
+    Solo la biblioteca define subclases, así que sus métodos son privados. Una
+    subclase tiene que implementar ``_se_cumple()``, ``_describir()``,
+    ``_explicar_fallo()`` y ``_objetos_referenciados()``, y puede sobrescribir
+    ``_validar_alcanzable()`` si hay estados iniciales en los que no se puede
+    lograr.
     """
 
     def __str__(self) -> str:

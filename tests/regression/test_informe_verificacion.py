@@ -20,6 +20,7 @@ from simulador_pddl import (
     Brazo,
     Caja,
     CogerCaja,
+    Contenido,
     Dron,
     DronEnLocalizacion,
     EntregarCaja,
@@ -37,6 +38,12 @@ if TYPE_CHECKING:
     from simulador_pddl.simulacion import InformeVerificacion
 
 
+# Los contenidos de los problemas de este módulo. Un contenido no cambia al
+# ejecutar un plan, así que todas las pruebas pueden compartirlos.
+COMIDA = Contenido("comida")
+CONTENIDOS = (COMIDA,)
+
+
 class TestInformeNoSigueALaSimulacion(unittest.TestCase):
     """Un informe no cambia cuando cambia su simulación."""
 
@@ -47,8 +54,8 @@ class TestInformeNoSigueALaSimulacion(unittest.TestCase):
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
-        persona = Persona("persona1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
+        persona = Persona("persona1", deposito, COMIDA)
         self.mundo = Mundo(
             [
                 CogerCaja(dron, brazo, caja, 0, 1),
@@ -58,7 +65,8 @@ class TestInformeNoSigueALaSimulacion(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[persona],
-            objetivos=[PersonaTieneContenido(persona, "comida")],
+            contenidos=CONTENIDOS,
+            objetivos=[PersonaTieneContenido(persona, COMIDA)],
         )
 
     def ejecutar_plan(self) -> InformeVerificacion:
@@ -116,6 +124,7 @@ class TestExplicacionFalloNoSigueALaSimulacion(unittest.TestCase):
             drones=[self.dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             objetivos=[DronEnLocalizacion(self.dron, self.meta)],
         )
 
@@ -146,8 +155,8 @@ class TestEjecucionSinTerminar(unittest.TestCase):
         localizacion1 = Localizacion("localizacion1")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
-        persona = Persona("persona1", localizacion1, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
+        persona = Persona("persona1", localizacion1, COMIDA)
         # La caja se entrega en t=3, cuando termina EntregarCaja, y siguen dos
         # movimientos más.
         self.mundo = Mundo(
@@ -162,7 +171,8 @@ class TestEjecucionSinTerminar(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[persona],
-            objetivos=[PersonaTieneContenido(persona, "comida")],
+            contenidos=CONTENIDOS,
+            objetivos=[PersonaTieneContenido(persona, COMIDA)],
         )
         self.simulacion = self.mundo._simulacion
 
@@ -236,6 +246,7 @@ class TestPlanSinObjetivos(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             objetivos=objetivos_para(dron, localizacion1),
         )
         with contextlib.redirect_stdout(io.StringIO()):
@@ -271,6 +282,7 @@ class TestPlanSinObjetivos(unittest.TestCase):
             drones=[Dron("dron1", deposito, [Brazo("brazo")])],
             cajas=[],
             personas=[],
+            contenidos=[],
         )
         with contextlib.redirect_stdout(io.StringIO()):
             informe = mundo.simulacion_texto()
@@ -297,6 +309,7 @@ class TestPeriodosDeObjetivos(unittest.TestCase):
             drones=[self.dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             objetivos=[DronEnLocalizacion(self.dron, self.deposito)],
         )
         with contextlib.redirect_stdout(io.StringIO()):
@@ -351,8 +364,8 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
         deposito = Localizacion("deposito")
         self.brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [self.brazo])
-        self.caja = Caja("caja1", deposito, "comida")
-        self.persona = Persona("persona1", deposito, "comida")
+        self.caja = Caja("caja1", deposito, COMIDA)
+        self.persona = Persona("persona1", deposito, COMIDA)
         self.mundo = Mundo(
             [
                 CogerCaja(dron, self.brazo, self.caja, 0, 1),
@@ -362,7 +375,8 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
             drones=[dron],
             cajas=[self.caja],
             personas=[self.persona],
-            objetivos=[PersonaTieneContenido(self.persona, "comida")],
+            contenidos=CONTENIDOS,
+            objetivos=[PersonaTieneContenido(self.persona, COMIDA)],
         )
 
     def test_objetivo_de_entrega_se_logra_al_terminar_la_entrega(self) -> None:
@@ -389,7 +403,7 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
 
         self.assertIs(self.brazo.contenido, self.caja)
         self.assertNotIn(self.caja, self.persona.posee)
-        self.assertEqual(self.persona.necesidades, ["comida"])
+        self.assertEqual(self.persona.necesidades, [COMIDA])
         estado = self.mundo.verificar().estados_objetivos[0]
         self.assertFalse(estado.cumplido)
         self.assertIsNone(estado.logrado_en)

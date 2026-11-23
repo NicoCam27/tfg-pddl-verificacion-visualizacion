@@ -10,11 +10,14 @@ der = Brazo("der")
 
 dron1 = Dron("dron1", deposito, [izq, der])
 
-caja1 = Caja("caja1", deposito, "comida")
-caja2 = Caja("caja2", deposito, "medicina")
+comida = Contenido("comida")
+medicina = Contenido("medicina")
 
-persona1 = Persona("persona1", localizacion1, "comida")
-persona2 = Persona("persona2", localizacion2, "medicina")
+caja1 = Caja("caja1", deposito, comida)
+caja2 = Caja("caja2", deposito, medicina)
+
+persona1 = Persona("persona1", localizacion1, comida)
+persona2 = Persona("persona2", localizacion2, medicina)
 
 # Plan: cada acción indica cuándo empieza (inicio_sim) y cuánto dura (duracion_sim)
 acciones = [
@@ -32,11 +35,12 @@ localizaciones = [deposito, localizacion1, localizacion2]
 drones = [dron1]
 cajas = [caja1, caja2]
 personas = [persona1, persona2]
+contenidos = [comida, medicina]
 
 # Objetivos: lo que debe cumplirse cuando el plan termina
 objetivos = [
-    PersonaTieneContenido(persona1, "comida"),
-    PersonaTieneContenido(persona2, "medicina"),
+    PersonaTieneContenido(persona1, comida),
+    PersonaTieneContenido(persona2, medicina),
     DronEnLocalizacion(dron1, deposito),
 ]
 
@@ -46,6 +50,7 @@ nuevo_mundo = Mundo(
     drones=drones,
     cajas=cajas,
     personas=personas,
+    contenidos=contenidos,
     objetivos=objetivos,
 )
 

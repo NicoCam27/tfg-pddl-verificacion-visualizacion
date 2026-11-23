@@ -10,7 +10,14 @@ if TYPE_CHECKING:
     from simulador_pddl.acciones import Accion
     from simulador_pddl.interfaz.interfaz import _ComandoPanel
     from simulador_pddl.objetivos import Objetivo
-    from simulador_pddl.objetos import Caja, Dron, Localizacion, Persona, Transportador
+    from simulador_pddl.objetos import (
+        Caja,
+        Contenido,
+        Dron,
+        Localizacion,
+        Persona,
+        Transportador,
+    )
     from simulador_pddl.simulacion import InformeVerificacion
 
 
@@ -19,8 +26,9 @@ class Mundo:
 
     Un mundo se construye a partir de un plan y del problema que el plan debería
     resolver. Al construirlo solo se comprueba lo que se ve sin ejecutar el plan:
-    que cada acción y cada objetivo usen objetos declarados, que ningún objetivo
-    sea imposible de lograr, que ningún dron se mueva mientras hace otra cosa y
+    que cada acción y cada objetivo usen objetos declarados, que las cajas y las
+    personas usen contenidos declarados, que ningún objetivo sea imposible de
+    lograr, que ningún dron se mueva mientras hace otra cosa y
     que ningún brazo haga dos cosas a la vez. Si algo falla, se lanza una
     excepción. Lo demás se comprueba al ejecutarlo con
     ``simulacion_texto()`` o ``simulacion_visual()``: si cada acción se puede
@@ -39,6 +47,8 @@ class Mundo:
         drones: Los drones del problema.
         cajas: Las cajas del problema.
         personas: Las personas del problema.
+        contenidos: Los contenidos del problema: los de las cajas, las
+            necesidades de las personas y los de los objetivos.
         transportadores: Los transportadores del problema. Opcional: ``None``
             (por defecto) significa que el problema no tiene transportadores, así
             que se rechaza un plan que use alguno.
@@ -52,7 +62,8 @@ class Mundo:
             tipo esperado, o si un objetivo se refiere a algo que no es un objeto
             del dominio.
         ValueError: Si una acción o un objetivo usa un objeto que no está en su
-            lista (o un transportador, si no se dan transportadores), si ningún
+            lista (o un transportador, si no se dan transportadores), si una caja
+            o una persona usa un contenido que no está en ``contenidos``, si ningún
             plan puede lograr un objetivo, si un dron se mueve mientras hace otra
             cosa o si un brazo hace dos cosas a la vez.
 
@@ -63,6 +74,7 @@ class Mundo:
             drones=[dron],
             cajas=[caja],
             personas=[persona],
+            contenidos=[comida],
             objetivos=objetivos,
         )
         informe = mundo.simulacion_texto()
@@ -77,6 +89,7 @@ class Mundo:
         drones: Sequence[Dron],
         cajas: Sequence[Caja],
         personas: Sequence[Persona],
+        contenidos: Sequence[Contenido],
         transportadores: Sequence[Transportador] | None = None,
         objetivos: Sequence[Objetivo] | None = None,
     ) -> None:
@@ -88,6 +101,7 @@ class Mundo:
             drones=drones,
             cajas=cajas,
             personas=personas,
+            contenidos=contenidos,
             transportadores=transportadores,
             objetivos=objetivos,
         )

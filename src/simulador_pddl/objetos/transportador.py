@@ -116,7 +116,8 @@ class Transportador:
         propietario = self._propietario_actual
         brazo = self._brazo_actual
         # El propietario y el brazo siempre se ponen a la vez (_coger(), _soltar()),
-        # así que o los dos son None o ninguno lo es.
+        # así que o los dos son None o ninguno lo es. Se sale si cualquiera lo es
+        # para que mypy sepa que ninguno es None al construir el mensaje.
         if propietario is None or brazo is None:
             return
 

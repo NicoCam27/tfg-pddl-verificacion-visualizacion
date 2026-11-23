@@ -25,6 +25,7 @@ from simulador_pddl import (
     Caja,
     CogerCaja,
     CogerTransportador,
+    Contenido,
     Dron,
     DronEnLocalizacion,
     EntregarCaja,
@@ -43,6 +44,12 @@ if TYPE_CHECKING:
     from simulador_pddl import Accion
 
 
+# Los contenidos de los problemas de este módulo. Un contenido no cambia al
+# ejecutar un plan, así que todas las pruebas pueden compartirlos.
+COMIDA = Contenido("comida")
+CONTENIDOS = (COMIDA,)
+
+
 class TestStrObjetos(unittest.TestCase):
     """``str()`` de objetos que se sujetan o se poseen entre sí."""
 
@@ -53,8 +60,8 @@ class TestStrObjetos(unittest.TestCase):
         self.deposito = Localizacion("deposito")
         self.brazo = Brazo("brazo")
         self.dron = Dron("dron1", self.deposito, [self.brazo])
-        self.caja = Caja("caja1", self.deposito, "comida")
-        self.persona = Persona("persona1", self.deposito, "comida")
+        self.caja = Caja("caja1", self.deposito, COMIDA)
+        self.persona = Persona("persona1", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 2)
 
     def ejecutar_plan(self, acciones: list[Accion]) -> None:
@@ -65,6 +72,7 @@ class TestStrObjetos(unittest.TestCase):
             drones=[self.dron],
             cajas=[self.caja],
             personas=[self.persona],
+            contenidos=CONTENIDOS,
             transportadores=[self.transportador],
             objetivos=[],
         )
@@ -120,6 +128,17 @@ class TestStrObjetos(unittest.TestCase):
             "propietario_actual=nadie, brazo_actual=None", str(self.transportador)
         )
 
+    def test_contenido_en_una_caja_y_en_una_persona(self) -> None:
+        """Comprueba que un contenido se muestra por su nombre.
+
+        ``repr()`` es la llamada que lo construye, y ``str()``, solo el nombre,
+        como en una localización.
+        """
+        self.assertEqual(repr(COMIDA), "Contenido('comida')")
+        self.assertEqual(str(COMIDA), "comida")
+        self.assertIn("contenido=comida", str(self.caja))
+        self.assertIn("necesidades=['comida']", str(self.persona))
+
 
 class TestReprObjetivos(unittest.TestCase):
     """``repr()`` de cada tipo de objetivo."""
@@ -128,7 +147,7 @@ class TestReprObjetivos(unittest.TestCase):
         """Crea los objetos a los que se refieren los objetivos."""
         self.deposito = Localizacion("deposito")
         self.dron = Dron("dron1", self.deposito, [Brazo("brazo")])
-        self.persona = Persona("persona1", self.deposito, "comida")
+        self.persona = Persona("persona1", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 2)
 
     def test_persona_tiene_contenido(self) -> None:
@@ -136,9 +155,10 @@ class TestReprObjetivos(unittest.TestCase):
 
         ``repr()`` muestra la llamada que lo construye, y ``str()``, su descripción.
         """
-        objetivo = PersonaTieneContenido(self.persona, "comida")
+        objetivo = PersonaTieneContenido(self.persona, COMIDA)
         self.assertEqual(
-            repr(objetivo), "PersonaTieneContenido(Persona('persona1'), 'comida')"
+            repr(objetivo),
+            "PersonaTieneContenido(Persona('persona1'), Contenido('comida'))",
         )
         self.assertEqual(str(objetivo), objetivo._describir())
 
@@ -162,12 +182,12 @@ class TestReprObjetivos(unittest.TestCase):
     def test_una_lista_de_objetivos_muestra_cada_objetivo(self) -> None:
         """Comprueba que una lista de objetivos no muestra direcciones de memoria."""
         objetivos = [
-            PersonaTieneContenido(self.persona, "comida"),
+            PersonaTieneContenido(self.persona, COMIDA),
             DronEnLocalizacion(self.dron, self.deposito),
         ]
         self.assertEqual(
             str(objetivos),
-            "[PersonaTieneContenido(Persona('persona1'), 'comida'), "
+            "[PersonaTieneContenido(Persona('persona1'), Contenido('comida')), "
             "DronEnLocalizacion(Dron('dron1'), Localizacion('deposito'))]",
         )
         self.assertEqual(str(objetivos[0]), objetivos[0]._describir())
@@ -182,7 +202,7 @@ class TestReprAcciones(unittest.TestCase):
         self.loc1 = Localizacion("loc1")
         self.brazo = Brazo("brazo")
         self.dron = Dron("dron1", self.deposito, [self.brazo])
-        self.caja = Caja("caja1", self.deposito, "comida")
+        self.caja = Caja("caja1", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 2)
 
     def test_objetos_en_el_orden_de_los_argumentos(self) -> None:
@@ -233,6 +253,7 @@ class TestReprMundoEInforme(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             objetivos=[DronEnLocalizacion(dron, loc1)],
         )
 

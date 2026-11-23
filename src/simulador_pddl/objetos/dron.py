@@ -362,12 +362,10 @@ class Dron:
 
     def _exigir_necesidad_persona(self, persona: Persona, caja: Caja) -> None:
         """Lanza ``ValueError`` si la persona no necesita el contenido de la caja."""
-        # TODO(NicoCam27): usar el objeto Contenido.
-        # CONTENT-1
         if caja.contenido not in persona.necesidades:
             msg_necesidad_persona = (
                 f"la caja {caja.nombre} no se puede entregar a la persona "
-                f"{persona.nombre}: tiene {caja.contenido!r}, y la persona "
+                f"{persona.nombre}: tiene '{caja.contenido}', y la persona "
                 f"{describir_necesidades(persona.necesidades)}"
             )
             raise ValueError(msg_necesidad_persona)

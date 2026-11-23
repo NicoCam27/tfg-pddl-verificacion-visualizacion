@@ -37,6 +37,7 @@ from simulador_pddl.objetivos import (
 from simulador_pddl.objetos import (
     Brazo,
     Caja,
+    Contenido,
     Dron,
     Localizacion,
     Persona,
@@ -46,6 +47,13 @@ from simulador_pddl.simulacion import InformeVerificacion
 
 if TYPE_CHECKING:
     from simulador_pddl.acciones import Accion
+
+# Los contenidos de los problemas de este módulo. Un contenido no cambia al
+# ejecutar un plan, así que todas las pruebas pueden compartirlos.
+COMIDA = Contenido("comida")
+MEDICINA = Contenido("medicina")
+CONTENIDOS = (COMIDA, MEDICINA)
+
 
 # Valores que no son una cadena, para los argumentos que tienen que serlo.
 NO_CADENAS = (
@@ -62,6 +70,9 @@ NO_CADENAS = (
 
 # Valores que no son una localización.
 NO_LOCALIZACIONES = ("deposito", 5, None, ["deposito"])
+
+# Valores que no son un contenido. Una cadena tampoco lo es.
+NO_CONTENIDOS = ("comida", 5, None, [COMIDA])
 
 # Valores que no son un número, para inicio_sim y duracion_sim. Un bool es un int
 # para Python, pero no un tiempo.
@@ -88,6 +99,21 @@ class TestExcepcionesObjetos(unittest.TestCase):
             with self.subTest(nombre=nombre), self.assertRaises(TypeError):
                 Localizacion(nombre)  # type: ignore[arg-type]
 
+    def test_contenido_incorrecto(self) -> None:
+        """Comprueba que un contenido rechaza un nombre que no es una cadena."""
+        for nombre in NO_CADENAS:
+            with self.subTest(nombre=nombre), self.assertRaises(TypeError):
+                Contenido(nombre)  # type: ignore[arg-type]
+
+    def test_nombre_de_localizacion_y_contenido_es_de_solo_lectura(self) -> None:
+        """Comprueba que el nombre de una localización o un contenido no se cambia.
+
+        Los dos se comparan por nombre, y su hash depende de él.
+        """
+        for objeto in (Localizacion("deposito"), Contenido("comida")):
+            with self.subTest(objeto=objeto), self.assertRaises(AttributeError):
+                objeto.nombre = "otro"  # type: ignore[misc]
+
     def test_caja_incorrecta(self) -> None:
         """Comprueba que una caja rechaza argumentos incorrectos.
 
@@ -95,13 +121,13 @@ class TestExcepcionesObjetos(unittest.TestCase):
         """
         for nombre in NO_CADENAS:
             with self.subTest(nombre=nombre), self.assertRaises(TypeError):
-                Caja(nombre, self.deposito, "comida")  # type: ignore[arg-type]
+                Caja(nombre, self.deposito, COMIDA)  # type: ignore[arg-type]
 
         for localizacion in NO_LOCALIZACIONES:
             with self.subTest(localizacion=localizacion), self.assertRaises(TypeError):
-                Caja("caja1", localizacion, "comida")  # type: ignore[arg-type]
+                Caja("caja1", localizacion, COMIDA)  # type: ignore[arg-type]
 
-        for contenido in NO_CADENAS:
+        for contenido in NO_CONTENIDOS:
             with self.subTest(contenido=contenido), self.assertRaises(TypeError):
                 Caja("caja1", self.deposito, contenido)  # type: ignore[arg-type]
 
@@ -156,24 +182,22 @@ class TestExcepcionesObjetos(unittest.TestCase):
         """Comprueba que una persona rechaza argumentos incorrectos."""
         for nombre in NO_CADENAS:
             with self.subTest(nombre=nombre), self.assertRaises(TypeError):
-                Persona(nombre, self.deposito, "comida")  # type: ignore[arg-type]
+                Persona(nombre, self.deposito, COMIDA)  # type: ignore[arg-type]
 
         for localizacion in NO_LOCALIZACIONES:
             with self.subTest(localizacion=localizacion), self.assertRaises(TypeError):
-                Persona("persona1", localizacion, "comida")  # type: ignore[arg-type]
-
-        # TODO(NicoCam27): necesidades será únicamente una lista de contenidos en
-        # una actualización futura.
-        # NEEDS-2
+                Persona("persona1", localizacion, COMIDA)  # type: ignore[arg-type]
 
         # Las necesidades son un contenido, o una lista o una tupla de contenidos, y
-        # un contenido es una cadena.
+        # una cadena no es un contenido.
         for necesidades in (
+            "comida",
+            ["comida"],
             5,
             True,
-            {"comida"},
-            ["comida", 5],
-            ("comida", 5),
+            {COMIDA},
+            [COMIDA, 5],
+            (COMIDA, 5),
             [None],
         ):
             with self.subTest(necesidades=necesidades), self.assertRaises(TypeError):
@@ -190,8 +214,8 @@ class TestExcepcionesAcciones(unittest.TestCase):
         self.brazo = Brazo("brazo")
         self.otro_brazo = Brazo("otro-brazo")
         self.dron = Dron("dron1", self.deposito, [self.brazo])
-        self.caja = Caja("caja1", self.deposito, "comida")
-        self.persona = Persona("persona1", self.deposito, "comida")
+        self.caja = Caja("caja1", self.deposito, COMIDA)
+        self.persona = Persona("persona1", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 4)
 
     def _argumentos_objeto(self) -> dict[type[Accion], dict[str, Any]]:
@@ -370,7 +394,7 @@ class TestExcepcionesObjetivos(unittest.TestCase):
         """Crea un objeto de cada tipo al que se puede referir un objetivo."""
         self.deposito = Localizacion("deposito")
         self.dron = Dron("dron1", self.deposito, [Brazo("brazo")])
-        self.persona = Persona("persona1", self.deposito, "comida")
+        self.persona = Persona("persona1", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 4)
 
     def test_persona_tiene_contenido_incorrecto(self) -> None:
@@ -380,9 +404,9 @@ class TestExcepcionesObjetivos(unittest.TestCase):
         """
         for persona in ("persona1", None, self.dron):
             with self.subTest(persona=persona), self.assertRaises(TypeError):
-                PersonaTieneContenido(persona, "comida")  # type: ignore[arg-type]
+                PersonaTieneContenido(persona, COMIDA)  # type: ignore[arg-type]
 
-        for contenido in NO_CADENAS:
+        for contenido in NO_CONTENIDOS:
             with self.subTest(contenido=contenido), self.assertRaises(TypeError):
                 PersonaTieneContenido(self.persona, contenido)  # type: ignore[arg-type]
 
@@ -424,12 +448,12 @@ class TestExcepcionesSimulacion(unittest.TestCase):
         self.deposito = Localizacion("deposito")
         self.brazo = Brazo("brazo")
         self.dron = Dron("dron1", self.deposito, [self.brazo])
-        self.caja = Caja("caja1", self.deposito, "comida")
-        self.persona = Persona("persona1", self.deposito, "comida")
+        self.caja = Caja("caja1", self.deposito, COMIDA)
+        self.persona = Persona("persona1", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 4)
 
         self.coger_caja = CogerCaja(self.dron, self.brazo, self.caja, inicio_sim=0)
-        self.objetivo = PersonaTieneContenido(self.persona, "comida")
+        self.objetivo = PersonaTieneContenido(self.persona, COMIDA)
 
     def _objetos(self) -> dict[str, list[Any]]:
         """Devuelve los objetos del problema, sin lista de transportadores."""
@@ -438,6 +462,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
             "drones": [self.dron],
             "cajas": [self.caja],
             "personas": [self.persona],
+            "contenidos": list(CONTENIDOS),
         }
 
     def test_argumentos_validos_construyen_un_mundo(self) -> None:
@@ -455,6 +480,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
             drones=(self.dron,),
             cajas=(self.caja,),
             personas=(self.persona,),
+            contenidos=(COMIDA,),
             transportadores=(self.transportador,),
             objetivos=(self.objetivo,),
         )
@@ -500,11 +526,11 @@ class TestExcepcionesSimulacion(unittest.TestCase):
         objetos = list(self._objetos().values())
         with self.assertRaises(TypeError):
             # Se pasa la forma posicional deliberadamente.
-            Mundo([self.coger_caja], objetos)  # type: ignore[misc]
+            Mundo([self.coger_caja], objetos)  # type: ignore[misc, call-arg, arg-type]
 
     def test_cada_tipo_de_objeto_es_obligatorio(self) -> None:
         """Comprueba que omitir un tipo de objeto obligatorio lanza ``TypeError``."""
-        for ausente in ("localizaciones", "drones", "cajas", "personas"):
+        for ausente in ("localizaciones", "drones", "cajas", "personas", "contenidos"):
             objetos = self._objetos()
             del objetos[ausente]
             with self.subTest(ausente=ausente), self.assertRaises(TypeError):
@@ -523,6 +549,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
             "drones",
             "cajas",
             "personas",
+            "contenidos",
             "transportadores",
         ):
             for incorrecto in (None, 5, "no es una lista"):
@@ -536,7 +563,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                     Mundo([self.coger_caja], **objetos)
 
         # Una lista cada vez recibe un objeto de otro tipo.
-        for nombre in ("localizaciones", "drones", "cajas", "personas"):
+        for nombre in ("localizaciones", "drones", "cajas", "personas", "contenidos"):
             objetos = self._objetos()
             objetos[nombre].append(self.transportador)
             with self.subTest(elemento_incorrecto=nombre), self.assertRaises(TypeError):
@@ -544,15 +571,15 @@ class TestExcepcionesSimulacion(unittest.TestCase):
 
         # Lo mismo para la lista opcional de transportadores.
         with self.assertRaises(TypeError):
-            Mundo([self.coger_caja], **self._objetos(), transportadores=[self.caja])  # type: ignore[arg-type]
+            Mundo([self.coger_caja], **self._objetos(), transportadores=[self.caja])  # type: ignore[list-item]
 
     def test_accion_con_un_objeto_no_declarado(self) -> None:
         """Comprueba que una acción solo puede usar los objetos que se dieron."""
         otra_localizacion = Localizacion("otra-localizacion")
         otro_brazo = Brazo("otro-brazo")
         otro_dron = Dron("dron2", self.deposito, [otro_brazo])
-        otra_caja = Caja("caja2", self.deposito, "comida")
-        otra_persona = Persona("persona2", self.deposito, "comida")
+        otra_caja = Caja("caja2", self.deposito, COMIDA)
+        otra_persona = Persona("persona2", self.deposito, COMIDA)
 
         no_declarado = {
             "dron": (
@@ -627,23 +654,53 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                 )
 
         with self.assertRaises(TypeError) as contexto:
-            Mundo([self.coger_caja], **{**self._objetos(), "drones": 5})
+            Mundo([self.coger_caja], **{**self._objetos(), "drones": 5})  # type: ignore[arg-type]
         self.assertEqual(
             str(contexto.exception),
             "'drones' debe ser una lista o una tupla, se recibió 5",
         )
 
+    def test_caja_o_persona_con_un_contenido_no_declarado(self) -> None:
+        """Comprueba que las cajas y las personas solo usan contenidos que se dieron.
+
+        Un contenido mal escrito daría un veredicto falso sobre el plan, así que se
+        rechaza al construir el mundo.
+        """
+        agua = Contenido("agua")
+        no_declarado: dict[str, tuple[dict[str, list[Any]], str]] = {
+            "caja": (
+                {"cajas": [self.caja, Caja("caja2", self.deposito, agua)]},
+                (
+                    "el contenido agua de la caja caja2 no aparece en la lista de "
+                    "contenidos dada"
+                ),
+            ),
+            "necesidad": (
+                {"personas": [self.persona, Persona("persona2", self.deposito, agua)]},
+                (
+                    "el contenido agua que necesita la persona persona2 no aparece en "
+                    "la lista de contenidos dada"
+                ),
+            ),
+        }
+
+        for tipo, (cambio, mensaje) in no_declarado.items():
+            with self.subTest(no_declarado=tipo):
+                with self.assertRaises(ValueError) as contexto:
+                    Mundo([self.coger_caja], **{**self._objetos(), **cambio})
+                self.assertEqual(str(contexto.exception), mensaje)
+
     def test_objetivo_con_un_objeto_no_declarado(self) -> None:
         """Comprueba que un objetivo solo se puede referir a objetos que se dieron."""
         otra_localizacion = Localizacion("otra-localizacion")
         otro_dron = Dron("dron2", self.deposito, [Brazo("otro-brazo")])
-        otra_persona = Persona("persona2", self.deposito, "comida")
+        otra_persona = Persona("persona2", self.deposito, COMIDA)
 
         # Cada mensaje nombra el objeto con su artículo, contraído con "a" si hace
         # falta ("al dron dron2").
         no_declarado = {
             "persona": (
-                PersonaTieneContenido(otra_persona, "comida"),
+                PersonaTieneContenido(otra_persona, COMIDA),
                 (
                     'el objetivo "la persona persona2 posee una caja con el contenido '
                     "'comida'\" se refiere a la persona persona2, que no aparece en la "
@@ -664,6 +721,14 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                     "otra-localizacion' se refiere a la localización "
                     "otra-localizacion, que no aparece en la lista de "
                     "localizaciones dada"
+                ),
+            ),
+            "contenido": (
+                PersonaTieneContenido(self.persona, Contenido("agua")),
+                (
+                    'el objetivo "la persona persona1 posee una caja con el contenido '
+                    "'agua'\" se refiere al contenido agua, que no aparece en la "
+                    "lista de contenidos dada"
                 ),
             ),
             # El problema de _objetos() no tiene lista de transportadores.
@@ -690,7 +755,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
         que una persona que necesita comida nunca podrá poseer una caja de
         medicina.
         """
-        objetivo = PersonaTieneContenido(self.persona, "medicina")
+        objetivo = PersonaTieneContenido(self.persona, MEDICINA)
 
         with self.assertRaises(ValueError) as contexto:
             Mundo([self.coger_caja], **self._objetos(), objetivos=[objetivo])
@@ -705,7 +770,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
     def test_objetivo_para_una_persona_sin_necesidades(self) -> None:
         """Comprueba que el mensaje dice que la persona no necesita nada."""
         persona_sin_necesidades = Persona("persona2", self.deposito)
-        objetivo = PersonaTieneContenido(persona_sin_necesidades, "comida")
+        objetivo = PersonaTieneContenido(persona_sin_necesidades, COMIDA)
         objetos = self._objetos() | {"personas": [persona_sin_necesidades]}
 
         with self.assertRaises(ValueError) as contexto:
@@ -732,7 +797,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
         self.addCleanup(logging.disable, logging.NOTSET)
         with contextlib.redirect_stdout(io.StringIO()):
             mundo.simulacion_texto()
-        self.assertNotIn("comida", self.persona.necesidades)
+        self.assertNotIn(COMIDA, self.persona.necesidades)
 
         mundo_siguiente = Mundo([], **self._objetos(), objetivos=[self.objetivo])
 
@@ -749,13 +814,14 @@ class TestExcepcionesSimulacionTexto(unittest.TestCase):
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
         self.mundo = Mundo(
             [CogerCaja(dron, brazo, caja, inicio_sim=0)],
             localizaciones=[deposito],
             drones=[dron],
             cajas=[caja],
             personas=[],
+            contenidos=[COMIDA],
         )
 
     def test_paso_tiempo_tiene_que_ser_un_int_o_un_float(self) -> None:

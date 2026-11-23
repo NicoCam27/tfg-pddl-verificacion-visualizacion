@@ -62,8 +62,8 @@ class Accion(ABC):
         # Descripción automática (si no se proporciona ninguna)
         if desc is None:
             args = ", ".join(
-                f"{papel}={objeto_dominio.nombre}"
-                for papel, objeto_dominio in self.objetos.items()
+                f"{rol}={objeto_dominio.nombre}"
+                for rol, objeto_dominio in self.objetos.items()
             )
             desc = (
                 f"{type(self).__name__}({args}, inicio_sim={inicio_sim}, "

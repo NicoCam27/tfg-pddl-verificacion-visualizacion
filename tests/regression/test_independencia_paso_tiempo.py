@@ -24,12 +24,19 @@ from simulador_pddl.objetivos import PersonaTieneContenido
 from simulador_pddl.objetos import (
     Brazo,
     Caja,
+    Contenido,
     Dron,
     Localizacion,
     Persona,
     Transportador,
 )
 from simulador_pddl.simulacion import InformeVerificacion
+
+# Los contenidos de los problemas de este módulo. Un contenido no cambia al
+# ejecutar un plan, así que todas las pruebas pueden compartirlos.
+COMIDA = Contenido("comida")
+CONTENIDOS = (COMIDA,)
+
 
 # Desde pasos más pequeños que cualquier acción hasta uno que cubre el plan entero.
 PASOS_TIEMPO = (0.001, 0.01, 0.1, 1, 10)
@@ -55,8 +62,8 @@ def crear_cadena_corta() -> Mundo:
     localizacion1 = Localizacion("localizacion1")
     brazo = Brazo("brazo")
     dron = Dron("dron1", deposito, [brazo])
-    caja = Caja("caja1", deposito, "comida")
-    persona = Persona("persona1", localizacion1, "comida")
+    caja = Caja("caja1", deposito, COMIDA)
+    persona = Persona("persona1", localizacion1, COMIDA)
 
     acciones = [
         CogerCaja(
@@ -85,7 +92,7 @@ def crear_cadena_corta() -> Mundo:
             duracion_sim=0.005,
         ),
     ]
-    objetivos = [PersonaTieneContenido(persona, "comida")]
+    objetivos = [PersonaTieneContenido(persona, COMIDA)]
 
     return Mundo(
         acciones,
@@ -93,6 +100,7 @@ def crear_cadena_corta() -> Mundo:
         drones=[dron],
         cajas=[caja],
         personas=[persona],
+        contenidos=CONTENIDOS,
         objetivos=objetivos,
     )
 
@@ -123,6 +131,7 @@ def crear_mover_largo() -> Mundo:
         drones=[dron],
         cajas=[],
         personas=[],
+        contenidos=[],
     )
 
 
@@ -138,7 +147,7 @@ def crear_carrera_por_transportador() -> Mundo:
     brazo2 = Brazo("brazo2")
     dron1 = Dron("dron1", deposito, [brazo1])
     dron2 = Dron("dron2", deposito, [brazo2])
-    caja = Caja("caja1", deposito, "comida")
+    caja = Caja("caja1", deposito, COMIDA)
     transportador = Transportador("transportador1", deposito, 4)
 
     acciones = [
@@ -167,6 +176,7 @@ def crear_carrera_por_transportador() -> Mundo:
         drones=[dron1, dron2],
         cajas=[caja],
         personas=[],
+        contenidos=CONTENIDOS,
         transportadores=[transportador],
     )
 

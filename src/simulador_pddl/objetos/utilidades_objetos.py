@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from simulador_pddl.objetos import ObjetoDominio
     from simulador_pddl.objetos.brazo import Brazo
+    from simulador_pddl.objetos.contenido import Contenido
     from simulador_pddl.objetos.dron import Dron
 
 # Validadores de los argumentos de cada objeto
@@ -93,33 +94,36 @@ def validar_objeto_persona(persona: object) -> None:
         raise TypeError(msg_objeto_persona)
 
 
-def validar_contenido(contenido: object) -> None:
-    """Lanza ``TypeError`` si ``contenido`` no es una cadena."""
-    # TODO(NicoCam27): validar un objeto Contenido en lugar de una cadena.
-    # CONTENT-1
-    if not isinstance(contenido, str):
-        msg_contenido = f"'contenido' debe ser una cadena, se recibió {contenido!r}"
-        raise TypeError(msg_contenido)
+def validar_objeto_contenido(contenido: object) -> None:
+    """Lanza ``TypeError`` si ``contenido`` no es un ``Contenido``."""
+    from simulador_pddl.objetos.contenido import Contenido
+
+    if not isinstance(contenido, Contenido):
+        msg_objeto_contenido = (
+            f"'contenido' debe ser un objeto Contenido, se recibió {contenido!r}"
+        )
+        raise TypeError(msg_objeto_contenido)
 
 
 def validar_necesidades(necesidades: object) -> None:
     """Lanza ``TypeError`` si ``necesidades`` no tiene un tipo válido.
 
-    Los valores válidos son ``None``, una cadena, y una lista o una tupla de cadenas.
+    Los valores válidos son ``None``, un ``Contenido``, y una lista o una tupla de
+    objetos ``Contenido``.
     """
-    # TODO(NicoCam27): validar una lista de objetos Contenido en lugar de cadenas.
-    # CONTENT-1
-    es_grupo_de_cadenas = isinstance(necesidades, (list, tuple)) and all(
-        isinstance(necesidad, str) for necesidad in necesidades
+    from simulador_pddl.objetos.contenido import Contenido
+
+    es_grupo_de_contenidos = isinstance(necesidades, (list, tuple)) and all(
+        isinstance(necesidad, Contenido) for necesidad in necesidades
     )
     if (
         necesidades is not None
-        and not isinstance(necesidades, str)
-        and not es_grupo_de_cadenas
+        and not isinstance(necesidades, Contenido)
+        and not es_grupo_de_contenidos
     ):
         msg_necesidades = (
-            "'necesidades' debe ser una cadena, o una lista o una tupla de cadenas, "
-            f"se recibió {necesidades!r}"
+            "'necesidades' debe ser un objeto Contenido, o una lista o una tupla "
+            f"de objetos Contenido, se recibió {necesidades!r}"
         )
         raise TypeError(msg_necesidades)
 
@@ -197,6 +201,7 @@ def validar_brazo_en_dron(dron: Dron, brazo: Brazo) -> None:
 _GRAMATICA_TIPOS = {
     "Brazo": ("el", "brazo", "brazos"),
     "Caja": ("la", "caja", "cajas"),
+    "Contenido": ("el", "contenido", "contenidos"),
     "Dron": ("el", "dron", "drones"),
     "Localizacion": ("la", "localización", "localizaciones"),
     "Persona": ("la", "persona", "personas"),
@@ -242,14 +247,14 @@ def con_preposicion_a(texto: str) -> str:
 # Necesidades de una persona, para los mensajes de error
 
 
-def describir_necesidades(necesidades: list[str]) -> str:
+def describir_necesidades(necesidades: list[Contenido]) -> str:
     """Devuelve lo que necesita una persona, p. ej. ``"necesita 'comida' y 'agua'"``.
 
     ``"no necesita nada"`` si la lista está vacía.
     """
     if not necesidades:
         return "no necesita nada"
-    contenidos = [repr(necesidad) for necesidad in necesidades]
+    contenidos = [f"'{necesidad}'" for necesidad in necesidades]
     if len(contenidos) == 1:
         return f"necesita {contenidos[0]}"
     return f"necesita {', '.join(contenidos[:-1])} y {contenidos[-1]}"

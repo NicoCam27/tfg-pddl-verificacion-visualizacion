@@ -22,6 +22,7 @@ from simulador_pddl.acciones import (
 from simulador_pddl.objetos import (
     Brazo,
     Caja,
+    Contenido,
     Dron,
     Localizacion,
     Persona,
@@ -36,10 +37,11 @@ class TestDescripcionAutomatica(unittest.TestCase):
         """Crea un objeto de cada tipo para las acciones."""
         self.deposito = Localizacion("deposito")
         self.localizacion1 = Localizacion("localizacion1")
+        self.comida = Contenido("comida")
         self.brazo = Brazo("brazo")
         self.dron = Dron("dron1", self.deposito, [self.brazo])
-        self.caja = Caja("caja1", self.deposito, "comida")
-        self.persona = Persona("persona1", self.deposito, necesidades="comida")
+        self.caja = Caja("caja1", self.deposito, self.comida)
+        self.persona = Persona("persona1", self.deposito, necesidades=self.comida)
         self.transportador = Transportador("transportador1", self.deposito, 4)
 
     def test_cada_accion_tiene_la_descripcion_automatica_esperada(self) -> None:

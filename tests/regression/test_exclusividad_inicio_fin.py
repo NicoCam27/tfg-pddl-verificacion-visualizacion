@@ -27,10 +27,23 @@ from simulador_pddl.acciones import (
     Soltar,
 )
 from simulador_pddl.mundo import Mundo
-from simulador_pddl.objetos import Brazo, Caja, Dron, Localizacion, Transportador
+from simulador_pddl.objetos import (
+    Brazo,
+    Caja,
+    Contenido,
+    Dron,
+    Localizacion,
+    Transportador,
+)
 
 if TYPE_CHECKING:
     from simulador_pddl.simulacion import InformeVerificacion
+
+
+# Los contenidos de los problemas de este módulo. Un contenido no cambia al
+# ejecutar un plan, así que todas las pruebas pueden compartirlos.
+COMIDA = Contenido("comida")
+CONTENIDOS = (COMIDA,)
 
 
 def ejecutar_plan(mundo: Mundo, paso_tiempo: float) -> InformeVerificacion:
@@ -49,7 +62,7 @@ class TestExclusividadDeCajaEntreDrones(unittest.TestCase):
         self.brazo2 = Brazo("brazo2")
         self.dron1 = Dron("dron1", self.deposito, [self.brazo1])
         self.dron2 = Dron("dron2", self.deposito, [self.brazo2])
-        self.caja6 = Caja("caja6", self.deposito, "comida")
+        self.caja6 = Caja("caja6", self.deposito, COMIDA)
 
     def _objetos(self) -> dict[str, list[Any]]:
         """Devuelve los objetos del problema, sin lista de transportadores."""
@@ -58,6 +71,7 @@ class TestExclusividadDeCajaEntreDrones(unittest.TestCase):
             "drones": [self.dron1, self.dron2],
             "cajas": [self.caja6],
             "personas": [],
+            "contenidos": list(CONTENIDOS),
         }
 
     def test_coger_solapado_la_misma_caja_se_rechaza(self) -> None:
@@ -182,6 +196,7 @@ class TestExclusividadDeTransportadorEntreDrones(unittest.TestCase):
             "drones": [self.dron1, self.dron2],
             "cajas": [],
             "personas": [],
+            "contenidos": [],
             "transportadores": [self.transportador],
         }
 
@@ -228,8 +243,8 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
         self.izquierda = Brazo("izquierda")
         self.derecha = Brazo("derecha")
         self.dron = Dron("dron1", self.deposito, [self.izquierda, self.derecha])
-        self.caja_a = Caja("cajaA", self.deposito, "comida")
-        self.caja_b = Caja("cajaB", self.deposito, "comida")
+        self.caja_a = Caja("cajaA", self.deposito, COMIDA)
+        self.caja_b = Caja("cajaB", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 2)
 
     def _objetos(self) -> dict[str, list[Any]]:
@@ -239,6 +254,7 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
             "drones": [self.dron],
             "cajas": [self.caja_a, self.caja_b],
             "personas": [],
+            "contenidos": list(CONTENIDOS),
             "transportadores": [self.transportador],
         }
 
@@ -357,7 +373,7 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
 
         acciones = [
             CogerCaja(dron=dron, brazo=brazo, caja=caja, inicio_sim=0, duracion_sim=1),
@@ -368,6 +384,7 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[],
+            contenidos=CONTENIDOS,
         )
 
         mundo._simulacion._reproducir()
@@ -415,6 +432,7 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             transportadores=[transportador],
         )
 

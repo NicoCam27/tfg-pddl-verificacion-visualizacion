@@ -19,13 +19,16 @@ der = Brazo("der")
 
 dron1 = Dron("dron1", deposito, [izq, der])
 
-caja1 = Caja("caja1", deposito, "comida")
-caja2 = Caja("caja2", deposito, "medicina")
+comida = Contenido("comida")
+medicina = Contenido("medicina")
+
+caja1 = Caja("caja1", deposito, comida)
+caja2 = Caja("caja2", deposito, medicina)
 
 transportador1 = Transportador("transportador1", deposito, 2)
 
-persona1 = Persona("persona1", localizacion1, "comida")
-persona2 = Persona("persona2", localizacion2, "medicina")
+persona1 = Persona("persona1", localizacion1, comida)
+persona2 = Persona("persona2", localizacion2, medicina)
 
 acciones = [
     CogerCaja(dron1, izq, caja1, 0, 1),
@@ -44,14 +47,15 @@ acciones = [
 drones = [dron1]
 cajas = [caja1, caja2]
 personas = [persona1, persona2]
+contenidos = [comida, medicina]
 transportadores = [transportador1]
 
 
 # El problema se resuelve cuando cada persona tiene lo que necesita y el dron ha
 # vuelto al depósito. El transportador se queda donde se sacó la última caja.
 objetivos = [
-    PersonaTieneContenido(persona1, "comida"),
-    PersonaTieneContenido(persona2, "medicina"),
+    PersonaTieneContenido(persona1, comida),
+    PersonaTieneContenido(persona2, medicina),
     DronEnLocalizacion(dron1, deposito),
     TransportadorEnLocalizacion(transportador1, localizacion2),
 ]
@@ -62,6 +66,7 @@ nuevo_mundo = Mundo(
     drones=drones,
     cajas=cajas,
     personas=personas,
+    contenidos=contenidos,
     transportadores=transportadores,
     objetivos=objetivos,
 )

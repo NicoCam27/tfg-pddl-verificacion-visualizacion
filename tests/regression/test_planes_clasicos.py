@@ -21,13 +21,20 @@ from typing import TYPE_CHECKING
 from simulador_pddl.acciones import CogerCaja, EntregarCaja, Mover
 from simulador_pddl.mundo import Mundo
 from simulador_pddl.objetivos import PersonaTieneContenido
-from simulador_pddl.objetos import Brazo, Caja, Dron, Localizacion, Persona
+from simulador_pddl.objetos import Brazo, Caja, Contenido, Dron, Localizacion, Persona
 from simulador_pddl.simulacion import InformeVerificacion
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
     from simulador_pddl.acciones import Accion
+
+# Los contenidos de los problemas de este módulo. Un contenido no cambia al
+# ejecutar un plan, así que todas las pruebas pueden compartirlos.
+COMIDA = Contenido("comida")
+MEDICINA = Contenido("medicina")
+CONTENIDOS = (COMIDA, MEDICINA)
+
 
 # Duraciones de paso con las que se repite cada plan: la convención (1) y otras.
 DURACIONES_PASO = (1, 5, 0.5)
@@ -57,10 +64,10 @@ def construir_mundo(duracion_paso: float, *, omitir_regreso: bool = False) -> Mu
     loc2 = Localizacion("loc2")
     brazo = Brazo("brazo")
     dron = Dron("dron1", deposito, [brazo])
-    caja1 = Caja("caja1", deposito, "comida")
-    caja2 = Caja("caja2", deposito, "medicina")
-    persona1 = Persona("persona1", loc1, "comida")
-    persona2 = Persona("persona2", loc2, "medicina")
+    caja1 = Caja("caja1", deposito, COMIDA)
+    caja2 = Caja("caja2", deposito, MEDICINA)
+    persona1 = Persona("persona1", loc1, COMIDA)
+    persona2 = Persona("persona2", loc2, MEDICINA)
 
     # Los pasos del plan clásico, en orden y sin tiempos: cada uno construye su
     # acción a partir del inicio y la duración que le corresponden.
@@ -85,9 +92,10 @@ def construir_mundo(duracion_paso: float, *, omitir_regreso: bool = False) -> Mu
         drones=[dron],
         cajas=[caja1, caja2],
         personas=[persona1, persona2],
+        contenidos=CONTENIDOS,
         objetivos=[
-            PersonaTieneContenido(persona1, "comida"),
-            PersonaTieneContenido(persona2, "medicina"),
+            PersonaTieneContenido(persona1, COMIDA),
+            PersonaTieneContenido(persona2, MEDICINA),
         ],
     )
 
@@ -112,8 +120,8 @@ class TestPlanesClasicos(unittest.TestCase):
         loc1 = Localizacion("loc1")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
-        persona = Persona("persona1", loc1, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
+        persona = Persona("persona1", loc1, COMIDA)
         mundo = Mundo(
             [
                 CogerCaja(dron, brazo, caja, 0),
@@ -124,7 +132,8 @@ class TestPlanesClasicos(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[persona],
-            objetivos=[PersonaTieneContenido(persona, "comida")],
+            contenidos=[COMIDA],
+            objetivos=[PersonaTieneContenido(persona, COMIDA)],
         )
 
         informe = ejecutar_plan(mundo)

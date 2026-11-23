@@ -5,13 +5,13 @@ from typing import TYPE_CHECKING, override
 from simulador_pddl.objetivos.objetivo import Objetivo
 from simulador_pddl.objetos.utilidades_objetos import (
     describir_necesidades,
-    validar_contenido,
+    validar_objeto_contenido,
     validar_objeto_persona,
 )
 
 if TYPE_CHECKING:
     from simulador_pddl.objetivos.objetivo import ObjetoReferenciado
-    from simulador_pddl.objetos import Persona
+    from simulador_pddl.objetos import Contenido, Persona
 
 
 class PersonaTieneContenido(Objetivo):
@@ -26,12 +26,13 @@ class PersonaTieneContenido(Objetivo):
 
     Args:
         persona: La persona que tiene que poseer la caja.
-        contenido: El contenido que tiene que tener la caja, p. ej. ``"comida"``.
+        contenido: El contenido que tiene que tener la caja, p. ej.
+            ``Contenido("comida")``.
     """
 
-    def __init__(self, persona: Persona, contenido: str) -> None:
+    def __init__(self, persona: Persona, contenido: Contenido) -> None:
         validar_objeto_persona(persona)
-        validar_contenido(contenido)
+        validar_objeto_contenido(contenido)
 
         self._persona = persona
         self._contenido = contenido
@@ -57,9 +58,10 @@ class PersonaTieneContenido(Objetivo):
         if not cajas_poseidas:
             return f"la persona {self._persona.nombre} no posee ninguna caja"
 
-        # Se muestra el contenido de cada caja: la persona solo recibe cajas con
-        # algo que necesitaba, pero puede no ser lo que pide el objetivo. Solo se
-        # llama si el objetivo no se cumple, así que ninguna tiene ese contenido.
+        # Se muestra el contenido de cada caja porque la persona puede necesitar
+        # varios contenidos: puede haber recibido cajas con uno de ellos y no con
+        # el que pide el objetivo. Este método solo se llama si el objetivo no se
+        # cumple, así que ninguna caja tiene ese contenido.
         texto_cajas = ", ".join(
             f"{caja.nombre} ('{caja.contenido}')" for caja in cajas_poseidas
         )
@@ -76,7 +78,7 @@ class PersonaTieneContenido(Objetivo):
 
     @override
     def _objetos_referenciados(self) -> list[ObjetoReferenciado]:
-        return [self._persona]
+        return [self._persona, self._contenido]
 
     @override
     def _validar_alcanzable(self) -> None:
@@ -103,6 +105,6 @@ class PersonaTieneContenido(Objetivo):
         return self._persona
 
     @property
-    def contenido(self) -> str:
+    def contenido(self) -> Contenido:
         """El contenido que tiene que tener una de las cajas de la persona."""
         return self._contenido

@@ -22,6 +22,7 @@ from simulador_pddl.objetivos import DronEnLocalizacion, PersonaTieneContenido
 from simulador_pddl.objetos import (
     Brazo,
     Caja,
+    Contenido,
     Dron,
     Localizacion,
     Persona,
@@ -51,32 +52,35 @@ der2 = Brazo("der2")
 dron1 = Dron("dron1", deposito, [izq, der])
 dron2 = Dron("dron2", deposito, [izq2, der2])
 
-caja1 = Caja("caja1", deposito, "comida")
-caja2 = Caja("caja2", deposito, "medicina")
-caja3 = Caja("caja3", deposito, "medicina")
-caja4 = Caja("caja4", deposito, "medicina")
-caja5 = Caja("caja5", deposito, "medicina")
-caja6 = Caja("caja6", deposito, "medicina")
-caja7 = Caja("caja7", deposito, "medicina")
-caja8 = Caja("caja8", deposito, "medicina")
-caja9 = Caja("caja9", deposito, "medicina")
-caja10 = Caja("caja10", deposito, "medicina")
+comida = Contenido("comida")
+medicina = Contenido("medicina")
 
-caja11 = Caja("caja11", deposito, "comida")
+caja1 = Caja("caja1", deposito, comida)
+caja2 = Caja("caja2", deposito, medicina)
+caja3 = Caja("caja3", deposito, medicina)
+caja4 = Caja("caja4", deposito, medicina)
+caja5 = Caja("caja5", deposito, medicina)
+caja6 = Caja("caja6", deposito, medicina)
+caja7 = Caja("caja7", deposito, medicina)
+caja8 = Caja("caja8", deposito, medicina)
+caja9 = Caja("caja9", deposito, medicina)
+caja10 = Caja("caja10", deposito, medicina)
+
+caja11 = Caja("caja11", deposito, comida)
 
 
-persona1 = Persona("persona1", localizacion10, "medicina")
-persona2 = Persona("persona2", localizacion9, "medicina")
-persona3 = Persona("persona3", localizacion8, "medicina")
-persona4 = Persona("persona4", localizacion3, "medicina")
-persona5 = Persona("persona5", localizacion8, "medicina")
-persona6 = Persona("persona6", localizacion10, "medicina")
-persona7 = Persona("persona7", localizacion7, "medicina")
-persona8 = Persona("persona8", localizacion1, "comida")
-persona9 = Persona("persona9", localizacion6, "medicina")
-persona10 = Persona("persona10", localizacion4, "medicina")
+persona1 = Persona("persona1", localizacion10, medicina)
+persona2 = Persona("persona2", localizacion9, medicina)
+persona3 = Persona("persona3", localizacion8, medicina)
+persona4 = Persona("persona4", localizacion3, medicina)
+persona5 = Persona("persona5", localizacion8, medicina)
+persona6 = Persona("persona6", localizacion10, medicina)
+persona7 = Persona("persona7", localizacion7, medicina)
+persona8 = Persona("persona8", localizacion1, comida)
+persona9 = Persona("persona9", localizacion6, medicina)
+persona10 = Persona("persona10", localizacion4, medicina)
 
-contenidos = ["comida", "medicina"]
+contenidos = [comida, medicina]
 
 
 transportador1 = Transportador("transportador1", deposito, 4)
@@ -140,16 +144,16 @@ personas=[persona1, persona2, persona3, persona4, persona5, persona6, persona7, 
 # El problema se resuelve cuando todas las personas tienen lo que necesitan y los
 # dos drones han vuelto al depósito.
 objetivos = [
-    PersonaTieneContenido(persona1, "medicina"),
-    PersonaTieneContenido(persona2, "medicina"),
-    PersonaTieneContenido(persona3, "medicina"),
-    PersonaTieneContenido(persona4, "medicina"),
-    PersonaTieneContenido(persona5, "medicina"),
-    PersonaTieneContenido(persona6, "medicina"),
-    PersonaTieneContenido(persona7, "medicina"),
-    PersonaTieneContenido(persona8, "comida"),
-    PersonaTieneContenido(persona9, "medicina"),
-    PersonaTieneContenido(persona10, "medicina"),
+    PersonaTieneContenido(persona1, medicina),
+    PersonaTieneContenido(persona2, medicina),
+    PersonaTieneContenido(persona3, medicina),
+    PersonaTieneContenido(persona4, medicina),
+    PersonaTieneContenido(persona5, medicina),
+    PersonaTieneContenido(persona6, medicina),
+    PersonaTieneContenido(persona7, medicina),
+    PersonaTieneContenido(persona8, comida),
+    PersonaTieneContenido(persona9, medicina),
+    PersonaTieneContenido(persona10, medicina),
     DronEnLocalizacion(dron1, deposito),
     DronEnLocalizacion(dron2, deposito),
 ]
@@ -160,6 +164,7 @@ nuevo_mundo = Mundo(
     drones=drones,
     cajas=cajas,
     personas=personas,
+    contenidos=contenidos,
     transportadores=transportadores,
     objetivos=objetivos,
 )

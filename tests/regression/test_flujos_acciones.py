@@ -28,6 +28,7 @@ from simulador_pddl.objetivos import PersonaTieneContenido
 from simulador_pddl.objetos import (
     Brazo,
     Caja,
+    Contenido,
     Dron,
     Localizacion,
     Persona,
@@ -36,6 +37,14 @@ from simulador_pddl.objetos import (
 
 if TYPE_CHECKING:
     from simulador_pddl.simulacion import InformeVerificacion
+
+
+# Los contenidos de los problemas de este módulo. Un contenido no cambia al
+# ejecutar un plan, así que todas las pruebas pueden compartirlos.
+COMIDA = Contenido("comida")
+MEDICINA = Contenido("medicina")
+AGUA = Contenido("agua")
+CONTENIDOS = (COMIDA, MEDICINA, AGUA)
 
 
 def ejecutar_plan(mundo: Mundo, paso_tiempo: float) -> InformeVerificacion:
@@ -52,10 +61,10 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
-        persona = Persona("persona1", deposito, necesidades="comida")
+        caja = Caja("caja1", deposito, COMIDA)
+        persona = Persona("persona1", deposito, necesidades=COMIDA)
 
-        objetivos = [PersonaTieneContenido(persona, "comida")]
+        objetivos = [PersonaTieneContenido(persona, COMIDA)]
 
         acciones = [
             CogerCaja(dron=dron, brazo=brazo, caja=caja, inicio_sim=0, duracion_sim=1),
@@ -74,6 +83,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[persona],
+            contenidos=[COMIDA],
             objetivos=objetivos,
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -95,9 +105,9 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         brazo2 = Brazo("brazo2")
         dron1 = Dron("dron1", deposito, [brazo1])
         dron2 = Dron("dron2", deposito, [brazo2])
-        caja1 = Caja("caja1", deposito, "comida")
-        caja2 = Caja("caja2", deposito, "comida")
-        persona = Persona("persona1", deposito, necesidades="comida")
+        caja1 = Caja("caja1", deposito, COMIDA)
+        caja2 = Caja("caja2", deposito, COMIDA)
+        persona = Persona("persona1", deposito, necesidades=COMIDA)
 
         acciones = [
             CogerCaja(dron1, brazo1, caja1, inicio_sim=0, duracion_sim=1),
@@ -111,6 +121,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
             drones=[dron1, dron2],
             cajas=[caja1, caja2],
             personas=[persona],
+            contenidos=[COMIDA],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
 
@@ -132,8 +143,8 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "medicina")
-        persona = Persona("persona1", deposito, necesidades=["comida", "agua"])
+        caja = Caja("caja1", deposito, MEDICINA)
+        persona = Persona("persona1", deposito, necesidades=[COMIDA, AGUA])
 
         acciones = [
             CogerCaja(dron, brazo, caja, inicio_sim=0, duracion_sim=1),
@@ -145,6 +156,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[persona],
+            contenidos=CONTENIDOS,
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
 
@@ -155,7 +167,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         )
         self.assertFalse(acciones[1].iniciada)
         self.assertIs(brazo.contenido, caja)
-        self.assertEqual(persona.necesidades, ["comida", "agua"])
+        self.assertEqual(persona.necesidades, [COMIDA, AGUA])
 
     def test_entregar_una_caja_que_el_brazo_no_sujeta_falla_al_empezar(
         self,
@@ -165,8 +177,8 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         localizacion2 = Localizacion("localizacion2")
         brazo = Brazo("brazo")
         dron = Dron("dron1", localizacion1, [brazo])
-        caja = Caja("caja1", localizacion2, "comida")
-        persona = Persona("persona1", localizacion1, necesidades="comida")
+        caja = Caja("caja1", localizacion2, COMIDA)
+        persona = Persona("persona1", localizacion1, necesidades=COMIDA)
 
         acciones = [
             EntregarCaja(dron, brazo, caja, persona, inicio_sim=0, duracion_sim=1),
@@ -177,6 +189,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[persona],
+            contenidos=[COMIDA],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
 
@@ -200,8 +213,8 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
-        persona = Persona("persona1", deposito, necesidades=["comida", "comida"])
+        caja = Caja("caja1", deposito, COMIDA)
+        persona = Persona("persona1", deposito, necesidades=[COMIDA, COMIDA])
 
         acciones = [
             CogerCaja(dron, brazo, caja, inicio_sim=0, duracion_sim=1),
@@ -214,6 +227,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[persona],
+            contenidos=[COMIDA],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
 
@@ -223,7 +237,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
             "la caja caja1 no se puede entregar a la persona persona1, ya la posee",
         )
         self.assertEqual(persona.posee, [caja])
-        self.assertEqual(persona.necesidades, ["comida"])
+        self.assertEqual(persona.necesidades, [COMIDA])
         self.assertIs(caja.propietario_actual, persona)
         self.assertIsNone(brazo.contenido)
 
@@ -237,7 +251,7 @@ class TestSoltar(unittest.TestCase):
         localizacion1 = Localizacion("localizacion1")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
 
         acciones = [
             CogerCaja(dron=dron, brazo=brazo, caja=caja, inicio_sim=0, duracion_sim=1),
@@ -256,6 +270,7 @@ class TestSoltar(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[],
+            contenidos=[COMIDA],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
 
@@ -276,7 +291,7 @@ class TestSoltar(unittest.TestCase):
         brazo2 = Brazo("brazo2")
         dron1 = Dron("dron1", deposito, [brazo1])
         dron2 = Dron("dron2", deposito, [brazo2])
-        caja = Caja("caja1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
 
         acciones = [
             CogerCaja(
@@ -293,6 +308,7 @@ class TestSoltar(unittest.TestCase):
             drones=[dron1, dron2],
             cajas=[caja],
             personas=[],
+            contenidos=[COMIDA],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
 
@@ -304,7 +320,7 @@ class TestSoltar(unittest.TestCase):
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
 
         acciones = [
             CogerCaja(dron=dron, brazo=brazo, caja=caja, inicio_sim=0, duracion_sim=1),
@@ -316,6 +332,7 @@ class TestSoltar(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[],
+            contenidos=[COMIDA],
         )
 
         mundo._simulacion._reproducir()
@@ -342,7 +359,7 @@ class TestCogerCajaQueYaEsDelDron(unittest.TestCase):
         self.izquierdo = Brazo("izquierdo")
         self.derecho = Brazo("derecho")
         self.dron = Dron("dron1", self.deposito, [self.izquierdo, self.derecho])
-        self.caja = Caja("caja1", self.deposito, "comida")
+        self.caja = Caja("caja1", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 4)
 
     def ejecutar(self, acciones: list[Any]) -> InformeVerificacion:
@@ -353,6 +370,7 @@ class TestCogerCajaQueYaEsDelDron(unittest.TestCase):
             drones=[self.dron],
             cajas=[self.caja],
             personas=[],
+            contenidos=[COMIDA],
             transportadores=[self.transportador],
         )
         return ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -443,7 +461,7 @@ class TestIdaYVueltaTransportador(unittest.TestCase):
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
         transportador = Transportador("transportador1", deposito, 4)
 
         acciones = [
@@ -471,6 +489,7 @@ class TestIdaYVueltaTransportador(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[],
+            contenidos=[COMIDA],
             transportadores=[transportador],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -487,8 +506,8 @@ class TestIdaYVueltaTransportador(unittest.TestCase):
         brazo_izquierdo = Brazo("izquierda")
         brazo_derecho = Brazo("derecha")
         dron = Dron("dron1", deposito, [brazo_izquierdo, brazo_derecho])
-        caja_a = Caja("cajaA", deposito, "comida")
-        caja_b = Caja("cajaB", deposito, "medicina")
+        caja_a = Caja("cajaA", deposito, COMIDA)
+        caja_b = Caja("cajaB", deposito, MEDICINA)
         # Solo hay sitio para una caja.
         transportador = Transportador("transportador1", deposito, 1)
 
@@ -530,6 +549,7 @@ class TestIdaYVueltaTransportador(unittest.TestCase):
             drones=[dron],
             cajas=[caja_a, caja_b],
             personas=[],
+            contenidos=[COMIDA, MEDICINA],
             transportadores=[transportador],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -551,7 +571,7 @@ class TestCajaQueNoEstaEnElBrazoNiEnElTransportador(unittest.TestCase):
         self.localizacion2 = Localizacion("localizacion2")
         self.brazo = Brazo("brazo")
         self.dron = Dron("dron1", self.localizacion1, [self.brazo])
-        self.caja = Caja("caja1", self.localizacion2, "comida")
+        self.caja = Caja("caja1", self.localizacion2, COMIDA)
         self.transportador = Transportador("transportador1", self.localizacion1, 4)
 
     def ejecutar(self, acciones: list[Any]) -> InformeVerificacion:
@@ -562,6 +582,7 @@ class TestCajaQueNoEstaEnElBrazoNiEnElTransportador(unittest.TestCase):
             drones=[self.dron],
             cajas=[self.caja],
             personas=[],
+            contenidos=[COMIDA],
             transportadores=[self.transportador],
         )
         return ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -638,6 +659,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             transportadores=[transportador],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -675,6 +697,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             transportadores=[transportador],
         )
 
@@ -703,7 +726,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
         brazo2 = Brazo("brazo2")
         dron1 = Dron("dron1", deposito, [brazo1])
         dron2 = Dron("dron2", deposito, [brazo2])
-        caja = Caja("caja1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
         transportador = Transportador("transportador1", deposito, 4)
 
         acciones = [
@@ -724,6 +747,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
             drones=[dron1, dron2],
             cajas=[caja],
             personas=[],
+            contenidos=[COMIDA],
             transportadores=[transportador],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -750,6 +774,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             transportadores=[transportador],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -785,6 +810,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
             drones=[dron1, dron2],
             cajas=[],
             personas=[],
+            contenidos=[],
             transportadores=[transportador],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
@@ -827,6 +853,7 @@ class TestMoverTransportadorDePrincipioAFin(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             transportadores=[transportador],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.05)
@@ -867,6 +894,7 @@ class TestMoverTransportadorDePrincipioAFin(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             transportadores=[transportador],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.05)
@@ -900,6 +928,7 @@ class TestOrigenDeMover(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
         )
         informe = ejecutar_plan(mundo, paso_tiempo=0.5)
 
@@ -932,6 +961,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
         )
         with self.assertLogs("simulador_pddl.objetos.dron", level="INFO") as registros:
             informe = ejecutar_plan(mundo, paso_tiempo=0.5)
@@ -948,7 +978,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
         localizacion1 = Localizacion("localizacion1")
         brazos = [Brazo("brazo1"), Brazo("brazo2"), Brazo("brazo3")]
         dron = Dron("dron1", deposito, brazos)
-        cajas = [Caja("caja1", deposito, "comida"), Caja("caja2", deposito, "medicina")]
+        cajas = [Caja("caja1", deposito, COMIDA), Caja("caja2", deposito, MEDICINA)]
         transportador = Transportador("transportador1", deposito, 4)
 
         acciones = [
@@ -965,6 +995,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
             drones=[dron],
             cajas=cajas,
             personas=[],
+            contenidos=[COMIDA, MEDICINA],
             transportadores=[transportador],
         )
         with self.assertLogs("simulador_pddl.objetos.dron", level="INFO") as registros:
@@ -983,7 +1014,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
         localizacion1 = Localizacion("localizacion1")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
-        caja = Caja("caja1", deposito, "comida")
+        caja = Caja("caja1", deposito, COMIDA)
 
         acciones = [
             CogerCaja(dron, brazo, caja, inicio_sim=0, duracion_sim=1),
@@ -995,6 +1026,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
             drones=[dron],
             cajas=[caja],
             personas=[],
+            contenidos=[COMIDA],
         )
         with self.assertLogs("simulador_pddl.objetos.dron", level="INFO") as registros:
             informe = ejecutar_plan(mundo, paso_tiempo=0.5)
@@ -1031,6 +1063,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
             drones=[dron],
             cajas=[],
             personas=[],
+            contenidos=[],
             transportadores=transportadores,
         )
         with self.assertLogs("simulador_pddl.objetos.dron", level="INFO") as registros:
@@ -1055,8 +1088,8 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         self.brazo2 = Brazo("brazo2")
         self.dron1 = Dron("dron1", self.deposito, [self.brazo1])
         self.dron2 = Dron("dron2", self.deposito, [self.brazo2])
-        self.caja1 = Caja("caja1", self.deposito, "comida")
-        self.caja2 = Caja("caja2", self.deposito, "comida")
+        self.caja1 = Caja("caja1", self.deposito, COMIDA)
+        self.caja2 = Caja("caja2", self.deposito, COMIDA)
         self.transportador = Transportador("transportador1", self.deposito, 1)
 
     def _objetos(self) -> dict[str, list[Any]]:
@@ -1066,6 +1099,7 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
             "drones": [self.dron1, self.dron2],
             "cajas": [self.caja1, self.caja2],
             "personas": [],
+            "contenidos": [COMIDA],
             "transportadores": [self.transportador],
         }
 

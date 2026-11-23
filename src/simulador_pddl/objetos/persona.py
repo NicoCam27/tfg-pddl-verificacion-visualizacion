@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from simulador_pddl.objetos.contenido import Contenido
 from simulador_pddl.objetos.utilidades_objetos import (
     validar_necesidades,
     validar_nombre,
@@ -11,9 +12,6 @@ from simulador_pddl.objetos.utilidades_objetos import (
 if TYPE_CHECKING:
     from simulador_pddl.objetos.caja import Caja
     from simulador_pddl.objetos.localizacion import Localizacion
-
-# TODO(NicoCam27): necesidades debería guardar objetos Contenido en lugar de cadenas.
-# CONTENT-1
 
 
 class Persona:
@@ -34,7 +32,7 @@ class Persona:
         self,
         nombre: str,
         localizacion: Localizacion,
-        necesidades: str | list[str] | tuple[str, ...] | None = None,
+        necesidades: Contenido | list[Contenido] | tuple[Contenido, ...] | None = None,
     ) -> None:
         validar_nombre(nombre)
         validar_objeto_localizacion(localizacion)
@@ -46,12 +44,10 @@ class Persona:
         self._posee: list[Caja] = []
 
         # Las necesidades se guardan en una lista propia de la persona, para que
-        # los cambios posteriores en la lista de quien llama no le afecten. Una
-        # cadena se comprueba primero porque también es una secuencia:
-        # list("comida") la partiría en letras.
+        # los cambios posteriores en la lista de quien llama no le afecten.
         if necesidades is None:
-            self._necesidades: list[str] = []
-        elif isinstance(necesidades, str):
+            self._necesidades: list[Contenido] = []
+        elif isinstance(necesidades, Contenido):
             self._necesidades = [necesidades]
         else:
             self._necesidades = list(necesidades)
@@ -60,10 +56,11 @@ class Persona:
         return f"Persona({self._nombre!r})"
 
     def __str__(self) -> str:
+        necesidades = [necesidad.nombre for necesidad in self._necesidades]
         posee = [caja.nombre for caja in self._posee]
         return (
             f"Persona(nombre={self._nombre}, localizacion={self._localizacion}, "
-            f"necesidades={self._necesidades}, posee={posee})"
+            f"necesidades={necesidades}, posee={posee})"
         )
 
     # ------------------------------------------------------------------
@@ -104,7 +101,7 @@ class Persona:
         return self._localizacion
 
     @property
-    def necesidades(self) -> list[str]:
+    def necesidades(self) -> list[Contenido]:
         """Lo que la persona aún necesita, como copia de la lista interna."""
         return list(self._necesidades)
 

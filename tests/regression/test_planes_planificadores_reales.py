@@ -3,7 +3,7 @@
 Los planes son los scripts del directorio ``tests/tests_private/real_tests/``, que
 no está en el repositorio: sin él, la prueba se omite. Al cargarse, cada script
 define ``acciones``, ``ubicaciones``, ``drones``, ``cajas``, ``personas``,
-``objetivos`` y, si hay transportadores, ``transportadores``. Su bloque
+``contenidos``, ``objetivos`` y, si hay transportadores, ``transportadores``. Su bloque
 ``if __name__ == "__main__"``, que abre la ventana de pygame, no se ejecuta
 porque los scripts se cargan con otro ``run_name``.
 """
@@ -55,6 +55,7 @@ class TestPlanesPlanificadoresReales(unittest.TestCase):
                     drones=plan["drones"],
                     cajas=plan["cajas"],
                     personas=plan["personas"],
+                    contenidos=plan["contenidos"],
                     # Solo los problemas con transportadores definen esta lista.
                     transportadores=plan.get("transportadores"),
                     objetivos=plan["objetivos"],
