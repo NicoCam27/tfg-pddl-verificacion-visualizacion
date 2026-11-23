@@ -66,8 +66,8 @@ class Mover(Accion):
         La localización del dron debe corresponderse con el origen proporcionado y
         es una condición ``at start``, así que un origen incorrecto falla aquí
         en ``inicio_sim``. El dron entero está protegido frente a solapamientos en
-        ``Simulacion._validar_sin_solapamientos_de_dron_o_brazo()``, así que todo
-        el efecto se aplica en ``_terminar_ejecucion()``.
+        ``Simulacion._error_de_solapamiento()``, así que todo el efecto se aplica
+        en ``_terminar_ejecucion()``.
         """
         try:
             self._dron._exigir_en(self._origen)

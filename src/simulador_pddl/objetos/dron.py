@@ -92,8 +92,8 @@ class Dron:
         No comprueba nada, porque el movimiento ya es válido cuando se llama:
         ``Mover`` y ``MoverTransportador`` rechazan un origen igual al destino al
         construirse y comprueban que el dron está en el origen cuando empiezan
-        (``_exigir_en()``), y ``Simulacion`` rechaza al construirse cualquier otra
-        acción del dron que se solape con el movimiento. Así, todo lo que se
+        (``_exigir_en()``), y ``Simulacion`` no deja empezar ninguna otra acción
+        del dron mientras dura el movimiento. Así, todo lo que se
         comprobó al construir y en ``_iniciar_ejecucion()`` sigue siendo cierto
         cuando ``_terminar_ejecucion()`` llama a este método.
         """

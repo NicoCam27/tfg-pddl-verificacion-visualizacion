@@ -148,7 +148,7 @@ Cada acción tiene un instante de inicio y una duración, y sus efectos se aplic
 | `SoltarTransportador` | `dron, transportador, brazo` | El dron suelta el transportador que lleva. |
 | `MoverTransportador` | `dron, transportador, brazo, origen, destino` | El dron coge el transportador, lo lleva a otra localización y lo suelta. |
 
-Un dron solo puede hacer un `Mover` o un `MoverTransportador` a la vez. El resto de acciones ocupan únicamente su brazo, así que un dron con dos brazos puede, por ejemplo, coger dos cajas al mismo tiempo.
+Mientras un dron hace un `Mover` o un `MoverTransportador`, no puede hacer ninguna otra acción. El resto de acciones ocupan únicamente su brazo, así que un dron con dos brazos puede, por ejemplo, coger dos cajas al mismo tiempo. Un plan que incumple estas reglas es `NO EJECUTABLE`.
 
 **Planes clásicos.** Un planificador clásico (LAMA, Metric-FF...) devuelve una secuencia de pasos sin tiempos. Se escribe numerando sus pasos desde 0: la acción del paso `i` tiene `inicio_sim=i` y `duracion_sim=1`, el valor por defecto, así que basta con indicar el inicio (por ejemplo, `CogerCaja(dron, brazo, caja, 0)`). Como sus acciones no se solapan, aplicar los efectos en dos fases produce el mismo estado que aplicarlos a la vez, y el veredicto es el mismo que daría el plan clásico.
 

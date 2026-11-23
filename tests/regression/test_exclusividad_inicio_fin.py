@@ -7,9 +7,10 @@ ventanas de tiempo solapadas, una acción puede empezar en el instante en que
 termina la anterior, y ``reiniciar()`` deshace una acción que ha empezado y no
 ha terminado.
 
-También comprueban la regla de solapamiento que aplica ``Mundo`` al
-construirse, antes de que se ejecute nada: un movimiento ocupa el dron entero,
-y cualquier otra acción solo el brazo que usa.
+También comprueban la regla de solapamiento, que se aplica al ejecutar, cuando
+empieza cada acción: un movimiento ocupa el dron entero, y cualquier otra acción
+solo el brazo que usa. Una acción que la incumple deja el plan como
+``"NO EJECUTABLE"``.
 """
 
 from __future__ import annotations
@@ -37,6 +38,9 @@ from simulador_pddl.objetos import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from simulador_pddl.acciones import Accion
     from simulador_pddl.simulacion import InformeVerificacion
 
 
@@ -258,6 +262,19 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
             "transportadores": [self.transportador],
         }
 
+    def _comprobar_rechazo(self, acciones: Sequence[Accion], mensaje: str) -> None:
+        """Comprueba que la segunda acción no empieza porque choca con la primera.
+
+        El plan se ejecuta y se detiene al empezar la segunda acción, con
+        ``mensaje`` como error.
+        """
+        mundo = Mundo(acciones, **self._objetos())
+        informe = ejecutar_plan(mundo, paso_tiempo=0.1)
+
+        self.assertEqual(informe.veredicto, informe.NO_EJECUTABLE)
+        self.assertEqual(informe.error, mensaje)
+        self.assertFalse(acciones[1].iniciada)
+
     def test_coger_durante_un_mover_del_mismo_dron_se_rechaza(self) -> None:
         """Comprueba que un dron no puede coger una caja mientras se mueve.
 
@@ -277,10 +294,11 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
             ),
         ]
 
-        with self.assertRaises(ValueError) as capturado:
-            Mundo(acciones, **self._objetos())
-
-        self.assertIn("dron1", str(capturado.exception))
+        self._comprobar_rechazo(
+            acciones,
+            f"el dron dron1 no puede empezar {acciones[1].desc!r} en t=1 antes de "
+            f"terminar {acciones[0].desc!r} en t=2",
+        )
 
     def test_mover_durante_un_coger_del_mismo_dron_se_rechaza(self) -> None:
         """Comprueba que un dron no puede empezar a moverse mientras coge una caja."""
@@ -297,8 +315,11 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
             ),
         ]
 
-        with self.assertRaises(ValueError):
-            Mundo(acciones, **self._objetos())
+        self._comprobar_rechazo(
+            acciones,
+            f"el dron dron1 no puede empezar {acciones[1].desc!r} en t=1 antes de "
+            f"terminar {acciones[0].desc!r} en t=2",
+        )
 
     def test_coger_durante_un_mover_transportador_del_mismo_dron_se_rechaza(
         self,
@@ -322,8 +343,11 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
             ),
         ]
 
-        with self.assertRaises(ValueError):
-            Mundo(acciones, **self._objetos())
+        self._comprobar_rechazo(
+            acciones,
+            f"el dron dron1 no puede empezar {acciones[1].desc!r} en t=1 antes de "
+            f"terminar {acciones[0].desc!r} en t=2",
+        )
 
     def test_dos_brazos_de_un_dron_pueden_coger_a_la_vez(self) -> None:
         """Comprueba que dos cargas solapadas se aceptan en brazos distintos."""
@@ -353,10 +377,11 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
             ),
         ]
 
-        with self.assertRaises(ValueError) as capturado:
-            Mundo(acciones, **self._objetos())
-
-        self.assertIn("izquierda", str(capturado.exception))
+        self._comprobar_rechazo(
+            acciones,
+            f"el brazo izquierda del dron dron1 no puede empezar {acciones[1].desc!r} "
+            f"en t=1 antes de terminar {acciones[0].desc!r} en t=2",
+        )
 
 
 class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):

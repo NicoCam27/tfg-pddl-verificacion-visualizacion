@@ -5,9 +5,10 @@ del problema y, si los hay, sus objetivos. Al construirse comprueba que cada
 acción y cada objetivo solo se refieren a objetos declarados, que los drones,
 las cajas, las personas y los transportadores están en localizaciones
 declaradas, que las cajas y las personas solo usan contenidos declarados, que
-ningún brazo pertenece a dos drones, que ningún objetivo es imposible de lograr
-desde el estado inicial y que a ningún dron se le pide moverse mientras hace
-otra cosa, ni a un brazo hacer dos cosas a la vez.
+ningún brazo pertenece a dos drones y que ningún objetivo es imposible de lograr
+desde el estado inicial. Que ningún dron se mueva mientras hace otra cosa, ni un
+brazo haga dos cosas a la vez, se comprueba al ejecutar, cuando empieza cada
+acción.
 
 Después, ``_actualizar()`` avanza el tiempo simulado y aplica en orden temporal
 los efectos ``at start`` y ``at end`` de cada acción, y ``_crear_informe()`` devuelve
@@ -172,8 +173,6 @@ class Simulacion:
         self._acciones = _lista_tipada(acciones, Accion, "acciones")  # type: ignore[type-abstract]
         for accion in self._acciones:
             self._exigir_objetos_declarados(accion)
-
-        self._validar_sin_solapamientos_de_dron_o_brazo()
 
         # Una lista vacía si no se dieron objetivos.
         self._objetivos = self._validar_objetivos(objetivos)
@@ -406,57 +405,6 @@ class Simulacion:
             )
             raise ValueError(msg_objeto_no_mencionado)
 
-    def _validar_sin_solapamientos_de_dron_o_brazo(self) -> None:
-        """Lanza ``ValueError`` si dos acciones solapadas usan el mismo dron o brazo.
-
-        El recurso que no se puede compartir es el brazo, no el dron: un dron con
-        dos brazos puede coger dos cajas a la vez, y los planificadores que
-        paralelizan (lpg-td) lo hacen. Lo que sí ocupa el dron entero es moverse,
-        porque se lleva consigo todo lo que sujeta.
-        """
-        acciones_por_dron: dict[Dron, list[Accion]] = {}
-        for accion in self._acciones:
-            dron = accion.dron
-            acciones_por_dron.setdefault(dron, []).append(accion)
-
-        for dron, acciones_dron in acciones_por_dron.items():
-            acciones_ordenadas = sorted(
-                acciones_dron, key=lambda accion: accion.inicio_sim
-            )
-
-            for indice, actual in enumerate(acciones_ordenadas):
-                for anterior in acciones_ordenadas[:indice]:
-                    if anterior.tiempo_fin <= actual.inicio_sim:
-                        continue
-
-                    # Aquí anterior y actual se solapan en el tiempo.
-                    dron_entero = isinstance(
-                        anterior, self._TIPOS_ACCION_DRON_ENTERO
-                    ) or isinstance(actual, self._TIPOS_ACCION_DRON_ENTERO)
-
-                    if dron_entero:
-                        msg_solapamiento_acciones = (
-                            f"el dron {dron.nombre} no puede empezar "
-                            f"{actual.desc!r} en t={actual.inicio_sim} antes de "
-                            f"terminar {anterior.desc!r} en t={anterior.tiempo_fin}"
-                        )
-                        raise ValueError(msg_solapamiento_acciones)
-
-                    # Ninguna de las dos es un movimiento, así que las dos tienen
-                    # brazo.
-                    brazo_anterior = anterior.objetos["brazo"]
-                    brazo_actual = actual.objetos["brazo"]
-
-                    if brazo_anterior is brazo_actual:
-                        msg_solapamiento_acciones_brazo = (
-                            f"el brazo {brazo_actual.nombre} del dron {dron.nombre} "
-                            f"no puede empezar {actual.desc!r} "
-                            f"en t={actual.inicio_sim} "
-                            f"antes de terminar {anterior.desc!r} "
-                            f"en t={anterior.tiempo_fin}"
-                        )
-                        raise ValueError(msg_solapamiento_acciones_brazo)
-
     # ------------------------------------------------------------------
     # Ejecución paso a paso
     # ------------------------------------------------------------------
@@ -563,12 +511,49 @@ class Simulacion:
             if self._tiene_error:
                 return
 
+    def _error_de_solapamiento(self, accion: Accion) -> str | None:
+        """Devuelve el error si ``accion`` choca con una acción en curso, o ``None``.
+
+        El recurso que no se puede compartir es el brazo, no el dron: un dron con
+        dos brazos puede coger dos cajas a la vez, y los planificadores que
+        paralelizan (lpg-td) lo hacen. Lo que sí ocupa el dron entero es moverse,
+        porque se lleva consigo todo lo que sujeta. Una acción que termina en el
+        mismo instante en que empieza ``accion`` ya no está en curso, porque los
+        finales se procesan antes que los inicios.
+        """
+        for activa in self._acciones_activas:
+            if activa.dron is not accion.dron:
+                continue
+
+            if isinstance(activa, self._TIPOS_ACCION_DRON_ENTERO) or isinstance(
+                accion, self._TIPOS_ACCION_DRON_ENTERO
+            ):
+                return (
+                    f"el dron {accion.dron.nombre} no puede empezar {accion.desc!r} "
+                    f"en t={accion.inicio_sim} antes de terminar {activa.desc!r} "
+                    f"en t={activa.tiempo_fin}"
+                )
+
+            # Ninguna de las dos es un movimiento, así que las dos tienen brazo.
+            brazo = accion.objetos["brazo"]
+            if activa.objetos["brazo"] is brazo:
+                return (
+                    f"el brazo {brazo.nombre} del dron {accion.dron.nombre} no "
+                    f"puede empezar {accion.desc!r} en t={accion.inicio_sim} "
+                    f"antes de terminar {activa.desc!r} en t={activa.tiempo_fin}"
+                )
+
+        return None
+
     def _iniciar_accion(self, accion: Accion) -> None:
         """Aplica los efectos ``at start`` de ``accion``.
 
-        Si fallan, detiene la simulación con el mensaje de error de la acción.
+        Si choca con una acción en curso del mismo dron o del mismo brazo, o si
+        sus efectos fallan, detiene la simulación con el mensaje de error.
         """
-        error = accion._iniciar_ejecucion()
+        error = self._error_de_solapamiento(accion)
+        if error is None:
+            error = accion._iniciar_ejecucion()
 
         if error is not None:
             self._poner_error(error)
