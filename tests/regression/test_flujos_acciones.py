@@ -663,7 +663,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
 
         self.assertTrue(informe.ejecutable, informe.error)
         self.assertIsNone(transportador.propietario_actual)
-        self.assertIsNone(brazo.reservado_por)
+        self.assertIsNone(brazo.transportador)
 
     def test_el_transportador_sigue_sujeto_hasta_que_termina_soltar(self) -> None:
         """Comprueba que ``SoltarTransportador`` libera el transportador al terminar."""
@@ -703,12 +703,12 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
         mundo._simulacion._actualizar(2.0)
 
         self.assertIs(transportador.propietario_actual, dron)
-        self.assertIs(brazo.reservado_por, transportador)
+        self.assertIs(brazo.transportador, transportador)
 
         mundo._simulacion._actualizar(10)
 
         self.assertIsNone(transportador.propietario_actual)
-        self.assertIsNone(brazo.reservado_por)
+        self.assertIsNone(brazo.transportador)
 
     def test_no_se_puede_meter_una_caja_en_un_transportador_que_se_esta_soltando(
         self,
@@ -902,7 +902,7 @@ class TestMoverTransportadorDePrincipioAFin(unittest.TestCase):
         )
         self.assertFalse(acciones[0].iniciada)
         self.assertIsNone(transportador.propietario_actual)
-        self.assertIsNone(brazo.reservado_por)
+        self.assertIsNone(brazo.transportador)
         self.assertEqual(dron.localizacion, deposito)
 
 

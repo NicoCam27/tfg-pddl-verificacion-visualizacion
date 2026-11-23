@@ -440,12 +440,12 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
         # A mitad de la acción: el transportador está cogido y no soltado.
         mundo._simulacion._actualizar(1.0)
 
-        self.assertIs(brazo.reservado_por, transportador)
+        self.assertIs(brazo.transportador, transportador)
         self.assertIs(transportador.propietario_actual, dron)
 
         mundo.reiniciar()
 
-        self.assertIsNone(brazo.reservado_por)
+        self.assertIsNone(brazo.transportador)
         self.assertIsNone(brazo.caja)
         self.assertIsNone(transportador.propietario_actual)
         self.assertIsNone(transportador.brazo_actual)

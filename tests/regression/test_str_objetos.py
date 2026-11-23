@@ -115,14 +115,14 @@ class TestStrObjetos(unittest.TestCase):
         self.assertIn("cajas_dentro=['caja1']", str(self.transportador))
         self.assertIn("propietario_actual=dron1", str(self.transportador))
         self.assertIn("brazo_actual=brazo", str(self.transportador))
-        self.assertIn("reservado_por=transportador1", str(self.brazo))
+        self.assertIn("transportador=transportador1", str(self.brazo))
         self.assertIn("propietario_actual=transportador1", str(self.caja))
-        self.assertIn("reservado_por=transportador1", str(self.dron))
+        self.assertIn("transportador=transportador1", str(self.dron))
 
     def test_objetos_sin_nada_relacionado(self) -> None:
         """Comprueba ``str()`` de objetos que no sujetan nada ni tienen propietario."""
         self.assertIn("propietario_actual=nadie", str(self.caja))
-        self.assertIn("caja=None, reservado_por=None", str(self.brazo))
+        self.assertIn("caja=None, transportador=None", str(self.brazo))
         self.assertIn("posee=[]", str(self.persona))
         self.assertIn(
             "propietario_actual=nadie, brazo_actual=None", str(self.transportador)

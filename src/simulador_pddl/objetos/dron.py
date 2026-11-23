@@ -109,10 +109,10 @@ class Dron:
                 brazo.caja._mover(destino)
                 numero_de_cajas_sujetas += 1
 
-            if brazo.reservado_por is not None:
+            if brazo.transportador is not None:
                 # El transportador mueve las cajas que lleva dentro, el mensaje
                 # solo cuenta lo que llevan los brazos.
-                brazo.reservado_por._mover(destino)
+                brazo.transportador._mover(destino)
                 numero_de_transportadores_sujetos += 1
 
         registrador.info(
@@ -231,7 +231,7 @@ class Dron:
         que el brazo sigue libre: ``Simulacion`` no deja que otra acción del dron
         use el mismo brazo mientras tanto.
         """
-        brazo._poner_reservado_por(transportador)
+        brazo._poner_transportador(transportador)
 
         registrador.info(
             "El dron %s ha cogido el transportador %s con el brazo %s",
@@ -277,7 +277,7 @@ class Dron:
         este mismo brazo, que está ocupado por la acción, y otro dron no puede
         soltar un transportador que no sujeta.
         """
-        brazo._quitar_reservado_por()
+        brazo._quitar_transportador()
         transportador._soltar()
 
         registrador.info(

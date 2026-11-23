@@ -15,7 +15,7 @@ class Brazo:
 
     Un brazo se crea con su nombre y se le da a un ``Dron`` al construirlo. Puede
     estar libre, sujetar una caja (``caja``) o estar reservado por un
-    transportador que lleva (``reservado_por``), pero solo una de estas cosas a la
+    transportador que lleva (``transportador``), pero solo una de estas cosas a la
     vez. Cada brazo tiene que pertenecer a un solo dron.
 
     Args:
@@ -27,25 +27,25 @@ class Brazo:
 
         self._nombre = nombre
         self._caja: Caja | None = None
-        self._reservado_por: Transportador | None = None
+        self._transportador: Transportador | None = None
 
     def __repr__(self) -> str:
         return f"Brazo({self._nombre!r})"
 
     def __str__(self) -> str:
         caja = self._caja.nombre if self._caja is not None else None
-        reservado_por = (
-            self._reservado_por.nombre if self._reservado_por is not None else None
+        transportador = (
+            self._transportador.nombre if self._transportador is not None else None
         )
         return (
-            f"Brazo(nombre={self._nombre}, caja={caja}, reservado_por={reservado_por})"
+            f"Brazo(nombre={self._nombre}, caja={caja}, transportador={transportador})"
         )
 
-    def _poner_reservado_por(self, transportador: Transportador) -> None:
-        self._reservado_por = transportador
+    def _poner_transportador(self, transportador: Transportador) -> None:
+        self._transportador = transportador
 
-    def _quitar_reservado_por(self) -> None:
-        self._reservado_por = None
+    def _quitar_transportador(self) -> None:
+        self._transportador = None
 
     def _poner_caja(self, caja: Caja) -> None:
         self._caja = caja
@@ -63,10 +63,10 @@ class Brazo:
 
     def _exigir_sin_transportador(self) -> None:
         """Lanza ``ValueError`` si el brazo está reservado para un transportador."""
-        if self._reservado_por is not None:
+        if self._transportador is not None:
             msg_brazo_reservado = (
                 f"el brazo {self._nombre} ya está reservado para llevar "
-                f"el transportador {self._reservado_por.nombre}"
+                f"el transportador {self._transportador.nombre}"
             )
             raise ValueError(msg_brazo_reservado)
 
@@ -80,10 +80,10 @@ class Brazo:
         if self._caja is caja:
             return
 
-        if self._reservado_por is not None:
+        if self._transportador is not None:
             estado_brazo = (
                 "está reservado para llevar el transportador "
-                f"{self._reservado_por.nombre}"
+                f"{self._transportador.nombre}"
             )
         elif self._caja is not None:
             estado_brazo = f"sujeta la caja {self._caja.nombre}"
@@ -105,6 +105,6 @@ class Brazo:
         return self._caja
 
     @property
-    def reservado_por(self) -> Transportador | None:
+    def transportador(self) -> Transportador | None:
         """El transportador que lleva este brazo, o ``None`` si no lleva ninguno."""
-        return self._reservado_por
+        return self._transportador
