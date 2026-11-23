@@ -38,6 +38,17 @@ class Mundo:
     detiene en la acción que falla, y el ``InformeVerificacion`` que devuelven da el
     veredicto ``"NO EJECUTABLE"`` y el mensaje de ese fallo.
 
+    El plan se ejecuta sobre los objetos que recibe el mundo, no sobre copias: al
+    ejecutarlo, los objetos cambian (los drones se mueven, las cajas se entregan,
+    las personas dejan de necesitar lo que reciben) y después se pueden consultar
+    para ver cómo ha quedado el problema. Las acciones también guardan si han
+    empezado y terminado. Por eso un mundo parte del estado en que estén sus
+    objetos al construirlo: si otro mundo ya los usó, parte del estado en que ese
+    otro los dejó. Para comprobar varios planes sobre el mismo problema, hay que
+    crear los objetos y las acciones de nuevo para cada plan, p. ej. con una
+    función que construya el problema. ``reiniciar()`` devuelve los objetos al
+    estado en que estaban al construir este mundo.
+
     Todos los argumentos menos ``acciones`` se pasan por nombre, para que cada
     lista diga lo que contiene. Cada lista puede ser una lista o una tupla.
 

@@ -118,7 +118,7 @@ Objetivos: 3 de 3 cumplidos
   [OK] el dron dron1 está en la localización deposito  (cumplido desde t=7.00s)
 ```
 
-Este ejemplo y otros dos están en el directorio `tests/` (`ejemplo_basico.py`, `ejemplo_transportador.py` y `ejemplo_dos_drones_paralelos.py`).
+Este ejemplo y otros tres están en el directorio `tests/` (`ejemplo_basico.py`, `ejemplo_transportador.py`, `ejemplo_dos_drones_paralelos.py` y `ejemplo_varios_planificadores.py`).
 
 ### Objetos
 
@@ -267,6 +267,33 @@ El informe indica el veredicto en `informe.veredicto`:
 | `NO EJECUTABLE` | Una acción no se pudo aplicar: el plan no es ejecutable. |
 
 Además, `informe.es_valido` es `True` solo si el veredicto es `VÁLIDO`, `informe.error` contiene el mensaje de la acción que falló (o `None`) y `informe.resumen()` devuelve el texto completo, con el estado de cada objetivo. Para usar esos datos desde el código (por ejemplo, para comparar planes o en pruebas), el informe también los ofrece como objetos `EstadoObjetivo`, uno por objetivo, en `informe.estados_objetivos`, `informe.objetivos_cumplidos` e `informe.objetivos_no_cumplidos`, con las propiedades `objetivo`, `cumplido`, `logrado_en`, `roto_en` y `explicacion_fallo`.
+
+### Varios planes para el mismo problema
+
+`Mundo` ejecuta el plan sobre los objetos que recibe, no sobre copias: al terminar, los objetos quedan como los ha dejado el plan (la caja entregada, el dron en su destino), y se pueden consultar. Por eso un `Mundo` parte del estado en que estén sus objetos al construirlo, y un segundo `Mundo` con los mismos objetos partiría del estado final del primero.
+
+Para comprobar los planes de varios planificadores sobre el mismo problema, el problema se escribe una sola vez en funciones que crean los objetos y los objetivos, y se llaman una vez por plan:
+
+```python
+def crear_problema():         # Crea los objetos: nuevos en cada llamada
+    ...
+
+def crear_objetivos(p):       # Crea los objetivos sobre los objetos de p
+    ...
+
+def plan_planificador_a(p):   # Una función por plan, sobre los objetos de p
+    ...
+
+def plan_planificador_b(p):   # El plan de otro planificador
+    ...
+
+for crear_plan in (plan_planificador_a, plan_planificador_b):
+    p = crear_problema()      # Objetos nuevos para cada plan
+    mundo = Mundo(crear_plan(p), ..., objetivos=crear_objetivos(p))
+    informe = mundo.simulacion_texto()
+```
+
+El ejemplo completo está en `tests/ejemplo_varios_planificadores.py`: dos planificadores que, para el mismo problema, dan dos planes válidos distintos, uno con menos acciones y otro que termina antes.
 
 ## Ejecución
 
