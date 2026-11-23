@@ -73,7 +73,7 @@ def crear_mundo() -> Mundo:
         CogerCaja(dron, izquierda, caja1, 0, 1),
         PonerCajaEnTransportador(dron, izquierda, caja1, transportador, 1, 1),
         CogerCaja(dron, izquierda, caja2, 2, 1),
-        MoverTransportador(dron, transportador, derecha, deposito, loc1, 3, 2),
+        MoverTransportador(dron, derecha, transportador, deposito, loc1, 3, 2),
         SacarCajaDeTransportador(dron, derecha, caja1, transportador, 5, 1),
         EntregarCaja(dron, derecha, caja1, persona1, 6, 1),
         Mover(dron, loc1, loc2, 7, 2),

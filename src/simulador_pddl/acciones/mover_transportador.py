@@ -34,10 +34,10 @@ class MoverTransportador(Accion):
 
     Args:
         dron: El dron que se mueve con el transportador.
-        transportador: El transportador que se mueve con el dron (ningún dron
-            puede estar sujetándolo en este momento).
         brazo: El brazo con el que se sujeta el transportador (tiene que
             pertenecer al dron y estar libre).
+        transportador: El transportador que se mueve con el dron (ningún dron
+            puede estar sujetándolo en este momento).
         origen: La localización de salida (tiene que ser la localización actual
             del dron y del transportador).
         destino: La localización de llegada (tiene que ser distinta del origen).
@@ -53,8 +53,8 @@ class MoverTransportador(Accion):
     def __init__(
         self,
         dron: Dron,
-        transportador: Transportador,
         brazo: Brazo,
+        transportador: Transportador,
         origen: Localizacion,
         destino: Localizacion,
         inicio_sim: float,
@@ -63,8 +63,8 @@ class MoverTransportador(Accion):
     ) -> None:
         # Validación de los argumentos específicos de esta acción
         validar_objeto_dron(dron)
-        validar_objeto_transportador(transportador)
         validar_objeto_brazo(brazo)
+        validar_objeto_transportador(transportador)
         validar_objeto_localizacion(origen, "origen")
         validar_objeto_localizacion(destino, "destino")
         validar_localizaciones_distintas(origen, destino)
@@ -72,8 +72,8 @@ class MoverTransportador(Accion):
 
         # Objetos propios de la acción
         self._dron = dron
-        self._transportador = transportador
         self._brazo = brazo
+        self._transportador = transportador
         self._origen = origen
         self._destino = destino
 
@@ -93,8 +93,8 @@ class MoverTransportador(Accion):
         """
         try:
             self._dron._exigir_en(self._origen)
-            self._dron._iniciar_coger_transportador(self._transportador, self._brazo)
-            self._dron._terminar_coger_transportador(self._transportador, self._brazo)
+            self._dron._iniciar_coger_transportador(self._brazo, self._transportador)
+            self._dron._terminar_coger_transportador(self._brazo, self._transportador)
             self._iniciada = True
         except ValueError as e:
             return str(e)
@@ -111,8 +111,8 @@ class MoverTransportador(Accion):
         """
         try:
             self._dron._mover(self._destino)
-            self._dron._iniciar_soltar_transportador(self._transportador, self._brazo)
-            self._dron._terminar_soltar_transportador(self._transportador, self._brazo)
+            self._dron._iniciar_soltar_transportador(self._brazo, self._transportador)
+            self._dron._terminar_soltar_transportador(self._brazo, self._transportador)
             self._terminada = True
         except ValueError as e:
             return str(e)
@@ -120,14 +120,14 @@ class MoverTransportador(Accion):
             return None
 
     @property
-    def transportador(self) -> Transportador:
-        """El transportador que se mueve con el dron."""
-        return self._transportador
-
-    @property
     def brazo(self) -> Brazo:
         """El brazo con el que se sujeta el transportador."""
         return self._brazo
+
+    @property
+    def transportador(self) -> Transportador:
+        """El transportador que se mueve con el dron."""
+        return self._transportador
 
     @property
     def origen(self) -> Localizacion:
@@ -144,8 +144,8 @@ class MoverTransportador(Accion):
     def objetos(self) -> dict[str, ObjetoDominio]:
         return {
             "dron": self._dron,
-            "transportador": self._transportador,
             "brazo": self._brazo,
+            "transportador": self._transportador,
             "origen": self._origen,
             "destino": self._destino,
         }

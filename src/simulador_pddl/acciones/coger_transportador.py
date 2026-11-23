@@ -26,10 +26,10 @@ class CogerTransportador(Accion):
 
     Args:
         dron: El dron que coge el transportador.
-        transportador: El transportador que va a sujetar el dron (ningún dron
-            puede estar sujetándolo en este momento).
         brazo: El brazo con el que se coge el transportador (tiene que pertenecer
             al dron y estar libre).
+        transportador: El transportador que va a sujetar el dron (ningún dron
+            puede estar sujetándolo en este momento).
         inicio_sim: El instante de la simulación en el que empieza la acción.
             Tiene que ser >= 0. En un plan clásico, el índice del paso.
         duracion_sim: Opcional. La duración de la acción en la simulación.
@@ -42,22 +42,22 @@ class CogerTransportador(Accion):
     def __init__(
         self,
         dron: Dron,
-        transportador: Transportador,
         brazo: Brazo,
+        transportador: Transportador,
         inicio_sim: float,
         duracion_sim: float = 1.0,
         desc: str | None = None,
     ) -> None:
         # Validación de los argumentos específicos de esta acción
         validar_objeto_dron(dron)
-        validar_objeto_transportador(transportador)
         validar_objeto_brazo(brazo)
+        validar_objeto_transportador(transportador)
         validar_brazo_en_dron(dron, brazo)
 
         # Objetos propios de la acción
         self._dron = dron
-        self._transportador = transportador
         self._brazo = brazo
+        self._transportador = transportador
 
         super().__init__(inicio_sim=inicio_sim, duracion_sim=duracion_sim, desc=desc)
 
@@ -66,7 +66,7 @@ class CogerTransportador(Accion):
         try:
             # ``at start``: el transportador deja de estar libre, así que ningún
             # otro dron puede cogerlo mientras tanto.
-            self._dron._iniciar_coger_transportador(self._transportador, self._brazo)
+            self._dron._iniciar_coger_transportador(self._brazo, self._transportador)
             self._iniciada = True
         except ValueError as e:
             return str(e)
@@ -77,7 +77,7 @@ class CogerTransportador(Accion):
     def _terminar_ejecucion(self) -> str | None:
         try:
             # ``at end``: el brazo queda formalmente reservado para el transportador.
-            self._dron._terminar_coger_transportador(self._transportador, self._brazo)
+            self._dron._terminar_coger_transportador(self._brazo, self._transportador)
             self._terminada = True
         except ValueError as e:
             return str(e)
@@ -85,20 +85,20 @@ class CogerTransportador(Accion):
             return None
 
     @property
-    def transportador(self) -> Transportador:
-        """El transportador que va a sujetar el dron."""
-        return self._transportador
-
-    @property
     def brazo(self) -> Brazo:
         """El brazo con el que se coge el transportador."""
         return self._brazo
+
+    @property
+    def transportador(self) -> Transportador:
+        """El transportador que va a sujetar el dron."""
+        return self._transportador
 
     @property
     @override
     def objetos(self) -> dict[str, ObjetoDominio]:
         return {
             "dron": self._dron,
-            "transportador": self._transportador,
             "brazo": self._brazo,
+            "transportador": self._transportador,
         }

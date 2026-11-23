@@ -728,11 +728,11 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
 
         acciones = [
             CogerTransportador(
-                dron1, transportador, brazo1, inicio_sim=0, duracion_sim=1
+                dron1, brazo1, transportador, inicio_sim=0, duracion_sim=1
             ),
             CogerCaja(dron2, brazo2, caja, inicio_sim=0, duracion_sim=1),
             SoltarTransportador(
-                dron1, transportador, brazo1, inicio_sim=1, duracion_sim=2
+                dron1, brazo1, transportador, inicio_sim=1, duracion_sim=2
             ),
             PonerCajaEnTransportador(
                 dron2, brazo2, caja, transportador, inicio_sim=2, duracion_sim=1
@@ -762,7 +762,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
 
         acciones = [
             SoltarTransportador(
-                dron, transportador, brazo, inicio_sim=0, duracion_sim=1
+                dron, brazo, transportador, inicio_sim=0, duracion_sim=1
             ),
         ]
         mundo = Mundo(
@@ -795,10 +795,10 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
 
         acciones = [
             CogerTransportador(
-                dron2, transportador, brazo2, inicio_sim=0, duracion_sim=1
+                dron2, brazo2, transportador, inicio_sim=0, duracion_sim=1
             ),
             SoltarTransportador(
-                dron1, transportador, brazo1, inicio_sim=1, duracion_sim=1
+                dron1, brazo1, transportador, inicio_sim=1, duracion_sim=1
             ),
         ]
         mundo = Mundo(
@@ -982,7 +982,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
             CogerCaja(dron, brazos[0], cajas[0], inicio_sim=0, duracion_sim=1),
             CogerCaja(dron, brazos[1], cajas[1], inicio_sim=0, duracion_sim=1),
             CogerTransportador(
-                dron, transportador, brazos[2], inicio_sim=0, duracion_sim=1
+                dron, brazos[2], transportador, inicio_sim=0, duracion_sim=1
             ),
             Mover(dron, deposito, localizacion1, inicio_sim=1, duracion_sim=1),
         ]
@@ -1047,10 +1047,10 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
 
         acciones = [
             CogerTransportador(
-                dron, transportadores[0], brazos[0], inicio_sim=0, duracion_sim=1
+                dron, brazos[0], transportadores[0], inicio_sim=0, duracion_sim=1
             ),
             CogerTransportador(
-                dron, transportadores[1], brazos[1], inicio_sim=0, duracion_sim=1
+                dron, brazos[1], transportadores[1], inicio_sim=0, duracion_sim=1
             ),
             Mover(dron, deposito, localizacion1, inicio_sim=1, duracion_sim=1),
         ]
@@ -1147,8 +1147,8 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
             ),
             MoverTransportador(
                 self.dron2,
-                self.transportador,
                 self.brazo2,
+                self.transportador,
                 self.deposito,
                 self.localizacion1,
                 inicio_sim=2,
@@ -1268,8 +1268,8 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
             ),
             CogerTransportador(
                 self.dron2,
-                self.transportador,
                 self.brazo2,
+                self.transportador,
                 inicio_sim=5,
                 duracion_sim=1,
             ),
@@ -1327,8 +1327,8 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         coger = [
             CogerTransportador(
                 self.dron2,
-                self.transportador,
                 self.brazo2,
+                self.transportador,
                 inicio_sim=0,
                 duracion_sim=1,
             ),

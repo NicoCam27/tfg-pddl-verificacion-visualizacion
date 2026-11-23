@@ -88,9 +88,9 @@ transportador1 = Transportador("transportador1", deposito, 4)
 acciones = [
     CogerCaja(dron2, izq2, caja11, 0, 1),
     PonerCajaEnTransportador(dron2, izq2, caja11, transportador1, 1, 1),
-    CogerTransportador(dron2, transportador1, izq2, 2, 1),
+    CogerTransportador(dron2, izq2, transportador1, 2, 1),
     Mover(dron2, deposito, localizacion5, 3, 1),
-    SoltarTransportador(dron2, transportador1, izq2, 4, 1),
+    SoltarTransportador(dron2, izq2, transportador1, 4, 1),
     SacarCajaDeTransportador(dron2, izq2, caja11, transportador1, 5, 1),
     Soltar(dron2, izq2, caja11, 6, 1),
     Mover(dron2, localizacion5, deposito, 7, 1),

@@ -216,7 +216,7 @@ class Dron:
             raise ValueError(msg_propietario_transportador)
 
     def _iniciar_coger_transportador(
-        self, transportador: Transportador, brazo: Brazo
+        self, brazo: Brazo, transportador: Transportador
     ) -> None:
         """Reclama el transportador para este dron, para que ningún otro lo coja.
 
@@ -243,7 +243,7 @@ class Dron:
         )
 
     def _terminar_coger_transportador(
-        self, transportador: Transportador, brazo: Brazo
+        self, brazo: Brazo, transportador: Transportador
     ) -> None:
         """Reserva el brazo para el transportador: ahora el dron lo lleva.
 
@@ -264,7 +264,7 @@ class Dron:
         )
 
     def _iniciar_soltar_transportador(
-        self, transportador: Transportador, brazo: Brazo
+        self, brazo: Brazo, transportador: Transportador
     ) -> None:
         """Comprueba que el dron puede soltar el transportador que sujeta con el brazo.
 
@@ -289,7 +289,7 @@ class Dron:
         )
 
     def _terminar_soltar_transportador(
-        self, transportador: Transportador, brazo: Brazo
+        self, brazo: Brazo, transportador: Transportador
     ) -> None:
         """Suelta el transportador: ni el dron ni su brazo lo sujetan ya.
 

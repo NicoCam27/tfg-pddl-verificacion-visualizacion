@@ -144,9 +144,9 @@ Cada acción tiene un instante de inicio y una duración, y sus efectos se aplic
 | `Soltar` | `dron, brazo, caja` | El dron deja la caja en su localización, sin entregarla. |
 | `PonerCajaEnTransportador` | `dron, brazo, caja, transportador` | El dron mete en el transportador la caja que sujeta. |
 | `SacarCajaDeTransportador` | `dron, brazo, caja, transportador` | El dron saca una caja del transportador. |
-| `CogerTransportador` | `dron, transportador, brazo` | El dron coge el transportador con un brazo, para llevarlo. |
-| `SoltarTransportador` | `dron, transportador, brazo` | El dron suelta el transportador que lleva. |
-| `MoverTransportador` | `dron, transportador, brazo, origen, destino` | El dron coge el transportador, lo lleva a otra localización y lo suelta. |
+| `CogerTransportador` | `dron, brazo, transportador` | El dron coge el transportador con un brazo, para llevarlo. |
+| `SoltarTransportador` | `dron, brazo, transportador` | El dron suelta el transportador que lleva. |
+| `MoverTransportador` | `dron, brazo, transportador, origen, destino` | El dron coge el transportador, lo lleva a otra localización y lo suelta. |
 
 Mientras un dron hace un `Mover` o un `MoverTransportador`, no puede hacer ninguna otra acción. El resto de acciones ocupan únicamente su brazo, así que un dron con dos brazos puede, por ejemplo, coger dos cajas al mismo tiempo. Un plan que incumple estas reglas es `NO EJECUTABLE`.
 
@@ -202,10 +202,10 @@ acciones = [
     PonerCajaEnTransportador(dron1, izq, caja1, transportador1, 1, 1),
     CogerCaja(dron1, der, caja2, 2, 1),
     PonerCajaEnTransportador(dron1, der, caja2, transportador1, 3, 1),
-    MoverTransportador(dron1, transportador1, izq, deposito, localizacion1, 4, 1),
+    MoverTransportador(dron1, izq, transportador1, deposito, localizacion1, 4, 1),
     SacarCajaDeTransportador(dron1, izq, caja1, transportador1, 5, 1),
     EntregarCaja(dron1, izq, caja1, persona1, 6, 1),
-    MoverTransportador(dron1, transportador1, izq, localizacion1, localizacion2, 7, 1),
+    MoverTransportador(dron1, izq, transportador1, localizacion1, localizacion2, 7, 1),
     SacarCajaDeTransportador(dron1, izq, caja2, transportador1, 8, 1),
     EntregarCaja(dron1, izq, caja2, persona2, 9, 1),
     Mover(dron1, localizacion2, deposito, 10, 1),

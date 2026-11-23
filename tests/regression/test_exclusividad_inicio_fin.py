@@ -331,8 +331,8 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
         acciones = [
             MoverTransportador(
                 self.dron,
-                self.transportador,
                 self.izquierda,
+                self.transportador,
                 self.deposito,
                 self.localizacion1,
                 inicio_sim=0,
@@ -443,8 +443,8 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
         acciones = [
             MoverTransportador(
                 dron,
-                transportador,
                 brazo,
+                transportador,
                 deposito,
                 localizacion1,
                 inicio_sim=0,

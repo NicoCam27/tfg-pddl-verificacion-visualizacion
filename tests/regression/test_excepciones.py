@@ -634,7 +634,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
     def test_accion_de_transportador_sin_lista_de_transportadores(self) -> None:
         """Comprueba que una acción de transportador exige transportadores."""
         coger = CogerTransportador(
-            self.dron, self.transportador, self.brazo, inicio_sim=0
+            self.dron, self.brazo, self.transportador, inicio_sim=0
         )
 
         with self.assertRaises(ValueError):

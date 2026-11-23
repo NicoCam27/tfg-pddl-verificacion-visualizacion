@@ -108,7 +108,7 @@ class TestStrObjetos(unittest.TestCase):
                 PonerCajaEnTransportador(
                     self.dron, self.brazo, self.caja, self.transportador, 1, 1
                 ),
-                CogerTransportador(self.dron, self.transportador, self.brazo, 2, 1),
+                CogerTransportador(self.dron, self.brazo, self.transportador, 2, 1),
             ]
         )
 
@@ -208,12 +208,13 @@ class TestReprAcciones(unittest.TestCase):
     def test_objetos_en_el_orden_de_los_argumentos(self) -> None:
         """Comprueba que los objetos aparecen como se pasan, y después los tiempos."""
         accion = MoverTransportador(
-            self.dron, self.transportador, self.brazo, self.deposito, self.loc1, 2, 1.5
+            self.dron, self.brazo, self.transportador, self.deposito, self.loc1, 2, 1.5
         )
         self.assertEqual(
             repr(accion),
-            "MoverTransportador(Dron('dron1'), Transportador('transportador1'), "
-            "Brazo('brazo'), Localizacion('deposito'), Localizacion('loc1'), "
+            "MoverTransportador(Dron('dron1'), Brazo('brazo'), "
+            "Transportador('transportador1'), Localizacion('deposito'), "
+            "Localizacion('loc1'), "
             "inicio_sim=2, duracion_sim=1.5)",
         )
 

@@ -103,43 +103,43 @@ class TestDescripcionAutomatica(unittest.TestCase):
             (
                 CogerTransportador(
                     dron=self.dron,
-                    transportador=self.transportador,
                     brazo=self.brazo,
+                    transportador=self.transportador,
                     inicio_sim=0.5,
                     duracion_sim=2,
                 ),
                 (
-                    "CogerTransportador(dron=dron1, transportador=transportador1, "
-                    "brazo=brazo, inicio_sim=0.5, duracion_sim=2)"
+                    "CogerTransportador(dron=dron1, brazo=brazo, "
+                    "transportador=transportador1, inicio_sim=0.5, duracion_sim=2)"
                 ),
             ),
             (
                 SoltarTransportador(
                     dron=self.dron,
-                    transportador=self.transportador,
                     brazo=self.brazo,
+                    transportador=self.transportador,
                     inicio_sim=0.5,
                     duracion_sim=2,
                 ),
                 (
-                    "SoltarTransportador(dron=dron1, transportador=transportador1, "
-                    "brazo=brazo, inicio_sim=0.5, duracion_sim=2)"
+                    "SoltarTransportador(dron=dron1, brazo=brazo, "
+                    "transportador=transportador1, inicio_sim=0.5, duracion_sim=2)"
                 ),
             ),
             (
                 MoverTransportador(
                     dron=self.dron,
-                    transportador=self.transportador,
                     brazo=self.brazo,
+                    transportador=self.transportador,
                     origen=self.deposito,
                     destino=self.localizacion1,
                     inicio_sim=0.5,
                     duracion_sim=2,
                 ),
                 (
-                    "MoverTransportador(dron=dron1, transportador=transportador1, "
-                    "brazo=brazo, origen=deposito, destino=localizacion1, "
-                    "inicio_sim=0.5, duracion_sim=2)"
+                    "MoverTransportador(dron=dron1, brazo=brazo, "
+                    "transportador=transportador1, origen=deposito, "
+                    "destino=localizacion1, inicio_sim=0.5, duracion_sim=2)"
                 ),
             ),
             (

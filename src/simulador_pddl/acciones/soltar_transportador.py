@@ -26,10 +26,10 @@ class SoltarTransportador(Accion):
 
     Args:
         dron: El dron que sujeta ahora el transportador.
-        transportador: El transportador que suelta el dron (lo tiene que sujetar
-            el dron con el brazo).
         brazo: El brazo que sujeta ahora el transportador (tiene que pertenecer al
             dron).
+        transportador: El transportador que suelta el dron (lo tiene que sujetar
+            el dron con el brazo).
         inicio_sim: El instante de la simulación en el que empieza la acción.
             Tiene que ser >= 0. En un plan clásico, el índice del paso.
         duracion_sim: Opcional. La duración de la acción en la simulación.
@@ -42,22 +42,22 @@ class SoltarTransportador(Accion):
     def __init__(
         self,
         dron: Dron,
-        transportador: Transportador,
         brazo: Brazo,
+        transportador: Transportador,
         inicio_sim: float,
         duracion_sim: float = 1.0,
         desc: str | None = None,
     ) -> None:
         # Validación de los argumentos específicos de esta acción
         validar_objeto_dron(dron)
-        validar_objeto_transportador(transportador)
         validar_objeto_brazo(brazo)
+        validar_objeto_transportador(transportador)
         validar_brazo_en_dron(dron, brazo)
 
         # Objetos propios de la acción
         self._dron = dron
-        self._transportador = transportador
         self._brazo = brazo
+        self._transportador = transportador
 
         super().__init__(inicio_sim=inicio_sim, duracion_sim=duracion_sim, desc=desc)
 
@@ -66,7 +66,7 @@ class SoltarTransportador(Accion):
         try:
             # ``at start``: se comprueba que se puede soltar. El dron aún sujeta el
             # transportador.
-            self._dron._iniciar_soltar_transportador(self._transportador, self._brazo)
+            self._dron._iniciar_soltar_transportador(self._brazo, self._transportador)
             self._iniciada = True
         except ValueError as e:
             return str(e)
@@ -77,7 +77,7 @@ class SoltarTransportador(Accion):
     def _terminar_ejecucion(self) -> str | None:
         try:
             # ``at end``: el dron suelta el transportador, que vuelve a estar libre.
-            self._dron._terminar_soltar_transportador(self._transportador, self._brazo)
+            self._dron._terminar_soltar_transportador(self._brazo, self._transportador)
             self._terminada = True
         except ValueError as e:
             return str(e)
@@ -85,20 +85,20 @@ class SoltarTransportador(Accion):
             return None
 
     @property
-    def transportador(self) -> Transportador:
-        """El transportador que suelta el dron."""
-        return self._transportador
-
-    @property
     def brazo(self) -> Brazo:
         """El brazo que sujeta ahora el transportador."""
         return self._brazo
+
+    @property
+    def transportador(self) -> Transportador:
+        """El transportador que suelta el dron."""
+        return self._transportador
 
     @property
     @override
     def objetos(self) -> dict[str, ObjetoDominio]:
         return {
             "dron": self._dron,
-            "transportador": self._transportador,
             "brazo": self._brazo,
+            "transportador": self._transportador,
         }
