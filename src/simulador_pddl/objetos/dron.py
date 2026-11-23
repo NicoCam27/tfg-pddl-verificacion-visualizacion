@@ -8,7 +8,6 @@ from simulador_pddl.objetos.persona import Persona
 from simulador_pddl.objetos.transportador import Transportador
 from simulador_pddl.objetos.utilidades_objetos import (
     con_articulo,
-    con_preposicion_a,
     describir_cantidad,
     describir_necesidades,
     validar_lista_brazos,
@@ -258,8 +257,6 @@ class Dron:
             f"{transportador.nombre} con el brazo {brazo.nombre}",
         )
 
-        brazo._exigir_sin_caja()
-
         registrador.info(
             "El dron %s ha empezado a soltar el transportador %s, "
             "que sujeta con el brazo %s",
@@ -351,15 +348,6 @@ class Dron:
             self._nombre,
         )
 
-    def _exigir_propietario_caja(self, caja: Caja) -> None:
-        """Lanza ``ValueError`` si este dron no es el propietario de la caja."""
-        if caja.propietario_actual is not self:
-            msg_propietario_caja = (
-                f"la caja {caja.nombre} no pertenece al dron {self._nombre}, "
-                f"pertenece {con_preposicion_a(caja._describir_propietario())}"
-            )
-            raise ValueError(msg_propietario_caja)
-
     def _exigir_necesidad_persona(self, persona: Persona, caja: Caja) -> None:
         """Lanza ``ValueError`` si la persona no necesita el contenido de la caja."""
         if caja.contenido not in persona.necesidades:
@@ -386,8 +374,6 @@ class Dron:
 
         brazo._exigir_sujetando(caja)
 
-        self._exigir_propietario_caja(caja)
-
         registrador.info(
             "El dron %s ha empezado a entregar la caja %s del brazo %s a la persona %s",
             self._nombre,
@@ -412,7 +398,7 @@ class Dron:
         # no puede terminar deje la caja en el brazo, no medio entregada.
         self._exigir_necesidad_persona(persona, caja)
 
-        caja._liberar_de(self)
+        caja._liberar()
         persona._anadir_caja_poseida(caja)
         brazo._quitar_contenido()
 
@@ -432,8 +418,6 @@ class Dron:
         """
         brazo._exigir_sujetando(caja)
 
-        self._exigir_propietario_caja(caja)
-
         registrador.info(
             "El dron %s ha empezado a soltar la caja %s del brazo %s",
             self._nombre,
@@ -449,7 +433,7 @@ class Dron:
         porque lo que comprobó ``_iniciar_soltar()`` sigue siendo cierto: la caja
         no puede salir del brazo, que está ocupado por la acción.
         """
-        caja._liberar_de(self)
+        caja._liberar()
         brazo._quitar_contenido()
 
         registrador.info(
@@ -492,8 +476,6 @@ class Dron:
             )
             raise ValueError(msg_capacidad_maxima_transportador)
 
-        self._exigir_propietario_caja(caja)
-
         transportador._reservar_hueco(caja)
 
         registrador.info(
@@ -518,7 +500,7 @@ class Dron:
         no se puede mover mientras tanto.
         """
         transportador._anadir_caja(caja)
-        caja._liberar_de(self)
+        caja._liberar()
         brazo._quitar_contenido()
         caja._asignar_a(transportador)
 
@@ -578,7 +560,7 @@ class Dron:
 
         brazo._exigir_libre()
 
-        caja._liberar_de(transportador)
+        caja._liberar()
         caja._asignar_a(self)
         transportador._quitar_caja(caja)
         transportador._anadir_caja_saliente(caja)

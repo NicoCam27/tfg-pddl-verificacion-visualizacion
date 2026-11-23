@@ -5,9 +5,9 @@ del problema y, si los hay, sus objetivos. Al construirse comprueba que cada
 acción y cada objetivo solo se refieren a objetos declarados, que los drones,
 las cajas, las personas y los transportadores están en localizaciones
 declaradas, que las cajas y las personas solo usan contenidos declarados, que
-ningún objetivo es imposible de lograr desde el estado inicial y que a ningún
-dron se le pide moverse mientras hace otra cosa, ni a un brazo hacer dos cosas a
-la vez.
+ningún brazo pertenece a dos drones, que ningún objetivo es imposible de lograr
+desde el estado inicial y que a ningún dron se le pide moverse mientras hace
+otra cosa, ni a un brazo hacer dos cosas a la vez.
 
 Después, ``_actualizar()`` avanza el tiempo simulado y aplica en orden temporal
 los efectos ``at start`` y ``at end`` de cada acción, y ``_crear_informe()`` devuelve
@@ -163,6 +163,7 @@ class Simulacion:
             else None
         )
         self._exigir_referencias_declaradas()
+        self._exigir_brazos_no_compartidos()
 
         # acciones se anota como Sequence para que el comprobador de tipos acepte
         # una lista de un solo tipo de acción (list[CogerCaja]): list[Accion] la
@@ -305,6 +306,26 @@ class Simulacion:
                         f"{tipo_en_plural(necesidad)} dada"
                     )
                     raise ValueError(msg_necesidad_persona)
+
+    def _exigir_brazos_no_compartidos(self) -> None:
+        """Lanza ``ValueError`` si un brazo pertenece a más de un dron.
+
+        En el dominio, cada brazo es de un solo dron. Dos drones con el mismo
+        objeto ``Brazo`` verían el mismo contenido, y la comprobación de
+        solapamientos, que agrupa las acciones por dron, no los detendría: un
+        plan incorrecto podría resultar ejecutable sin ningún error.
+        """
+        duenos: dict[Brazo, Dron] = {}
+        for dron in self._drones:
+            for brazo in dron.brazos:
+                otro = duenos.setdefault(brazo, dron)
+                if otro is not dron:
+                    msg_brazo_compartido = (
+                        f"el brazo {brazo.nombre} no puede pertenecer a más de un "
+                        f"dron, pertenece {con_preposicion_a(con_articulo(otro))} y "
+                        f"{con_preposicion_a(con_articulo(dron))}"
+                    )
+                    raise ValueError(msg_brazo_compartido)
 
     def _lista_declarada(
         self,

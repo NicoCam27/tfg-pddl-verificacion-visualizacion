@@ -86,20 +86,13 @@ class Caja:
         self._estado = self.ENTREGADA
         self._propietario_actual = persona
 
-    def _liberar_de(self, propietario: Dron | Transportador) -> None:
-        """Deja la caja disponible otra vez, si ``propietario`` es su propietario.
+    def _liberar(self) -> None:
+        """Deja la caja disponible otra vez.
 
-        Raises:
-            ValueError: Si la caja no pertenece a ``propietario``.
+        Aquí no se comprueba nada: la caja se libera siempre de su propietario
+        actual, que es el dron cuyo brazo la sujeta o el transportador que la
+        tiene dentro.
         """
-        if self._propietario_actual is not propietario:
-            msg_no_propietario_caja = (
-                f"la caja {self._nombre} no pertenece "
-                f"{con_preposicion_a(con_articulo(propietario))}, "
-                f"pertenece {con_preposicion_a(self._describir_propietario())}"
-            )
-            raise ValueError(msg_no_propietario_caja)
-
         self._estado = self.DISPONIBLE
         self._propietario_actual = None
 

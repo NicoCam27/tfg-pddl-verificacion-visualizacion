@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from simulador_pddl.objetos import (
-        Brazo,
         Caja,
         Dron,
         ObjetoDominio,
@@ -70,8 +69,6 @@ class InstantaneaMundo:
         construirse, antes de capturar. ``transportadores`` nunca es ``None``: en
         un problema sin transportadores, ``Simulacion`` pasa una lista vacía.
         """
-        brazos = cls._reunir_brazos(drones)
-
         # Un registro por objeto: el valor de cada atributo privado, indexado por
         # su nombre, para que _restaurar() lo escriba con setattr().
         registros: dict[ObjetoDominio, dict[str, object]] = {}
@@ -92,16 +89,15 @@ class InstantaneaMundo:
                 "_propietario_actual": caja.propietario_actual,
             }
 
-        for brazo in brazos:
-            registros[brazo] = {
-                "_contenido": brazo.contenido,
-                "_reservado_por": brazo.reservado_por,
-            }
-
         for dron in drones:
             registros[dron] = {
                 "_localizacion": dron.localizacion,
             }
+            for brazo in dron.brazos:
+                registros[brazo] = {
+                    "_contenido": brazo.contenido,
+                    "_reservado_por": brazo.reservado_por,
+                }
 
         for transportador in transportadores:
             registros[transportador] = {
@@ -141,17 +137,3 @@ class InstantaneaMundo:
         for objeto_dominio, valores in self._registros.items():
             for atributo, valor in valores.items():
                 setattr(objeto_dominio, atributo, _copiar_valor(valor))
-
-    # TODO(NicoCam27): quitar este método cuando un brazo no pueda pertenecer a dos
-    # drones. Para entonces no habrá brazos repetidos y el bucle de los brazos podrá
-    # recorrer dron.brazos directamente.
-    # SHAREDARM-1
-    @staticmethod
-    def _reunir_brazos(drones: list[Dron]) -> list[Brazo]:
-        """Devuelve los brazos de los drones, cada brazo una sola vez."""
-        brazos: list[Brazo] = []
-        for dron in drones:
-            for brazo in dron.brazos:
-                if brazo not in brazos:
-                    brazos.append(brazo)
-        return brazos

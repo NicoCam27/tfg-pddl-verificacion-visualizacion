@@ -754,6 +754,26 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                     Mundo([self.coger_caja], **{**self._objetos(), **cambio})
                 self.assertEqual(str(contexto.exception), mensaje)
 
+    def test_brazo_de_dos_drones(self) -> None:
+        """Comprueba que un brazo no puede pertenecer a dos drones.
+
+        Los dos drones verían el mismo contenido, y un plan incorrecto podría
+        resultar ejecutable sin ningún error.
+        """
+        otro_dron = Dron("dron2", self.deposito, [self.brazo])
+
+        with self.assertRaises(ValueError) as contexto:
+            Mundo(
+                [self.coger_caja],
+                **{**self._objetos(), "drones": [self.dron, otro_dron]},
+            )
+
+        self.assertEqual(
+            str(contexto.exception),
+            "el brazo brazo no puede pertenecer a más de un dron, pertenece al "
+            "dron dron1 y al dron dron2",
+        )
+
     def test_objetivo_con_un_objeto_no_declarado(self) -> None:
         """Comprueba que un objetivo solo se puede referir a objetos que se dieron."""
         otra_localizacion = Localizacion("otra-localizacion")
