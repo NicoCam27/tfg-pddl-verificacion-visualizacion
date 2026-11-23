@@ -49,7 +49,7 @@ class Renderizador:
     redimensionar. Los argumentos no se comprueban aquí:
     ``Mundo.simulacion_visual()`` los comprueba antes de crear el renderizador.
 
-    ``Mundo.simulacion_visual()`` le da las localizaciones con
+    ``_ejecutar_ventana()`` (en ``ventana.py``) le da las localizaciones con
     ``_poner_localizaciones()`` y el alto del panel con ``_reservar_panel()``, y
     en cada fotograma le pasa los eventos con ``_gestionar_evento()`` y lo dibuja
     con ``_dibujar()``. Al terminar, ``_cerrar()`` cierra la ventana.

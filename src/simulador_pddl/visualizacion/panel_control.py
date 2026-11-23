@@ -310,11 +310,11 @@ class PanelControl:
     def _redimensionar(self, ancho_ventana: int, alto_ventana: int) -> None:
         """Coloca los controles y las líneas de texto para una ventana de ese tamaño.
 
-        Lo llama ``__init__()`` y, después, ``Mundo`` cada vez que cambia el tamaño
-        de la ventana. Las medidas se escalan con el ancho de la ventana. Cada botón
-        mide una proporción del ancho de la ventana sin los márgenes
-        (``_PROPORCION_BOTON``), sin pasar de ``_ANCHO_DISENO_BOTON`` escalado, y el
-        deslizador ocupa el resto del ancho.
+        Lo llama ``__init__()`` y, después, ``_ejecutar_ventana()`` cada vez que
+        cambia el tamaño de la ventana. Las medidas se escalan con el ancho de la
+        ventana. Cada botón mide una proporción del ancho de la ventana sin los
+        márgenes (``_PROPORCION_BOTON``), sin pasar de ``_ANCHO_DISENO_BOTON``
+        escalado, y el deslizador ocupa el resto del ancho.
 
         La ventana mide al menos ``Renderizador.ANCHO_MINIMO`` de ancho, así que
         los controles no necesitan un ancho mínimo propio: incluso con ese ancho,
@@ -424,9 +424,10 @@ class PanelControl:
     def _gestionar_evento(self, evento: pygame.event.Event) -> _ComandoPanel | None:
         """Gestiona ``evento`` y devuelve el comando del botón pulsado, si lo hay.
 
-        El deslizador cambia la velocidad por su cuenta, y ``Mundo`` lee en cada
-        fotograma la velocidad elegida. Los botones, en cambio, no actúan sobre la
-        simulación: solo dicen qué se ha pulsado, y ``Mundo`` lo aplica.
+        El deslizador cambia la velocidad por su cuenta, y ``_ejecutar_ventana()``
+        lee en cada fotograma la velocidad elegida. Los botones, en cambio, no
+        actúan sobre la simulación: solo dicen qué se ha pulsado, y
+        ``_aplicar_comando()`` lo aplica.
 
         Returns:
             ``"reproducir"``, ``"pausar"`` o ``"reiniciar"`` si ``evento`` pulsa ese

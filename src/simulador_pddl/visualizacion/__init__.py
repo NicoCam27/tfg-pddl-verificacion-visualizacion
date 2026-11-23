@@ -7,6 +7,9 @@ transportadores o las personas, una ayuda con sus detalles. ``PanelControl`` es
 la barra de la parte inferior de la ventana, con los botones de reproducir,
 pausar y reiniciar, el deslizador de velocidad y dos líneas de texto (el
 recuento de acciones y una línea de estado, con la última acción que empezó).
+``ventana.py`` tiene el bucle de la ventana, que crea los dos, reparte los
+eventos, avanza la simulación y dibuja cada fotograma; lo llama
+``Mundo.simulacion_visual()``.
 
 Importar este paquete importa pygame, así que ``Mundo`` solo importa el paquete
 dentro de ``simulacion_visual()``.

@@ -18,7 +18,6 @@ if TYPE_CHECKING:
         Transportador,
     )
     from simulador_pddl.simulacion import InformeVerificacion
-    from simulador_pddl.visualizacion.panel_control import _ComandoPanel
 
 
 class Mundo:
@@ -224,67 +223,10 @@ class Mundo:
 
         # Se importa aquí, no al nivel del módulo, para que usar Mundo solo para
         # verificar o para simular en texto no necesite pygame.
-        import pygame
+        from simulador_pddl.visualizacion.ventana import _ejecutar_ventana
 
-        from simulador_pddl.visualizacion import PanelControl, Renderizador
-
-        simulacion = self._simulacion
-
-        renderizador = Renderizador(ancho=ancho, alto=alto, titulo=titulo)
-        renderizador._poner_localizaciones(simulacion._localizaciones)
-
-        control = PanelControl(renderizador._ancho, renderizador._alto)
-        # El renderizador reserva el alto del panel para no dibujar el mundo debajo.
-        renderizador._reservar_panel(control._alto_panel)
-        # "Reproducir" se crea activado, pero puede no quedar nada que reproducir
-        # (p. ej. si simulacion_texto() ya ejecutó el plan). Se iguala aquí al
-        # estado de la simulación para que el primer fotograma ya lo respete.
-        control._boton_reproducir._activado = simulacion._puede_reproducir
-        reloj = pygame.time.Clock()
-
-        en_curso = True
-        try:
-            while en_curso:
-                for evento in pygame.event.get():
-                    if evento.type == pygame.QUIT:
-                        en_curso = False
-                        break
-
-                    # Un cambio de tamaño lo gestiona el renderizador. Después se
-                    # recoloca el panel, que conserva la velocidad elegida, y el
-                    # renderizador le reserva su nuevo alto, que cambia con el tamaño.
-                    if renderizador._gestionar_evento(evento):
-                        control._redimensionar(renderizador._ancho, renderizador._alto)
-                        renderizador._reservar_panel(control._alto_panel)
-                        continue
-
-                    self._aplicar_comando(control._gestionar_evento(evento))
-
-                # El break anterior solo sale del for: este sale también del while,
-                # sin actualizar ni dibujar otro fotograma.
-                if not en_curso:
-                    break
-
-                # tick() espera lo necesario para no pasar de fps y devuelve los
-                # milisegundos reales desde el fotograma anterior. Se usa tiempo real
-                # para que solo el deslizador acelere o frene la simulación.
-                dt = reloj.tick(fps) / 1000.0
-
-                simulacion._velocidad = control._deslizador._valor
-                simulacion._actualizar(dt)
-
-                # "Reproducir" se atenúa cuando no hay nada que reproducir (el plan ha
-                # terminado o ha fallado una acción), para que se vea sin pulsarlo.
-                control._boton_reproducir._activado = simulacion._puede_reproducir
-
-                renderizador._dibujar(simulacion)
-                control._dibujar(renderizador._pantalla, simulacion)
-
-                pygame.display.flip()
-        finally:
-            renderizador._cerrar()
-
-        return simulacion._crear_informe()
+        _ejecutar_ventana(self._simulacion, ancho, alto, titulo, fps)
+        return self._simulacion._crear_informe()
 
     @staticmethod
     def _validar_argumentos_ventana(
@@ -320,16 +262,3 @@ class Mundo:
         if fps < 1:
             msg_rango_fps = f"'fps' debe ser mayor que 0, se recibió {fps!r}"
             raise ValueError(msg_rango_fps)
-
-    def _aplicar_comando(self, comando: _ComandoPanel | None) -> None:
-        """Aplica el comando de un botón del panel de control, si lo hay.
-
-        ``"reproducir"`` solo llega si queda algo que reproducir: en otro caso, el
-        botón está desactivado.
-        """
-        if comando == "reproducir":
-            self._simulacion._reproducir()
-        elif comando == "pausar":
-            self._simulacion._pausar()
-        elif comando == "reiniciar":
-            self.reiniciar()
