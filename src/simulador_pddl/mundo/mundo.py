@@ -28,15 +28,14 @@ class Mundo:
     resolver. Al construirlo solo se comprueba lo que se ve sin ejecutar el plan:
     que cada acción y cada objetivo usen objetos declarados, que las cajas y las
     personas usen contenidos declarados, que ningún objetivo sea imposible de
-    lograr, que ningún dron se mueva mientras hace otra cosa y
-    que ningún brazo haga dos cosas a la vez. Si algo falla, se lanza una
-    excepción. Lo demás se comprueba al ejecutarlo con
-    ``simulacion_texto()`` o ``simulacion_visual()``: si cada acción se puede
-    aplicar en el estado de ese momento (por ejemplo, si dos drones intentan
-    coger la misma caja a la vez, uno de los dos falla) y si se logran los
-    objetivos. Un fallo en ese momento no lanza ninguna excepción: la ejecución
-    se detiene en la acción que falla, y el ``InformeVerificacion`` que devuelven
-    da el veredicto ``"NO EJECUTABLE"`` y el mensaje de ese fallo.
+    lograr, que ningún dron se mueva mientras hace otra cosa y que ningún brazo haga
+    dos cosas a la vez. Si algo falla, se lanza una excepción. Lo demás se comprueba
+    al ejecutarlo con ``simulacion_texto()`` o ``simulacion_visual()``: si cada
+    acción se puede aplicar en el estado de ese momento (por ejemplo, si dos drones
+    intentan coger la misma caja a la vez, uno de los dos falla) y si se logran los
+    objetivos. Un fallo en ese momento no lanza ninguna excepción: la ejecución se
+    detiene en la acción que falla, y el ``InformeVerificacion`` que devuelven da el
+    veredicto ``"NO EJECUTABLE"`` y el mensaje de ese fallo.
 
     Todos los argumentos menos ``acciones`` se pasan por nombre, para que cada
     lista diga lo que contiene. Cada lista puede ser una lista o una tupla.

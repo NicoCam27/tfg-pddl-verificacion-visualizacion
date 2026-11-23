@@ -10,7 +10,8 @@ los objetos y los objetivos.
 Un plan clásico (una secuencia de pasos sin tiempos) se escribe numerando sus
 pasos desde 0: la acción del paso ``i`` tiene ``inicio_sim=i`` y ``duracion_sim=1``.
 Como sus acciones no se solapan, aplicar los efectos en dos fases produce el mismo
-estado que aplicarlos a la vez, y el veredicto es el del plan clásico.
+estado que aplicarlos a la vez. El plan recibe, por tanto, el mismo veredicto que con
+acciones instantáneas, como en PDDL clásico.
 
 Acciones disponibles:
     Mover, CogerCaja, EntregarCaja, Soltar,
