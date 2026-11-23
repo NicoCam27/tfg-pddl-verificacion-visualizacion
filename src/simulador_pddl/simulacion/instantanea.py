@@ -95,7 +95,7 @@ class InstantaneaMundo:
             }
             for brazo in dron.brazos:
                 registros[brazo] = {
-                    "_contenido": brazo.contenido,
+                    "_caja": brazo.caja,
                     "_reservado_por": brazo.reservado_por,
                 }
 

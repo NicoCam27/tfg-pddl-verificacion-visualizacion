@@ -173,7 +173,7 @@ class TestExclusividadDeCajaEntreDrones(unittest.TestCase):
 
         self.assertTrue(informe.ejecutable, informe.error)
         self.assertEqual(self.caja6.localizacion, self.deposito)
-        self.assertIsNone(self.brazo1.contenido)
+        self.assertIsNone(self.brazo1.caja)
 
 
 class TestExclusividadDeTransportadorEntreDrones(unittest.TestCase):
@@ -339,8 +339,8 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
 
         self.assertTrue(informe.ejecutable, informe.error)
-        self.assertIs(self.izquierda.contenido, self.caja_a)
-        self.assertIs(self.derecha.contenido, self.caja_b)
+        self.assertIs(self.izquierda.caja, self.caja_a)
+        self.assertIs(self.derecha.caja, self.caja_b)
 
     def test_un_brazo_no_puede_coger_dos_cajas_a_la_vez(self) -> None:
         """Comprueba que dos cargas solapadas se rechazan en el mismo brazo."""
@@ -397,7 +397,7 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
         mundo.reiniciar()
 
         self.assertEqual(caja.estado, Caja.DISPONIBLE)
-        self.assertIsNone(brazo.contenido)
+        self.assertIsNone(brazo.caja)
         self.assertEqual(caja.localizacion, deposito)
 
     def test_reiniciar_libera_un_brazo_reservado_por_un_transportador(self) -> None:
@@ -446,7 +446,7 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
         mundo.reiniciar()
 
         self.assertIsNone(brazo.reservado_por)
-        self.assertIsNone(brazo.contenido)
+        self.assertIsNone(brazo.caja)
         self.assertIsNone(transportador.propietario_actual)
         self.assertIsNone(transportador.brazo_actual)
 

@@ -320,7 +320,7 @@ class Renderizador:
     @staticmethod
     def _caja_en_un_brazo(caja: Caja, drones: list[Dron]) -> bool:
         """Si algún brazo de ``drones`` sujeta la caja."""
-        return any(brazo.contenido is caja for dron in drones for brazo in dron.brazos)
+        return any(brazo.caja is caja for dron in drones for brazo in dron.brazos)
 
     @staticmethod
     def _cajas_dibujadas_en(transportador: Transportador) -> list[Caja]:
@@ -709,7 +709,7 @@ class Renderizador:
             # Las cajas que lleva se dibujan debajo de él, una por cada brazo que
             # sujeta una caja.
             numero_de_cajas_sujetas = sum(
-                brazo.contenido is not None for brazo in dron.brazos
+                brazo.caja is not None for brazo in dron.brazos
             )
             if not numero_de_cajas_sujetas:
                 continue

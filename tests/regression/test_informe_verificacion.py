@@ -401,7 +401,7 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
         simulacion._reproducir()
         simulacion._actualizar(2.5)
 
-        self.assertIs(self.brazo.contenido, self.caja)
+        self.assertIs(self.brazo.caja, self.caja)
         self.assertNotIn(self.caja, self.persona.posee)
         self.assertEqual(self.persona.necesidades, [COMIDA])
         estado = self.mundo.verificar().estados_objetivos[0]
@@ -410,7 +410,7 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
 
         simulacion._actualizar(10)
 
-        self.assertIsNone(self.brazo.contenido)
+        self.assertIsNone(self.brazo.caja)
         self.assertIn(self.caja, self.persona.posee)
         self.assertEqual(self.mundo.verificar().estados_objetivos[0].logrado_en, 5)
 

@@ -105,8 +105,8 @@ class Dron:
         self._localizacion = destino
 
         for brazo in self._brazos:
-            if brazo.contenido is not None:
-                brazo.contenido._mover(destino)
+            if brazo.caja is not None:
+                brazo.caja._mover(destino)
                 numero_de_cajas_sujetas += 1
 
             if brazo.reservado_por is not None:
@@ -306,7 +306,7 @@ class Dron:
         # al dron dron1") parecería decir que no puede coger su propia caja.
         if caja.propietario_actual is self:
             brazo_que_la_sujeta = next(
-                (otro for otro in self._brazos if otro.contenido is caja), None
+                (otro for otro in self._brazos if otro.caja is caja), None
             )
             que_hace_con_ella = (
                 f"ya la sujeta con el brazo {brazo_que_la_sujeta.nombre}"
@@ -339,7 +339,7 @@ class Dron:
         brazo sigue vacío: ``Simulacion`` no deja que otra acción del dron use el
         mismo brazo mientras tanto.
         """
-        brazo._poner_contenido(caja)
+        brazo._poner_caja(caja)
 
         registrador.info(
             "La caja %s está ahora en el brazo %s del dron %s",
@@ -400,7 +400,7 @@ class Dron:
 
         caja._liberar()
         persona._anadir_caja_poseida(caja)
-        brazo._quitar_contenido()
+        brazo._quitar_caja()
 
         registrador.info(
             "La caja %s ha salido del brazo %s del dron %s "
@@ -434,7 +434,7 @@ class Dron:
         no puede salir del brazo, que está ocupado por la acción.
         """
         caja._liberar()
-        brazo._quitar_contenido()
+        brazo._quitar_caja()
 
         registrador.info(
             "La caja %s se ha soltado del brazo %s del dron %s en la localización %s",
@@ -501,7 +501,7 @@ class Dron:
         """
         transportador._anadir_caja(caja)
         caja._liberar()
-        brazo._quitar_contenido()
+        brazo._quitar_caja()
         caja._asignar_a(transportador)
 
         registrador.info(
@@ -586,7 +586,7 @@ class Dron:
         ``Simulacion`` no deja que otra acción del dron use el mismo brazo
         mientras tanto.
         """
-        brazo._poner_contenido(caja)
+        brazo._poner_caja(caja)
         transportador._quitar_caja_saliente(caja)
 
         registrador.info(

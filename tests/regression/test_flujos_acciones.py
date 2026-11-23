@@ -90,7 +90,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
 
         self.assertTrue(informe.ejecutable, informe.error)
         self.assertEqual(informe.veredicto, informe.VALIDO)
-        self.assertIsNone(brazo.contenido)
+        self.assertIsNone(brazo.caja)
 
     def test_segunda_entrega_solapada_de_un_contenido_se_rechaza(self) -> None:
         """Comprueba que una persona no recibe dos veces el mismo contenido a la vez.
@@ -133,7 +133,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         )
         self.assertIn(caja1, persona.posee)
         self.assertNotIn(caja2, persona.posee)
-        self.assertIs(brazo2.contenido, caja2)
+        self.assertIs(brazo2.caja, caja2)
         self.assertIs(caja2.propietario_actual, dron2)
 
     def test_entregar_un_contenido_que_la_persona_no_necesita_falla_al_empezar(
@@ -166,7 +166,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
             "'medicina', y la persona necesita 'comida' y 'agua'",
         )
         self.assertFalse(acciones[1].iniciada)
-        self.assertIs(brazo.contenido, caja)
+        self.assertIs(brazo.caja, caja)
         self.assertEqual(persona.necesidades, [COMIDA, AGUA])
 
     def test_entregar_una_caja_que_el_brazo_no_sujeta_falla_al_empezar(
@@ -236,7 +236,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
         self.assertEqual(persona.posee, [caja])
         self.assertEqual(persona.necesidades, [])
         self.assertIs(caja.propietario_actual, persona)
-        self.assertIsNone(brazo.contenido)
+        self.assertIsNone(brazo.caja)
 
 
 class TestSoltar(unittest.TestCase):
@@ -275,7 +275,7 @@ class TestSoltar(unittest.TestCase):
         self.assertEqual(caja.localizacion, localizacion1)
         self.assertEqual(caja.estado, Caja.DISPONIBLE)
         self.assertIsNone(caja.propietario_actual)
-        self.assertIsNone(brazo.contenido)
+        self.assertIsNone(brazo.caja)
 
     def test_coger_por_otro_dron_durante_soltar_se_rechaza(self) -> None:
         """Comprueba que una caja no se puede coger mientras se está soltando.
@@ -336,13 +336,13 @@ class TestSoltar(unittest.TestCase):
         # A mitad de Soltar.
         mundo._simulacion._actualizar(2.0)
 
-        self.assertIs(brazo.contenido, caja)
+        self.assertIs(brazo.caja, caja)
         self.assertEqual(caja.estado, Caja.TRANSPORTADA)
         self.assertIs(caja.propietario_actual, dron)
 
         mundo._simulacion._actualizar(10)
 
-        self.assertIsNone(brazo.contenido)
+        self.assertIsNone(brazo.caja)
         self.assertEqual(caja.estado, Caja.DISPONIBLE)
         self.assertIsNone(caja.propietario_actual)
 
@@ -410,8 +410,8 @@ class TestCogerCajaQueYaEsDelDron(unittest.TestCase):
             "ya la sujeta con el brazo izquierdo",
             informe.error or "",
         )
-        self.assertIs(self.izquierdo.contenido, self.caja)
-        self.assertIsNone(self.derecho.contenido)
+        self.assertIs(self.izquierdo.caja, self.caja)
+        self.assertIsNone(self.derecho.caja)
 
     def test_cogerla_mientras_la_saca_de_un_transportador_falla_al_empezar(
         self,
@@ -492,7 +492,7 @@ class TestIdaYVueltaTransportador(unittest.TestCase):
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)
 
         self.assertTrue(informe.ejecutable, informe.error)
-        self.assertIs(brazo.contenido, caja)
+        self.assertIs(brazo.caja, caja)
         self.assertNotIn(caja, transportador.cajas_dentro)
 
     def test_capacidad_del_transportador_respetada_entre_acciones_distintas(
@@ -751,7 +751,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
 
         self.assertFalse(informe.ejecutable)
         self.assertIn("transportador1", informe.error or "")
-        self.assertIs(brazo2.contenido, caja)
+        self.assertIs(brazo2.caja, caja)
 
     def test_soltar_un_transportador_que_nadie_sujeta_falla_al_empezar(self) -> None:
         """Comprueba que no se puede soltar un transportador que ningún dron sujeta."""
@@ -1121,13 +1121,13 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         # A mitad de PonerCajaEnTransportador.
         mundo._simulacion._actualizar(3.0)
 
-        self.assertIs(self.brazo1.contenido, self.caja1)
+        self.assertIs(self.brazo1.caja, self.caja1)
         self.assertIs(self.caja1.propietario_actual, self.dron1)
         self.assertEqual(self.transportador.cajas_dentro, [])
 
         mundo._simulacion._actualizar(10)
 
-        self.assertIsNone(self.brazo1.contenido)
+        self.assertIsNone(self.brazo1.caja)
         self.assertIs(self.caja1.propietario_actual, self.transportador)
         self.assertEqual(self.transportador.cajas_dentro, [self.caja1])
 
@@ -1162,7 +1162,7 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         self.assertIn("transportador1", informe.error or "")
         self.assertEqual(self.transportador.localizacion, self.deposito)
         self.assertIsNone(self.transportador.propietario_actual)
-        self.assertIs(self.brazo1.contenido, self.caja1)
+        self.assertIs(self.brazo1.caja, self.caja1)
         self.assertEqual(self.transportador.cajas_dentro, [])
 
     def test_segunda_carga_solapada_en_un_transportador_lleno_falla_al_empezar(
@@ -1204,7 +1204,7 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         self.assertFalse(informe.ejecutable)
         self.assertIn("capacidad", informe.error or "")
         self.assertEqual(informe.acciones_terminadas, 2)
-        self.assertIs(self.brazo2.contenido, self.caja2)
+        self.assertIs(self.brazo2.caja, self.caja2)
         self.assertEqual(self.transportador.cajas_dentro, [])
 
     def test_el_hueco_vuelve_a_quedar_libre_al_sacar_la_caja(self) -> None:
@@ -1246,7 +1246,7 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
 
         self.assertTrue(informe.ejecutable, informe.error)
         self.assertEqual(self.transportador.cajas_dentro, [self.caja2])
-        self.assertIs(self.brazo1.contenido, self.caja1)
+        self.assertIs(self.brazo1.caja, self.caja1)
 
     def test_reiniciar_durante_una_carga_libera_el_hueco_reservado(self) -> None:
         """Comprueba que ``reiniciar()`` a mitad de una carga no deja huecos reservados.
@@ -1280,7 +1280,7 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         mundo._simulacion._actualizar(3.0)
         mundo.reiniciar()
 
-        self.assertIsNone(self.brazo1.contenido)
+        self.assertIsNone(self.brazo1.caja)
         self.assertEqual(self.caja1.estado, Caja.DISPONIBLE)
 
         informe = ejecutar_plan(mundo, paso_tiempo=0.1)

@@ -94,7 +94,7 @@ class TestObjetosInstanciables(unittest.TestCase):
         brazo = Brazo("brazo")
 
         self.assertEqual(brazo.nombre, "brazo")
-        self.assertIsNone(brazo.contenido)
+        self.assertIsNone(brazo.caja)
         self.assertIsNone(brazo.reservado_por)
 
     def test_dron_instanciable(self) -> None:

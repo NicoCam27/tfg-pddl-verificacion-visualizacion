@@ -97,8 +97,8 @@ class TestStrObjetos(unittest.TestCase):
         self.ejecutar_plan([CogerCaja(self.dron, self.brazo, self.caja, 0, 1)])
 
         self.assertIn("propietario_actual=dron1", str(self.caja))
-        self.assertIn("contenido=caja1", str(self.brazo))
-        self.assertIn("contenido=caja1", str(self.dron))
+        self.assertIn("caja=caja1", str(self.brazo))
+        self.assertIn("caja=caja1", str(self.dron))
 
     def test_transportador_sujeto_su_brazo_y_su_dron(self) -> None:
         """Comprueba ``str()`` de un transportador sujeto, su brazo, dron y caja."""
@@ -122,7 +122,7 @@ class TestStrObjetos(unittest.TestCase):
     def test_objetos_sin_nada_relacionado(self) -> None:
         """Comprueba ``str()`` de objetos que no sujetan nada ni tienen propietario."""
         self.assertIn("propietario_actual=nadie", str(self.caja))
-        self.assertIn("contenido=None, reservado_por=None", str(self.brazo))
+        self.assertIn("caja=None, reservado_por=None", str(self.brazo))
         self.assertIn("posee=[]", str(self.persona))
         self.assertIn(
             "propietario_actual=nadie, brazo_actual=None", str(self.transportador)
