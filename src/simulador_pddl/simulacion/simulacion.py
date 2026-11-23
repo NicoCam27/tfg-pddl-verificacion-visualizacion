@@ -2,10 +2,12 @@
 
 Una ``Simulacion`` se construye a partir de las acciones del plan, los objetos
 del problema y, si los hay, sus objetivos. Al construirse comprueba que cada
-acción y cada objetivo solo se refieren a objetos declarados, que las cajas y
-las personas solo usan contenidos declarados, que ningún
-objetivo es imposible de lograr desde el estado inicial y que a ningún dron se
-le pide moverse mientras hace otra cosa, ni a un brazo hacer dos cosas a la vez.
+acción y cada objetivo solo se refieren a objetos declarados, que los drones,
+las cajas, las personas y los transportadores están en localizaciones
+declaradas, que las cajas y las personas solo usan contenidos declarados, que
+ningún objetivo es imposible de lograr desde el estado inicial y que a ningún
+dron se le pide moverse mientras hace otra cosa, ni a un brazo hacer dos cosas a
+la vez.
 
 Después, ``_actualizar()`` avanza el tiempo simulado y aplica en orden temporal
 los efectos ``at start`` y ``at end`` de cada acción, y ``_crear_informe()`` devuelve
@@ -149,7 +151,6 @@ class Simulacion:
         self._cajas = _lista_tipada(cajas, Caja, "cajas")
         self._personas = _lista_tipada(personas, Persona, "personas")
         self._contenidos = _lista_tipada(contenidos, Contenido, "contenidos")
-        self._exigir_contenidos_declarados()
 
         # Los transportadores son opcionales: un problema sin ellos es válido, no
         # un error. Sin una lista de transportadores esto es None.
@@ -161,6 +162,7 @@ class Simulacion:
             if transportadores is not None
             else None
         )
+        self._exigir_referencias_declaradas()
 
         # acciones se anota como Sequence para que el comprobador de tipos acepte
         # una lista de un solo tipo de acción (list[CogerCaja]): list[Accion] la
@@ -260,18 +262,37 @@ class Simulacion:
             if not isinstance(objeto, Brazo):
                 self._exigir_dentro(objeto, self._lista_declarada(objeto))
 
-    def _exigir_contenidos_declarados(self) -> None:
-        """Lanza ``ValueError`` si una caja o una persona usa un contenido no declarado.
+    def _exigir_referencias_declaradas(self) -> None:
+        """Lanza ``ValueError`` si un objeto del problema usa algo que no se declaró.
 
-        Un contenido mal escrito daría un veredicto falso sobre el plan, así que
-        se rechaza al construir: la caja no se podría entregar, o la necesidad no
-        se podría cubrir.
+        Cada dron, caja, persona y transportador tiene que estar en una
+        localización declarada, y cada caja y cada necesidad tienen que usar un
+        contenido declarado. Una localización o un contenido mal escritos (p. ej.
+        ``"deposto"`` por ``"deposito"``) harían que el plan pareciera incorrecto,
+        o dejarían un objeto que la ventana no puede dibujar, así que se rechazan
+        al construir.
         """
+        objetos: list[Dron | Caja | Persona | Transportador] = [
+            *self._drones,
+            *self._cajas,
+            *self._personas,
+            *self._todos_los_transportadores,
+        ]
+        for objeto in objetos:
+            if objeto.localizacion not in self._localizaciones:
+                msg_localizacion_objeto = (
+                    f"{con_articulo(objeto)} está en "
+                    f"{con_articulo(objeto.localizacion)}, que no aparece en la "
+                    f"lista de {tipo_en_plural(objeto.localizacion)} dada"
+                )
+                raise ValueError(msg_localizacion_objeto)
+
         for caja in self._cajas:
             if caja.contenido not in self._contenidos:
                 msg_contenido_caja = (
-                    f"{con_articulo(caja.contenido)} de la caja {caja.nombre} no "
-                    f"aparece en la lista de {tipo_en_plural(caja.contenido)} dada"
+                    f"{con_articulo(caja)} tiene {con_articulo(caja.contenido)}, "
+                    "que no aparece en la lista de "
+                    f"{tipo_en_plural(caja.contenido)} dada"
                 )
                 raise ValueError(msg_contenido_caja)
 
@@ -279,8 +300,8 @@ class Simulacion:
             for necesidad in persona.necesidades:
                 if necesidad not in self._contenidos:
                     msg_necesidad_persona = (
-                        f"{con_articulo(necesidad)} que necesita la persona "
-                        f"{persona.nombre} no aparece en la lista de "
+                        f"{con_articulo(persona)} necesita "
+                        f"{con_articulo(necesidad)}, que no aparece en la lista de "
                         f"{tipo_en_plural(necesidad)} dada"
                     )
                     raise ValueError(msg_necesidad_persona)

@@ -691,21 +691,65 @@ class TestExcepcionesSimulacion(unittest.TestCase):
             "caja": (
                 {"cajas": [self.caja, Caja("caja2", self.deposito, agua)]},
                 (
-                    "el contenido agua de la caja caja2 no aparece en la lista de "
-                    "contenidos dada"
+                    "la caja caja2 tiene el contenido agua, que no aparece en la "
+                    "lista de contenidos dada"
                 ),
             ),
             "necesidad": (
                 {"personas": [self.persona, Persona("persona2", self.deposito, agua)]},
                 (
-                    "el contenido agua que necesita la persona persona2 no aparece en "
-                    "la lista de contenidos dada"
+                    "la persona persona2 necesita el contenido agua, que no aparece "
+                    "en la lista de contenidos dada"
                 ),
             ),
         }
 
         for tipo, (cambio, mensaje) in no_declarado.items():
             with self.subTest(no_declarado=tipo):
+                with self.assertRaises(ValueError) as contexto:
+                    Mundo([self.coger_caja], **{**self._objetos(), **cambio})
+                self.assertEqual(str(contexto.exception), mensaje)
+
+    def test_objeto_en_una_localizacion_no_declarada(self) -> None:
+        """Comprueba que los objetos del problema solo están en localizaciones dadas.
+
+        Un objeto en una localización no declarada no se podría dibujar en la
+        ventana, así que se rechaza al construir el mundo.
+        """
+        almacen = Localizacion("almacen")
+        no_declarada: dict[str, tuple[dict[str, list[Any]], str]] = {
+            "dron": (
+                {"drones": [self.dron, Dron("dron2", almacen, [Brazo("otro-brazo")])]},
+                (
+                    "el dron dron2 está en la localización almacen, que no aparece "
+                    "en la lista de localizaciones dada"
+                ),
+            ),
+            "caja": (
+                {"cajas": [self.caja, Caja("caja2", almacen, COMIDA)]},
+                (
+                    "la caja caja2 está en la localización almacen, que no aparece "
+                    "en la lista de localizaciones dada"
+                ),
+            ),
+            "persona": (
+                {"personas": [self.persona, Persona("persona2", almacen, COMIDA)]},
+                (
+                    "la persona persona2 está en la localización almacen, que no "
+                    "aparece en la lista de localizaciones dada"
+                ),
+            ),
+            "transportador": (
+                {"transportadores": [Transportador("transportador2", almacen, 4)]},
+                (
+                    "el transportador transportador2 está en la localización "
+                    "almacen, que no aparece en la lista de localizaciones dada"
+                ),
+            ),
+        }
+
+        for tipo, (cambio, mensaje) in no_declarada.items():
+            with self.subTest(no_declarada=tipo):
                 with self.assertRaises(ValueError) as contexto:
                     Mundo([self.coger_caja], **{**self._objetos(), **cambio})
                 self.assertEqual(str(contexto.exception), mensaje)

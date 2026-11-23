@@ -26,16 +26,18 @@ class Mundo:
 
     Un mundo se construye a partir de un plan y del problema que el plan debería
     resolver. Al construirlo solo se comprueba lo que se ve sin ejecutar el plan:
-    que cada acción y cada objetivo usen objetos declarados, que las cajas y las
-    personas usen contenidos declarados, que ningún objetivo sea imposible de
-    lograr, que ningún dron se mueva mientras hace otra cosa y que ningún brazo haga
-    dos cosas a la vez. Si algo falla, se lanza una excepción. Lo demás se comprueba
-    al ejecutarlo con ``simulacion_texto()`` o ``simulacion_visual()``: si cada
-    acción se puede aplicar en el estado de ese momento (por ejemplo, si dos drones
-    intentan coger la misma caja a la vez, uno de los dos falla) y si se logran los
-    objetivos. Un fallo en ese momento no lanza ninguna excepción: la ejecución se
-    detiene en la acción que falla, y el ``InformeVerificacion`` que devuelven da el
-    veredicto ``"NO EJECUTABLE"`` y el mensaje de ese fallo.
+    que cada acción y cada objetivo usen objetos declarados, que los drones, las
+    cajas, las personas y los transportadores estén en localizaciones declaradas,
+    que las cajas y las personas usen contenidos declarados, que ningún objetivo sea
+    imposible de lograr, que ningún dron se mueva mientras hace otra cosa y que
+    ningún brazo haga dos cosas a la vez. Si algo falla, se lanza una excepción. Lo
+    demás se comprueba al ejecutarlo con ``simulacion_texto()`` o
+    ``simulacion_visual()``: si cada acción se puede aplicar en el estado de ese
+    momento (por ejemplo, si dos drones intentan coger la misma caja a la vez, uno
+    de los dos falla) y si se logran los objetivos. Un fallo en ese momento no lanza
+    ninguna excepción: la ejecución se detiene en la acción que falla, y el
+    ``InformeVerificacion`` que devuelven da el veredicto ``"NO EJECUTABLE"`` y el
+    mensaje de ese fallo.
 
     Todos los argumentos menos ``acciones`` se pasan por nombre, para que cada
     lista diga lo que contiene. Cada lista puede ser una lista o una tupla.
@@ -61,10 +63,12 @@ class Mundo:
             tipo esperado, o si un objetivo se refiere a algo que no es un objeto
             del dominio.
         ValueError: Si una acción o un objetivo usa un objeto que no está en su
-            lista (o un transportador, si no se dan transportadores), si una caja
-            o una persona usa un contenido que no está en ``contenidos``, si ningún
-            plan puede lograr un objetivo, si un dron se mueve mientras hace otra
-            cosa o si un brazo hace dos cosas a la vez.
+            lista (o un transportador, si no se dan transportadores), si una caja o
+            una persona usa un contenido que no está en ``contenidos``, si un dron,
+            una caja, una persona o un transportador está en una localización que no
+            está en ``localizaciones``, si ningún plan puede lograr un objetivo, si
+            un dron se mueve mientras hace otra cosa o si un brazo hace dos cosas a
+            la vez.
 
     Example:
         mundo = Mundo(
