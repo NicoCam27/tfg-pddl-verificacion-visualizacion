@@ -45,6 +45,29 @@ class Dron:
     y transportadores, mete cajas en un transportador y las saca, y entrega cajas
     a personas. Al moverse se lleva todo lo que sujetan sus brazos.
 
+    Los métodos privados del dron aplican los efectos de las acciones, y solo
+    los llaman las acciones durante la simulación. Siguiendo el modelo de las
+    acciones durativas de PDDL, cada acción que usa un brazo tiene dos:
+    ``_iniciar_*``, que aplica los efectos ``at start``, y ``_terminar_*``, que
+    aplica los efectos ``at end``.
+
+    Al empezar, se comprueban las condiciones de la acción, p. ej., que el dron
+    esté en la misma localización que la caja y que el brazo esté libre. Si la
+    acción coge una caja o un transportador, o mete o saca una caja de un
+    transportador, además se reserva lo que usa, para que ninguna otra acción que
+    se solape en el tiempo pueda usarlo. Al terminar, se aplica el resultado, y la
+    caja o el transportador queda donde lo deja la acción: en el brazo, dentro de
+    un transportador, con una persona o en la localización. Entregar y soltar solo
+    comprueban al empezar, porque la caja o el transportador no sale del brazo
+    hasta el final.
+
+    Moverse no se divide en dos métodos: ``_mover()`` cambia la localización del
+    dron, con todo lo que lleva. Las acciones ``Mover`` y ``MoverTransportador``
+    lo llaman al terminar, después de haber comprobado al empezar que el dron
+    está en el origen. Hasta entonces, el dron sigue figurando en el origen, y eso
+    no da lugar a errores: mientras se mueve no puede hacer ninguna otra acción, y
+    lo que lleva en sus brazos ya es suyo, así que ningún otro dron puede cogerlo.
+
     Args:
         nombre: El nombre del dron en el dominio.
         localizacion: La localización donde empieza el dron.
