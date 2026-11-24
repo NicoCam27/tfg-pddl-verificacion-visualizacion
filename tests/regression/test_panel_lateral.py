@@ -266,6 +266,7 @@ class TestPanelLateral(unittest.TestCase):
                     )
                     renderizador._dibujar(mundo._simulacion)
                     lateral._dibujar(renderizador._pantalla, mundo._simulacion)
+                    renderizador._dibujar_ayuda()
 
     def test_repr(self) -> None:
         """Comprueba ``repr()`` del panel lateral."""

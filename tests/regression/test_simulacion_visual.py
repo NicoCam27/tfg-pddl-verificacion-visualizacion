@@ -9,9 +9,12 @@ llamar a ``Font.render()`` con argumentos por nombre, que pygame no acepta) se
 encuentra aquí. No comprueban la imagen dibujada, solo posiciones y tamaños.
 """
 
+from __future__ import annotations
+
 import logging
 import os
 import unittest
+from typing import TYPE_CHECKING
 from unittest import mock
 
 # Las dos tienen que ponerse antes de que pygame arranque su sistema de vídeo.
@@ -45,6 +48,9 @@ from simulador_pddl.visualizacion import (
     panel_control,
     renderizador,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 # Los contenidos de los problemas de este módulo. Un contenido no cambia al
 # ejecutar un plan, así que todas las pruebas pueden compartirlos.
@@ -122,9 +128,10 @@ class TestDibujoSinPantalla(unittest.TestCase):
         self.control = PanelControl(self.renderizador._ancho, self.renderizador._alto)
 
     def dibujar_fotograma(self) -> None:
-        """Dibuja una vez la simulación y el panel de control."""
+        """Dibuja una vez la simulación, el panel de control y la ayuda emergente."""
         self.renderizador._dibujar(self.simulacion)
         self.control._dibujar(self.renderizador._pantalla, self.simulacion)
+        self.renderizador._dibujar_ayuda()
 
     def test_se_dibujan_todos_los_fotogramas_del_plan(self) -> None:
         """Comprueba que se dibujan todos los fotogramas del plan.
@@ -188,16 +195,22 @@ class TestDibujoSinPantalla(unittest.TestCase):
 
         self.assertGreater(ayudas, 0)
 
-    def test_una_ayuda_alta_no_queda_debajo_del_panel(self) -> None:
-        """Comprueba que una ayuda que no cabe debajo de su elemento sube.
+    def ayudas_de_personas(
+        self, numero_personas: int
+    ) -> tuple[Renderizador, list[pygame.Rect], list[list[tuple[str, str | None]]]]:
+        """Recorre con el ratón la ventana más pequeña, con personas abajo.
 
-        Veinte personas en una localización de la fila de abajo dan una ayuda de
-        veinte líneas, que no cabe entre ellas y el panel de control. La ayuda tiene
-        que subir hasta acabar encima del panel, a la distancia del margen.
+        Las personas están en una localización de la fila de abajo. El ratón pasa
+        por una cuadrícula de puntos, y en cada uno se dibuja el fotograma.
+
+        Returns:
+            El renderizador, el fondo de cada ayuda dibujada y las líneas que
+            quedan de cada una, después de recortarla.
         """
         localizaciones = [Localizacion(f"loc{i}") for i in range(4)]
         personas = [
-            Persona(f"persona{i}", localizaciones[3], COMIDA) for i in range(20)
+            Persona(f"persona{i}", localizaciones[3], COMIDA)
+            for i in range(numero_personas)
         ]
         mundo = Mundo(
             [],
@@ -213,20 +226,48 @@ class TestDibujoSinPantalla(unittest.TestCase):
         pantalla._poner_localizaciones(mundo._simulacion._localizaciones)
         pantalla._reservar_panel(PanelControl(ancho, alto)._alto_panel)
 
-        # El ratón recorre la ventana, y se anota el fondo de cada ayuda dibujada.
+        # Las líneas de cada ayuda, tal como las devuelve _recortar_ayuda().
+        lineas: list[list[tuple[str, str | None]]] = []
+        recortar_ayuda = Renderizador._recortar_ayuda
+
+        def anotar_lineas(
+            renderizador_ayuda: Renderizador,
+            lineas_ayuda: list[tuple[str, str | None]],
+            relleno: int,
+            espaciado: int,
+        ) -> list[tuple[str, str | None]]:
+            recortadas = recortar_ayuda(
+                renderizador_ayuda, lineas_ayuda, relleno, espaciado
+            )
+            lineas.append(recortadas)
+            return recortadas
+
         fondos: list[pygame.Rect] = []
         for x in range(0, ancho, 20):
             for y in range(0, alto, 20):
                 with (
                     mock.patch("pygame.mouse.get_pos", return_value=(x, y)),
                     mock.patch("pygame.draw.rect", wraps=pygame.draw.rect) as rect,
+                    mock.patch.object(Renderizador, "_recortar_ayuda", anotar_lineas),
                 ):
                     pantalla._dibujar(mundo._simulacion)
+                    pantalla._dibujar_ayuda()
                 fondos += [
                     pygame.Rect(llamada.args[2])
                     for llamada in rect.call_args_list
                     if llamada.args[1] == renderizador._COLOR_FONDO_AYUDA
                 ]
+
+        return pantalla, fondos, lineas
+
+    def test_una_ayuda_alta_no_queda_debajo_del_panel(self) -> None:
+        """Comprueba que una ayuda que no cabe debajo de su elemento sube.
+
+        Veinte personas en una localización de la fila de abajo dan una ayuda de
+        veinte líneas, que no cabe entre ellas y el panel de control. La ayuda tiene
+        que subir hasta acabar encima del panel, a la distancia del margen.
+        """
+        pantalla, fondos, _ = self.ayudas_de_personas(20)
 
         limite = pantalla._alto_mundo - Renderizador._MARGEN_AYUDA
         self.assertTrue(fondos)
@@ -234,6 +275,29 @@ class TestDibujoSinPantalla(unittest.TestCase):
         # Al menos una ayuda ha tenido que subir: si no, la prueba no comprobaría
         # nada.
         self.assertIn(limite, [fondo.bottom for fondo in fondos])
+
+    def test_una_ayuda_mas_alta_que_el_mundo_se_recorta(self) -> None:
+        """Comprueba que una ayuda que no cabe en el mundo se recorta.
+
+        Sesenta personas dan una ayuda de sesenta líneas, más alta que todo el
+        mundo de la ventana más pequeña. Tiene que caber entera en el mundo, con
+        las primeras personas y una última línea que dice cuántas faltan.
+        """
+        pantalla, fondos, lineas = self.ayudas_de_personas(60)
+
+        self.assertTrue(fondos)
+        for fondo in fondos:
+            self.assertGreaterEqual(fondo.top, Renderizador._MARGEN_AYUDA)
+            self.assertLessEqual(
+                fondo.bottom, pantalla._alto_mundo - Renderizador._MARGEN_AYUDA
+            )
+
+        # La ayuda de las personas es la única que se recorta.
+        recortadas = [lineas_ayuda for lineas_ayuda in lineas if len(lineas_ayuda) > 1]
+        self.assertTrue(recortadas)
+        for lineas_ayuda in recortadas:
+            *lineas_personas, (ultima, _) = lineas_ayuda
+            self.assertEqual(ultima, f"… y {60 - len(lineas_personas)} líneas más")
 
     def test_se_dibuja_el_mensaje_de_error(self) -> None:
         """Comprueba que se dibujan mensajes de error cortos y largos.
@@ -544,6 +608,41 @@ class TestSimulacionVisualSinPantalla(unittest.TestCase):
         cerrado = (0, lateral._ancho_esquina)
         abierto = (lateral._rectangulo.width, 0)
         self.assertEqual(llamadas, [cerrado, abierto, abierto])
+
+    def test_la_ayuda_se_dibuja_encima_de_los_paneles(self) -> None:
+        """Comprueba que la ayuda emergente es lo último que se dibuja.
+
+        Así ningún panel la tapa, tampoco el botón del panel lateral, que con el
+        panel cerrado queda encima del mundo, en la esquina superior derecha.
+        """
+        orden: list[str] = []
+
+        def anotar(nombre: str, metodo: Callable[..., None]) -> Callable[..., None]:
+            def anotado(*args: object) -> None:
+                orden.append(nombre)
+                metodo(*args)
+
+            return anotado
+
+        with (
+            mock.patch.object(
+                Renderizador, "_dibujar", anotar("mundo", Renderizador._dibujar)
+            ),
+            mock.patch.object(
+                PanelControl, "_dibujar", anotar("control", PanelControl._dibujar)
+            ),
+            mock.patch.object(
+                PanelLateral, "_dibujar", anotar("lateral", PanelLateral._dibujar)
+            ),
+            mock.patch.object(
+                Renderizador,
+                "_dibujar_ayuda",
+                anotar("ayuda", Renderizador._dibujar_ayuda),
+            ),
+        ):
+            self.ejecutar_ventana(2)
+
+        self.assertEqual(orden, ["mundo", "control", "lateral", "ayuda"] * 2)
 
     def clic(self, nombre_boton: str) -> pygame.event.Event:
         """Devuelve un clic izquierdo en el centro del botón ``nombre_boton``.

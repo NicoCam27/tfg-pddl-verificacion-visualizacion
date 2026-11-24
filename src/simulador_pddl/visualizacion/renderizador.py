@@ -85,7 +85,7 @@ class Renderizador:
     _RADIO_MINIMO_LOCALIZACION = 22
 
     # Distancia mínima, en píxeles, entre una ayuda emergente y el borde de la
-    # ventana.
+    # zona del mundo.
     _MARGEN_AYUDA = 4
 
     def __init__(
@@ -394,7 +394,8 @@ class Renderizador:
     def _dibujar_ayuda(self) -> None:
         """Dibuja la ayuda pendiente a la derecha de su elemento.
 
-        Si no cabe, la pone a la izquierda, y nunca fuera de la ventana.
+        Si no cabe, la pone a la izquierda, y nunca fuera de la zona del mundo. Se
+        llama después de dibujar los paneles, para que ninguno la tape.
         """
         if self._ayuda is None:
             return
@@ -411,9 +412,11 @@ class Renderizador:
         # dibuja en dos columnas alineadas: rellenar con espacios no funcionaría,
         # porque la fuente tiene ancho variable y las cajas no quedarían alineadas
         # en vertical.
-        lineas_en_pares = [
-            linea if isinstance(linea, tuple) else (linea, None) for linea in lineas
-        ]
+        lineas_en_pares = self._recortar_ayuda(
+            [linea if isinstance(linea, tuple) else (linea, None) for linea in lineas],
+            relleno,
+            espaciado,
+        )
 
         superficies_izquierda = [
             self._fuente_pequena.render(izquierda, True, _COLOR_TEXTO_AYUDA)
@@ -481,6 +484,28 @@ class Renderizador:
 
             y_linea += superficie_izquierda.get_height() + espaciado
 
+    def _recortar_ayuda(
+        self, lineas: list[tuple[str, str | None]], relleno: int, espaciado: int
+    ) -> list[tuple[str, str | None]]:
+        """Devuelve las líneas de una ayuda que caben en el alto del mundo.
+
+        Una ayuda más alta que el mundo no cabría en ningún sitio. Si no caben
+        todas, se quedan las primeras y una última que dice cuántas faltan. El mundo
+        siempre tiene sitio para varias líneas, porque la ventana tiene un alto
+        mínimo y el panel de control y la fuente crecen con ella.
+        """
+        # El alto de una línea dibujada, que puede pasar del que da get_height().
+        alto_linea = espaciado + max(
+            self._fuente_pequena.size(izquierda)[1] for izquierda, _ in lineas
+        )
+        alto_libre = self._alto_mundo - 2 * self._MARGEN_AYUDA - 2 * relleno + espaciado
+        maximo_lineas = alto_libre // alto_linea
+        if len(lineas) <= maximo_lineas:
+            return lineas
+
+        ocultas = len(lineas) - (maximo_lineas - 1)
+        return [*lineas[: maximo_lineas - 1], (f"… y {ocultas} líneas más", None)]
+
     # ------------------------------------------------------------------
     # Dibujo
     # ------------------------------------------------------------------
@@ -489,7 +514,8 @@ class Renderizador:
         """Dibuja el estado actual de la simulación, de abajo arriba.
 
         Primero el mundo (localizaciones, cajas, transportadores, personas y
-        drones), después la ayuda pendiente y, si una acción ha fallado, el error.
+        drones) y, si una acción ha fallado, el error. La ayuda pendiente no se
+        dibuja aquí: ``_dibujar_ayuda()`` la dibuja después de los paneles.
         """
         posiciones = self._obtener_posiciones_dibujo(simulacion)
 
@@ -508,10 +534,6 @@ class Renderizador:
         self._dibujar_transportadores(transportadores, posiciones)
         self._dibujar_personas(personas)
         self._dibujar_drones(drones, posiciones)
-
-        # La ayuda se dibuja encima del mundo, lo único que se dibuja encima de la
-        # ayuda es un mensaje de error, si existe.
-        self._dibujar_ayuda()
 
         error = simulacion._error
         if error is not None:
