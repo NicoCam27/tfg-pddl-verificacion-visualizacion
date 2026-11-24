@@ -172,6 +172,60 @@ class Mundo:
         """
         return self._simulacion._crear_informe()
 
+    def avanzar_hasta(self, instante: float) -> InformeVerificacion:
+        """Ejecuta el plan hasta ``instante``, sin imprimir nada, y devuelve el informe.
+
+        ``instante`` es un tiempo del plan, como ``inicio_sim``, y la ejecución sigue
+        desde el estado actual. Se aplican todos los sucesos de ese instante (los
+        finales antes que los inicios), así que
+        ``mundo.avanzar_hasta(accion.inicio_sim)`` deja el mundo con ``accion``
+        recién empezada. Después se puede seguir con otro ``avanzar_hasta()``
+        posterior, con ``simulacion_texto()`` o con ``simulacion_visual()``.
+
+        La ejecución se detiene antes de ``instante`` si el plan termina o falla una
+        acción. Para ejecutar el plan entero sin saber cuándo termina, basta con
+        ``math.inf``.
+
+        Args:
+            instante: El instante del plan hasta el que se ejecuta, en segundos.
+
+        Returns:
+            El ``InformeVerificacion`` de ese punto, como el de ``verificar()``.
+            Si ha fallado una acción, el veredicto es ``"NO EJECUTABLE"``, con el
+            mensaje en ``error``. Si no, es ``"INCOMPLETO"`` mientras el plan no ha
+            terminado, y el veredicto final (``"VÁLIDO"``, ``"NO RESUELVE"`` o
+            ``"EJECUTABLE"``) cuando termina.
+
+        Raises:
+            TypeError: Si ``instante`` no es un int o un float.
+            ValueError: Si ``instante`` es negativo o NaN, o anterior al tiempo
+                actual de la simulación (para volver atrás, hay que llamar antes a
+                ``reiniciar()``).
+        """
+        # bool es una subclase de int, así que True y False se rechazan expresamente.
+        if isinstance(instante, bool) or not isinstance(instante, (int, float)):
+            msg_tipo_instante = (
+                f"'instante' debe ser un int o un float, se recibió {instante!r}"
+            )
+            raise TypeError(msg_tipo_instante)
+        # La comparación es falsa con NaN, así que también lo rechaza.
+        if not instante >= 0:
+            msg_rango_instante = (
+                f"'instante' debe ser mayor o igual que 0, se recibió {instante!r}"
+            )
+            raise ValueError(msg_rango_instante)
+        tiempo_actual = self._simulacion._tiempo_simulacion
+        if instante < tiempo_actual:
+            msg_instante_pasado = (
+                f"el instante {instante!r} es anterior al tiempo actual de la "
+                f"simulación, {tiempo_actual!r}: para volver atrás, hay que "
+                "llamar antes a reiniciar()"
+            )
+            raise ValueError(msg_instante_pasado)
+
+        self._simulacion._avanzar_hasta(instante)
+        return self._simulacion._crear_informe()
+
     def reiniciar(self) -> None:
         """Vuelve al instante 0, con los objetos como estaban al construir el mundo.
 

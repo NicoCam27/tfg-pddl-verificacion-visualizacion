@@ -176,19 +176,9 @@ class TestEjecucionSinTerminar(unittest.TestCase):
         )
         self.simulacion = self.mundo._simulacion
 
-    def avanzar_hasta(self, instante: float) -> None:
-        """Reproduce el plan hasta ``instante`` o hasta que termine."""
-        self.simulacion._reproducir()
-        while (
-            self.simulacion._tiempo_simulacion < instante
-            and not self.simulacion._terminada
-        ):
-            self.simulacion._actualizar(0.5)
-
     def test_objetivos_cumplidos_sin_terminar_el_plan_es_incompleto(self) -> None:
         """Comprueba que parar tras cumplir los objetivos da ``"INCOMPLETO"``."""
-        self.avanzar_hasta(3.5)
-        informe = self.simulacion._crear_informe()
+        informe = self.mundo.avanzar_hasta(3.5)
 
         self.assertTrue(informe.todos_cumplidos)
         self.assertFalse(informe.completado)
@@ -198,9 +188,8 @@ class TestEjecucionSinTerminar(unittest.TestCase):
 
     def test_la_misma_ejecucion_terminada_es_valida(self) -> None:
         """Comprueba que la misma ejecución es ``"VÁLIDO"`` una vez termina el plan."""
-        self.avanzar_hasta(3.5)
-        self.avanzar_hasta(10)
-        informe = self.simulacion._crear_informe()
+        self.mundo.avanzar_hasta(3.5)
+        informe = self.mundo.avanzar_hasta(10)
 
         self.assertTrue(informe.completado)
         self.assertEqual(informe.veredicto, informe.VALIDO)
@@ -211,7 +200,7 @@ class TestEjecucionSinTerminar(unittest.TestCase):
 
         Una ejecución sin terminar en la que hay un error es ``"NO EJECUTABLE"``.
         """
-        self.avanzar_hasta(1.5)
+        self.mundo.avanzar_hasta(1.5)
         self.simulacion._poner_error("fallo simulado")
         informe = self.simulacion._crear_informe()
 

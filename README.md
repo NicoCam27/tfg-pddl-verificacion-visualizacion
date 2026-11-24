@@ -256,6 +256,8 @@ informe = nuevo_mundo.simulacion_visual()
 print(informe.resumen())
 ```
 
+Para ver el estado del plan en un instante intermedio, `avanzar_hasta(instante)` ejecuta el plan, sin mostrar nada, hasta ese instante (o hasta que termine o falle una acción) y devuelve el informe de ese punto, `INCOMPLETO` si el plan no ha terminado. Los sucesos de ese instante se aplican todos, así que `mundo.avanzar_hasta(accion.inicio_sim)` deja el mundo con `accion` recién empezada. Después se puede seguir con otro `avanzar_hasta()` posterior, con `simulacion_texto()` o con `simulacion_visual()`. Para volver atrás, hay que llamar a `reiniciar()`. Para ejecutar el plan entero sin saber cuándo termina, basta con `avanzar_hasta(math.inf)`.
+
 El informe indica el veredicto en `informe.veredicto`:
 
 | Veredicto | Significado |

@@ -462,10 +462,25 @@ class Simulacion:
         simulación se pone en pausa. No hace nada mientras está en pausa o
         después de que una acción haya fallado.
         """
-        if not self._reproduciendo or self._tiene_error:
+        if not self._reproduciendo:
             return
+        self._avanzar_hasta(self._tiempo_simulacion + dt * self._velocidad)
 
-        tiempo_objetivo = self._tiempo_simulacion + dt * self._velocidad
+    def _avanzar_hasta(self, tiempo_objetivo: float) -> None:
+        """Aplica en orden temporal los sucesos del plan hasta ``tiempo_objetivo``.
+
+        Se aplican todos los sucesos de ``tiempo_objetivo``, así que una acción que
+        empieza en ese instante queda recién empezada. Si el plan termina antes,
+        el reloj se detiene en el instante de su último suceso y la simulación se
+        pone en pausa. Si falla una acción, se detiene en ella. No hace nada
+        después de que una acción haya fallado.
+
+        Lo llaman ``_actualizar()``, que antes comprueba que la simulación no está
+        en pausa, y ``Mundo.avanzar_hasta()``, que avanza aunque lo esté. Por eso
+        este método no mira la pausa.
+        """
+        if self._tiene_error:
+            return
 
         # Un tic puede abarcar varios sucesos del plan (el inicio o el final de
         # una acción): con un paso_tiempo grande, con el multiplicador de
@@ -475,8 +490,8 @@ class Simulacion:
         # él no terminaría hasta el tic siguiente, y otra que empezara más tarde
         # en el mismo tic no vería sus efectos: el veredicto dependería del tamaño
         # del paso. Por eso el tiempo avanza de suceso en suceso, en orden
-        # temporal y no en el orden en que se escribió el plan. dt solo decide
-        # hasta dónde llega esta llamada, no el orden de los efectos.
+        # temporal y no en el orden en que se escribió el plan. tiempo_objetivo
+        # solo decide hasta dónde llega esta llamada, no el orden de los efectos.
         while True:
             tiempo_suceso = self._tiempo_siguiente_suceso(tiempo_objetivo)
             if tiempo_suceso is None:
