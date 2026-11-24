@@ -785,17 +785,17 @@ class TestExcepcionesSimulacion(unittest.TestCase):
             "misma localizacion": (
                 {"localizaciones": [self.deposito, self.deposito]},
                 (
-                    "la localización deposito aparece dos veces en la lista de "
-                    "localizaciones dada"
+                    "la localización deposito aparece más de una vez en la lista "
+                    "de localizaciones dada"
                 ),
             ),
             "localizacion": (
                 {"localizaciones": [self.deposito, Localizacion("deposito")]},
-                "hay dos localizaciones con el nombre deposito",
+                "hay más de una localización con el nombre deposito",
             ),
             "mismo dron": (
                 {"drones": [self.dron, self.dron]},
-                "el dron dron1 aparece dos veces en la lista de drones dada",
+                "el dron dron1 aparece más de una vez en la lista de drones dada",
             ),
             "dron": (
                 {
@@ -804,15 +804,15 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                         Dron("dron1", self.deposito, [Brazo("otro-brazo")]),
                     ]
                 },
-                "hay dos drones con el nombre dron1",
+                "hay más de un dron con el nombre dron1",
             ),
             "brazo": (
                 {"drones": [self.dron, Dron("dron2", self.deposito, [Brazo("brazo")])]},
-                "hay dos brazos con el nombre brazo",
+                "hay más de un brazo con el nombre brazo",
             ),
             "caja": (
                 {"cajas": [self.caja, Caja("caja1", self.deposito, COMIDA)]},
-                "hay dos cajas con el nombre caja1",
+                "hay más de una caja con el nombre caja1",
             ),
             "persona": (
                 {
@@ -821,11 +821,11 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                         Persona("persona1", self.deposito, COMIDA),
                     ]
                 },
-                "hay dos personas con el nombre persona1",
+                "hay más de una persona con el nombre persona1",
             ),
             "contenido": (
                 {"contenidos": [COMIDA, Contenido("comida")]},
-                "hay dos contenidos con el nombre comida",
+                "hay más de un contenido con el nombre comida",
             ),
             "transportador": (
                 {
@@ -834,7 +834,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                         Transportador("transportador1", self.deposito, 4),
                     ]
                 },
-                "hay dos transportadores con el nombre transportador1",
+                "hay más de un transportador con el nombre transportador1",
             ),
             "dron y caja": (
                 {"cajas": [self.caja, Caja("dron1", self.deposito, COMIDA)]},

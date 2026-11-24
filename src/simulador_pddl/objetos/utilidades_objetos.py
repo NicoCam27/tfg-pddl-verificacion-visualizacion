@@ -4,7 +4,8 @@ Cada función comprueba un argumento al construir: lanza ``TypeError`` o
 ``ValueError`` con un mensaje que nombra el argumento, o devuelve ``None``. Al
 final están las funciones que escriben partes de los mensajes:
 ``con_articulo()`` y ``con_preposicion_a()`` escriben un objeto con su artículo,
-``tipo_en_plural()`` y ``describir_cantidad()``, un tipo en plural o con una
+``tipo_en_plural()``, ``tipo_con_articulo_indefinido()`` y
+``describir_cantidad()``, un tipo en plural, con su artículo indefinido o con una
 cantidad, y ``describir_necesidades()``, lo que necesita una persona.
 """
 
@@ -236,6 +237,12 @@ def tipo_en_plural(objeto: ObjetoDominio) -> str:
     """Devuelve el tipo del objeto en plural, p. ej. ``"cajas"``."""
     _, _, plural = _GRAMATICA_TIPOS[type(objeto).__name__]
     return plural
+
+
+def tipo_con_articulo_indefinido(objeto: ObjetoDominio) -> str:
+    """Devuelve el tipo del objeto con el artículo indefinido, p. ej. ``"una caja"``."""
+    articulo, tipo, _ = _GRAMATICA_TIPOS[type(objeto).__name__]
+    return f"{'un' if articulo == 'el' else 'una'} {tipo}"
 
 
 def describir_cantidad(numero: int, tipo: type[ObjetoDominio]) -> str:

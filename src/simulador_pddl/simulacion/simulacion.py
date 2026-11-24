@@ -46,6 +46,7 @@ from simulador_pddl.objetos import (
 from simulador_pddl.objetos.utilidades_objetos import (
     con_articulo,
     con_preposicion_a,
+    tipo_con_articulo_indefinido,
     tipo_en_plural,
 )
 from simulador_pddl.simulacion.instantanea import InstantaneaMundo
@@ -354,13 +355,13 @@ class Simulacion:
                     continue
                 if otro is objeto:
                     msg_nombre_repetido = (
-                        f"{con_articulo(objeto)} aparece dos veces en la lista de "
-                        f"{tipo_en_plural(objeto)} dada"
+                        f"{con_articulo(objeto)} aparece más de una vez en la lista "
+                        f"de {tipo_en_plural(objeto)} dada"
                     )
                 elif type(otro) is type(objeto):
                     msg_nombre_repetido = (
-                        f"hay dos {tipo_en_plural(objeto)} con el nombre "
-                        f"{objeto.nombre}"
+                        f"hay más de {tipo_con_articulo_indefinido(objeto)} con el "
+                        f"nombre {objeto.nombre}"
                     )
                 else:
                     msg_nombre_repetido = (
