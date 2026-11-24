@@ -947,8 +947,9 @@ class TestExcepcionesSimulacion(unittest.TestCase):
         """Comprueba que un objetivo que ya se cumple no se rechaza.
 
         Tras entregar la caja de comida, la persona ya no necesita comida, pero
-        la posee: un mundo nuevo con los mismos objetos parte de un objetivo ya
-        cumplido, así que lo acepta.
+        la posee. Lo habitual es que cada mundo tenga sus propios objetos, pero si
+        se construye uno nuevo sobre los mismos, parte de un estado en el que el
+        objetivo ya se cumple, así que no lo rechaza como inalcanzable.
         """
         entregar_caja = EntregarCaja(
             self.dron, self.brazo, self.caja, self.persona, inicio_sim=1

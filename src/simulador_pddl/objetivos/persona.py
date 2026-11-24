@@ -87,6 +87,10 @@ class PersonaTieneContenido(Objetivo):
         Una persona solo recibe cajas con algo que necesita, y sus necesidades
         nunca aumentan, así que sin esa necesidad el objetivo solo se puede
         cumplir si ya se cumple (la persona posee ya una caja con ``contenido``).
+        En un problema recién creado eso no pasa, porque una persona empieza sin
+        cajas. Solo pasa si el mundo se construye sobre objetos que otro mundo ya
+        usó. En ese caso el objetivo está logrado, así que no se rechaza como
+        inalcanzable.
         """
         if self._se_cumple() or self._contenido in self._persona.necesidades:
             return
