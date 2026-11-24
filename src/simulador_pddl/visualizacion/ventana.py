@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 import pygame
 
 from simulador_pddl.visualizacion.panel_control import PanelControl
+from simulador_pddl.visualizacion.panel_lateral import PanelLateral
 from simulador_pddl.visualizacion.renderizador import Renderizador
 
 if TYPE_CHECKING:
@@ -20,11 +21,13 @@ def _ejecutar_ventana(
     """Abre la ventana, ejecuta ``simulacion`` en ella y vuelve al cerrarla.
 
     Solo la llama ``Mundo.simulacion_visual()``, que ya ha comprobado los
-    argumentos. Crea el ``Renderizador`` y el ``PanelControl``. En cada
-    fotograma, envía cada evento de pygame al renderizador (un cambio de tamaño)
-    o al panel (los botones y el deslizador), avanza la simulación el tiempo real
-    transcurrido multiplicado por la velocidad del deslizador, y dibuja el mundo
-    y el panel. Al terminar, cierra la ventana aunque haya habido una excepción.
+    argumentos. Crea el ``Renderizador``, el ``PanelControl`` y el
+    ``PanelLateral``. En cada fotograma, envía cada evento de pygame al
+    renderizador (un cambio de tamaño), al panel lateral (su botón) o al panel de
+    control (los botones y el deslizador), avanza la simulación el tiempo real
+    transcurrido multiplicado por la velocidad del deslizador, y dibuja el mundo y
+    los dos paneles. Al terminar, cierra la ventana aunque haya habido una
+    excepción.
     """
     renderizador = Renderizador(ancho=ancho, alto=alto, titulo=titulo)
     renderizador._poner_localizaciones(simulacion._localizaciones)
@@ -32,6 +35,10 @@ def _ejecutar_ventana(
     control = PanelControl(renderizador._ancho, renderizador._alto)
     # El renderizador reserva el alto del panel para no dibujar el mundo debajo.
     renderizador._reservar_panel(control._alto_panel)
+    # El panel lateral empieza cerrado, pero su botón ya ocupa la esquina superior
+    # derecha del mundo.
+    lateral = PanelLateral(renderizador._ancho, renderizador._alto, control._alto_panel)
+    renderizador._reservar_panel_lateral(lateral._ancho_ocupado, lateral._ancho_esquina)
     # "Reproducir" se crea activado, pero puede no quedar nada que reproducir
     # (p. ej. si simulacion_texto() ya ejecutó el plan). Se iguala aquí al
     # estado de la simulación para que el primer fotograma ya lo respete.
@@ -47,11 +54,25 @@ def _ejecutar_ventana(
                     break
 
                 # Un cambio de tamaño lo gestiona el renderizador. Después se
-                # recoloca el panel, que conserva la velocidad elegida, y el
-                # renderizador le reserva su nuevo alto, que cambia con el tamaño.
+                # recolocan los dos paneles, que conservan la velocidad elegida y
+                # si el panel lateral está abierto, y el renderizador les reserva
+                # su nuevo tamaño, que cambia con el de la ventana.
                 if renderizador._gestionar_evento(evento):
                     control._redimensionar(renderizador._ancho, renderizador._alto)
                     renderizador._reservar_panel(control._alto_panel)
+                    lateral._redimensionar(
+                        renderizador._ancho, renderizador._alto, control._alto_panel
+                    )
+                    renderizador._reservar_panel_lateral(
+                        lateral._ancho_ocupado, lateral._ancho_esquina
+                    )
+                    continue
+
+                # Al abrir o cerrar el panel lateral, cambia el ancho del mundo.
+                if lateral._gestionar_evento(evento):
+                    renderizador._reservar_panel_lateral(
+                        lateral._ancho_ocupado, lateral._ancho_esquina
+                    )
                     continue
 
                 _aplicar_comando(simulacion, control._gestionar_evento(evento))
@@ -75,6 +96,7 @@ def _ejecutar_ventana(
 
             renderizador._dibujar(simulacion)
             control._dibujar(renderizador._pantalla, simulacion)
+            lateral._dibujar(renderizador._pantalla, simulacion)
 
             pygame.display.flip()
     finally:

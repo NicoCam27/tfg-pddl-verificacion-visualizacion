@@ -38,7 +38,13 @@ from simulador_pddl import (
     Transportador,
 )
 from simulador_pddl.simulacion import InformeVerificacion
-from simulador_pddl.visualizacion import PanelControl, Renderizador, panel_control
+from simulador_pddl.visualizacion import (
+    PanelControl,
+    PanelLateral,
+    Renderizador,
+    panel_control,
+    renderizador,
+)
 
 # Los contenidos de los problemas de este módulo. Un contenido no cambia al
 # ejecutar un plan, así que todas las pruebas pueden compartirlos.
@@ -94,6 +100,11 @@ def crear_mundo() -> Mundo:
         transportadores=[transportador],
         objetivos=objetivos,
     )
+
+
+def evento_raton(tipo_evento: int, posicion: tuple[int, int]) -> pygame.event.Event:
+    """Devuelve un evento ``tipo_evento`` del botón izquierdo en ``posicion``."""
+    return pygame.event.Event(tipo_evento, pos=posicion, button=pygame.BUTTON_LEFT)
 
 
 class TestDibujoSinPantalla(unittest.TestCase):
@@ -176,6 +187,53 @@ class TestDibujoSinPantalla(unittest.TestCase):
                 ayudas += self.renderizador._ayuda is not None
 
         self.assertGreater(ayudas, 0)
+
+    def test_una_ayuda_alta_no_queda_debajo_del_panel(self) -> None:
+        """Comprueba que una ayuda que no cabe debajo de su elemento sube.
+
+        Veinte personas en una localización de la fila de abajo dan una ayuda de
+        veinte líneas, que no cabe entre ellas y el panel de control. La ayuda tiene
+        que subir hasta acabar encima del panel, a la distancia del margen.
+        """
+        localizaciones = [Localizacion(f"loc{i}") for i in range(4)]
+        personas = [
+            Persona(f"persona{i}", localizaciones[3], COMIDA) for i in range(20)
+        ]
+        mundo = Mundo(
+            [],
+            localizaciones=localizaciones,
+            drones=[],
+            cajas=[],
+            personas=personas,
+            contenidos=CONTENIDOS,
+        )
+        ancho, alto = Renderizador.ANCHO_MINIMO, Renderizador.ALTO_MINIMO
+        pantalla = Renderizador(ancho, alto)
+        self.addCleanup(pantalla._cerrar)
+        pantalla._poner_localizaciones(mundo._simulacion._localizaciones)
+        pantalla._reservar_panel(PanelControl(ancho, alto)._alto_panel)
+
+        # El ratón recorre la ventana, y se anota el fondo de cada ayuda dibujada.
+        fondos: list[pygame.Rect] = []
+        for x in range(0, ancho, 20):
+            for y in range(0, alto, 20):
+                with (
+                    mock.patch("pygame.mouse.get_pos", return_value=(x, y)),
+                    mock.patch("pygame.draw.rect", wraps=pygame.draw.rect) as rect,
+                ):
+                    pantalla._dibujar(mundo._simulacion)
+                fondos += [
+                    pygame.Rect(llamada.args[2])
+                    for llamada in rect.call_args_list
+                    if llamada.args[1] == renderizador._COLOR_FONDO_AYUDA
+                ]
+
+        limite = pantalla._alto_mundo - Renderizador._MARGEN_AYUDA
+        self.assertTrue(fondos)
+        self.assertLessEqual(max(fondo.bottom for fondo in fondos), limite)
+        # Al menos una ayuda ha tenido que subir: si no, la prueba no comprobaría
+        # nada.
+        self.assertIn(limite, [fondo.bottom for fondo in fondos])
 
     def test_se_dibuja_el_mensaje_de_error(self) -> None:
         """Comprueba que se dibujan mensajes de error cortos y largos.
@@ -275,13 +333,9 @@ class TestDibujoSinPantalla(unittest.TestCase):
 
     def test_el_panel_atiende_clics_y_arrastres(self) -> None:
         """Comprueba la respuesta del panel a clics en sus botones y su deslizador."""
-
-        def raton(tipo_evento: int, posicion: tuple[int, int]) -> pygame.event.Event:
-            return pygame.event.Event(tipo_evento, pos=posicion, button=1)
-
         comandos = [
             self.control._gestionar_evento(
-                raton(pygame.MOUSEBUTTONDOWN, boton._rectangulo.center)
+                evento_raton(pygame.MOUSEBUTTONDOWN, boton._rectangulo.center)
             )
             for boton in (
                 self.control._boton_reproducir,
@@ -293,7 +347,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
 
         # Un botón desactivado no responde.
         self.control._boton_reproducir._activado = False
-        clic = raton(
+        clic = evento_raton(
             pygame.MOUSEBUTTONDOWN, self.control._boton_reproducir._rectangulo.center
         )
         self.assertIsNone(self.control._gestionar_evento(clic))
@@ -302,12 +356,14 @@ class TestDibujoSinPantalla(unittest.TestCase):
         deslizador = self.control._deslizador
         y = self.control._boton_pausa._rectangulo.centery
         extremo_derecho = (deslizador._x + deslizador._ancho, y)
-        self.control._gestionar_evento(raton(pygame.MOUSEBUTTONDOWN, extremo_derecho))
+        self.control._gestionar_evento(
+            evento_raton(pygame.MOUSEBUTTONDOWN, extremo_derecho)
+        )
         self.assertEqual(self.control._deslizador._valor, 16)
 
         # Arrastrar hasta el borde izquierdo elige la más lenta.
-        self.control._gestionar_evento(raton(pygame.MOUSEMOTION, (0, y)))
-        self.control._gestionar_evento(raton(pygame.MOUSEBUTTONUP, (0, y)))
+        self.control._gestionar_evento(evento_raton(pygame.MOUSEMOTION, (0, y)))
+        self.control._gestionar_evento(evento_raton(pygame.MOUSEBUTTONUP, (0, y)))
         self.assertEqual(self.control._deslizador._valor, 0.25)
         self.dibujar_fotograma()
 
@@ -431,6 +487,64 @@ class TestSimulacionVisualSinPantalla(unittest.TestCase):
         for llamada in reservar_panel.call_args_list:
             self.assertEqual(llamada.args[1], alto_panel)
 
+    def test_el_boton_del_panel_lateral_le_reserva_su_ancho(self) -> None:
+        """Comprueba que abrir y cerrar el panel lateral cambia el ancho del mundo.
+
+        Al crear la ventana, el panel está cerrado y solo se reserva la esquina de
+        su botón. Cada clic en el botón vuelve a avisar al renderizador.
+        """
+        pygame.init()
+        alto_panel = PanelControl(*TAMANO_VENTANA)._alto_panel
+        lateral = PanelLateral(*TAMANO_VENTANA, alto_panel)
+        clic = evento_raton(pygame.MOUSEBUTTONDOWN, lateral._boton._rectangulo.center)
+
+        with mock.patch.object(
+            Renderizador,
+            "_reservar_panel_lateral",
+            autospec=True,
+            side_effect=Renderizador._reservar_panel_lateral,
+        ) as reservar_panel_lateral:
+            self.ejecutar_ventana(3, {0: [clic], 1: [clic]})
+
+        llamadas = [
+            llamada.args[1:] for llamada in reservar_panel_lateral.call_args_list
+        ]
+        cerrado = (0, lateral._ancho_esquina)
+        abierto = (lateral._rectangulo.width, 0)
+        self.assertEqual(llamadas, [cerrado, abierto, cerrado])
+
+    def test_al_redimensionar_el_panel_lateral_sigue_abierto(self) -> None:
+        """Comprueba que un cambio de tamaño conserva el panel lateral abierto.
+
+        Después del cambio de tamaño, la ventana tiene que volver a reservar el
+        ancho del panel abierto, no solo la esquina de su botón. Con el controlador
+        ``"dummy"`` la ventana no cambia de tamaño de verdad, como en
+        ``test_la_ventana_reserva_para_el_panel_lo_que_ocupa``, pero se recorre el
+        mismo código.
+        """
+        pygame.init()
+        alto_panel = PanelControl(*TAMANO_VENTANA)._alto_panel
+        lateral = PanelLateral(*TAMANO_VENTANA, alto_panel)
+        clic = evento_raton(pygame.MOUSEBUTTONDOWN, lateral._boton._rectangulo.center)
+        cambio_tamano = pygame.event.Event(
+            pygame.VIDEORESIZE, w=TAMANO_VENTANA[0], h=TAMANO_VENTANA[1]
+        )
+
+        with mock.patch.object(
+            Renderizador,
+            "_reservar_panel_lateral",
+            autospec=True,
+            side_effect=Renderizador._reservar_panel_lateral,
+        ) as reservar_panel_lateral:
+            self.ejecutar_ventana(3, {0: [clic], 1: [cambio_tamano]})
+
+        llamadas = [
+            llamada.args[1:] for llamada in reservar_panel_lateral.call_args_list
+        ]
+        cerrado = (0, lateral._ancho_esquina)
+        abierto = (lateral._rectangulo.width, 0)
+        self.assertEqual(llamadas, [cerrado, abierto, abierto])
+
     def clic(self, nombre_boton: str) -> pygame.event.Event:
         """Devuelve un clic izquierdo en el centro del botón ``nombre_boton``.
 
@@ -439,9 +553,7 @@ class TestSimulacionVisualSinPantalla(unittest.TestCase):
         """
         pygame.init()
         boton = getattr(PanelControl(*TAMANO_VENTANA), nombre_boton)
-        return pygame.event.Event(
-            pygame.MOUSEBUTTONDOWN, pos=boton._rectangulo.center, button=1
-        )
+        return evento_raton(pygame.MOUSEBUTTONDOWN, boton._rectangulo.center)
 
     def test_plan_reproducido_hasta_el_final_es_valido(self) -> None:
         """Comprueba que un plan reproducido hasta el final es ``"VÁLIDO"``."""

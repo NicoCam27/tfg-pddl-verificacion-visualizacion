@@ -249,7 +249,7 @@ print(informe.resumen())  # Una vez se cierra la ventana se imprime el veredicto
 `Mundo` ofrece dos formas de simular el plan. Las dos devuelven un informe (`InformeVerificacion`):
 
 - `simulacion_texto()`: muestra en la terminal el inicio y el final de cada acción y, al terminar, el veredicto.
-- `simulacion_visual()`: abre una ventana de Pygame con botones para reproducir, pausar y reiniciar el plan, y un control de velocidad. Devuelve el informe cuando se cierra la ventana.
+- `simulacion_visual()`: abre una ventana de Pygame con botones para reproducir, pausar y reiniciar el plan, y un control de velocidad. Un botón en la esquina superior derecha abre un panel lateral con el tiempo simulado, el estado del plan y cuántos objetivos se cumplen. Devuelve el informe cuando se cierra la ventana.
 
 ```python
 informe = nuevo_mundo.simulacion_visual()
@@ -338,7 +338,7 @@ tfg-pddl-verificacion-visualizacion/
 │       ├── objetivos/      Objetivos del problema
 │       ├── objetos/        Objetos del dominio (Localizacion, Dron, Caja, ...)
 │       ├── simulacion/     Motor de simulación y veredicto
-│       ├── visualizacion/  Ventana de Pygame: dibujo de la simulación y panel de control
+│       ├── visualizacion/  Ventana de Pygame: dibujo de la simulación, panel de control y panel lateral
 │       └── __init__.py
 ├── tests/
 │   ├── regression/         Pruebas de regresión

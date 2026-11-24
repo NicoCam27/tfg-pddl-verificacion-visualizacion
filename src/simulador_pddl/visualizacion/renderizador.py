@@ -119,6 +119,11 @@ class Renderizador:
         self._ancho = max(self.ANCHO_MINIMO, ancho)
         self._alto = max(self.ALTO_MINIMO, alto)
         self._alto_panel = self._ALTO_PANEL_INICIAL
+        # El ancho que ocupa a la derecha el panel lateral (0 si está cerrado) y
+        # el que ocupa su botón sobre el mundo, en la esquina superior derecha.
+        # Los da _reservar_panel_lateral().
+        self._ancho_panel_lateral = 0
+        self._ancho_esquina = 0
 
         self._pantalla = pygame.display.set_mode(
             (self._ancho, self._alto), pygame.RESIZABLE
@@ -184,6 +189,17 @@ class Renderizador:
         self._alto_panel = alto
         self._calcular_disposicion()
 
+    def _reservar_panel_lateral(self, ancho: int, ancho_esquina: int) -> None:
+        """Reserva ``ancho`` píxeles a la derecha para el panel lateral.
+
+        ``ancho_esquina`` es el ancho que ocupa su botón sobre el mundo, en la
+        esquina superior derecha: el mensaje de error se acorta para no quedar
+        debajo. Como ``_reservar_panel()``, vuelve a colocar el mundo.
+        """
+        self._ancho_panel_lateral = ancho
+        self._ancho_esquina = ancho_esquina
+        self._calcular_disposicion()
+
     def _cerrar(self) -> None:
         """Cierra la ventana y apaga pygame."""
         pygame.quit()
@@ -232,7 +248,7 @@ class Renderizador:
 
         margen = int(self._MARGEN_MUNDO * self._escala)
 
-        ancho_celda = (self._ancho - 2 * margen) / columnas
+        ancho_celda = (self._ancho_mundo - 2 * margen) / columnas
         alto_celda = (self._alto_mundo - 2 * margen) / filas
 
         # El radio es un tercio del lado más corto de la celda, para que los
@@ -431,15 +447,20 @@ class Renderizador:
         alto = sum(superficie.get_height() for superficie in superficies_izquierda)
         alto += espaciado * (len(lineas_en_pares) - 1) + relleno * 2
 
-        # Anclada junto al elemento, pero nunca fuera de la ventana.
+        # Anclada junto al elemento, pero nunca fuera de la zona del mundo, para
+        # que no quede debajo de los paneles.
         x = rectangulo.right + relleno
         y = rectangulo.top - relleno
 
-        if x + ancho > self._ancho:
+        if x + ancho > self._ancho_mundo:
             # A la derecha del elemento no cabe: se pone a su izquierda.
             x = rectangulo.left - ancho - relleno
-        x = max(self._MARGEN_AYUDA, min(x, self._ancho - ancho - self._MARGEN_AYUDA))
-        y = max(self._MARGEN_AYUDA, min(y, self._alto - alto - self._MARGEN_AYUDA))
+        x = max(
+            self._MARGEN_AYUDA, min(x, self._ancho_mundo - ancho - self._MARGEN_AYUDA)
+        )
+        y = max(
+            self._MARGEN_AYUDA, min(y, self._alto_mundo - alto - self._MARGEN_AYUDA)
+        )
 
         fondo = pygame.Rect(x, y, ancho, alto)
 
@@ -739,14 +760,15 @@ class Renderizador:
         """Dibuja un mensaje de error en la parte superior de la ventana."""
         relleno = int(10 * self._escala)
         # El mensaje puede ser largo: se corta al ancho disponible en lugar de
-        # salirse de la ventana. A cada lado deja sitio para el relleno del
-        # recuadro y para un margen igual hasta el borde de la ventana.
-        mensaje = _truncar(
-            self._fuente_error, f"Error: {error}", self._ancho - 4 * relleno
-        )
+        # salirse de la zona del mundo. A cada lado deja sitio para el relleno del
+        # recuadro, para un margen igual hasta el borde y para el botón del panel
+        # lateral, que se dibuja en la esquina superior derecha: como el mensaje
+        # va centrado, se descuenta a los dos lados.
+        ancho_maximo = self._ancho_mundo - 4 * relleno - 2 * self._ancho_esquina
+        mensaje = _truncar(self._fuente_error, f"Error: {error}", ancho_maximo)
         texto = self._fuente_error.render(mensaje, True, _COLOR_ERROR)
 
-        rectangulo = texto.get_rect(centerx=self._ancho // 2, top=relleno)
+        rectangulo = texto.get_rect(centerx=self._ancho_mundo // 2, top=relleno)
         fondo = rectangulo.inflate(relleno * 2, relleno * 2)
 
         pygame.draw.rect(self._pantalla, _COLOR_FONDO_ERROR, fondo)
@@ -756,6 +778,11 @@ class Renderizador:
     # ------------------------------------------------------------------
     # Propiedades
     # ------------------------------------------------------------------
+
+    @property
+    def _ancho_mundo(self) -> int:
+        """El ancho que queda para el mundo, en píxeles, descontado el panel lateral."""
+        return self._ancho - self._ancho_panel_lateral
 
     @property
     def _alto_mundo(self) -> int:
