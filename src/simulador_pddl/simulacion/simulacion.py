@@ -5,10 +5,10 @@ del problema y, si los hay, sus objetivos. Al construirse comprueba que cada
 acción y cada objetivo solo se refieren a objetos declarados, que los drones,
 las cajas, las personas y los transportadores están en localizaciones
 declaradas, que las cajas y las personas solo usan contenidos declarados, que
-ningún brazo pertenece a dos drones y que ningún objetivo es imposible de lograr
-desde el estado inicial. Que ningún dron se mueva mientras hace otra cosa, ni un
-brazo haga dos cosas a la vez, se comprueba al ejecutar, cuando empieza cada
-acción.
+ningún brazo pertenece a dos drones, que no hay dos objetos con el mismo nombre
+y que ningún objetivo es imposible de lograr desde el estado inicial. Que ningún
+dron se mueva mientras hace otra cosa, ni un brazo haga dos cosas a la vez, se
+comprueba al ejecutar, cuando empieza cada acción.
 
 Después, ``_actualizar()`` avanza el tiempo simulado y aplica en orden temporal
 los efectos ``at start`` y ``at end`` de cada acción, y ``_crear_informe()`` devuelve
@@ -165,6 +165,7 @@ class Simulacion:
         )
         self._exigir_referencias_declaradas()
         self._exigir_brazos_no_compartidos()
+        self._exigir_nombres_no_repetidos()
 
         # acciones se anota como Sequence para que el comprobador de tipos acepte
         # una lista de un solo tipo de acción (list[CogerCaja]): list[Accion] la
@@ -325,6 +326,48 @@ class Simulacion:
                         f"{con_preposicion_a(con_articulo(dron))}"
                     )
                     raise ValueError(msg_brazo_compartido)
+
+    def _exigir_nombres_no_repetidos(self) -> None:
+        """Lanza ``ValueError`` si dos objetos del problema tienen el mismo nombre.
+
+        En PDDL, todos los objetos de un problema comparten un único espacio de
+        nombres: el nombre identifica al objeto, sea del tipo que sea. Por eso se
+        rechazan dos objetos con el mismo nombre, del mismo tipo o de tipos
+        distintos, y también un mismo objeto repetido en una lista. Los brazos
+        cuentan como los demás objetos, porque en PDDL lo son.
+        """
+        listas: list[Sequence[ObjetoDominio]] = [
+            self._localizaciones,
+            self._drones,
+            [brazo for dron in self._drones for brazo in dron.brazos],
+            self._cajas,
+            self._personas,
+            self._contenidos,
+            self._todos_los_transportadores,
+        ]
+        objetos_por_nombre: dict[str, ObjetoDominio] = {}
+        for lista in listas:
+            for objeto in lista:
+                otro = objetos_por_nombre.get(objeto.nombre)
+                if otro is None:
+                    objetos_por_nombre[objeto.nombre] = objeto
+                    continue
+                if otro is objeto:
+                    msg_nombre_repetido = (
+                        f"{con_articulo(objeto)} aparece dos veces en la lista de "
+                        f"{tipo_en_plural(objeto)} dada"
+                    )
+                elif type(otro) is type(objeto):
+                    msg_nombre_repetido = (
+                        f"hay dos {tipo_en_plural(objeto)} con el nombre "
+                        f"{objeto.nombre}"
+                    )
+                else:
+                    msg_nombre_repetido = (
+                        f"{con_articulo(otro)} y {con_articulo(objeto)} tienen el "
+                        f"mismo nombre"
+                    )
+                raise ValueError(msg_nombre_repetido)
 
     def _lista_declarada(
         self,

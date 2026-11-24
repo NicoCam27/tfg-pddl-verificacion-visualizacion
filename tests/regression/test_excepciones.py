@@ -774,6 +774,87 @@ class TestExcepcionesSimulacion(unittest.TestCase):
             "dron dron1 y al dron dron2",
         )
 
+    def test_nombre_repetido(self) -> None:
+        """Comprueba que dos objetos del problema no pueden llamarse igual.
+
+        En PDDL todos los objetos comparten un único espacio de nombres, así que el
+        nombre tiene que ser único aunque los objetos sean de tipos distintos. Un
+        mismo objeto repetido en una lista también se rechaza.
+        """
+        repetido: dict[str, tuple[dict[str, list[Any]], str]] = {
+            "misma localizacion": (
+                {"localizaciones": [self.deposito, self.deposito]},
+                (
+                    "la localización deposito aparece dos veces en la lista de "
+                    "localizaciones dada"
+                ),
+            ),
+            "localizacion": (
+                {"localizaciones": [self.deposito, Localizacion("deposito")]},
+                "hay dos localizaciones con el nombre deposito",
+            ),
+            "mismo dron": (
+                {"drones": [self.dron, self.dron]},
+                "el dron dron1 aparece dos veces en la lista de drones dada",
+            ),
+            "dron": (
+                {
+                    "drones": [
+                        self.dron,
+                        Dron("dron1", self.deposito, [Brazo("otro-brazo")]),
+                    ]
+                },
+                "hay dos drones con el nombre dron1",
+            ),
+            "brazo": (
+                {"drones": [self.dron, Dron("dron2", self.deposito, [Brazo("brazo")])]},
+                "hay dos brazos con el nombre brazo",
+            ),
+            "caja": (
+                {"cajas": [self.caja, Caja("caja1", self.deposito, COMIDA)]},
+                "hay dos cajas con el nombre caja1",
+            ),
+            "persona": (
+                {
+                    "personas": [
+                        self.persona,
+                        Persona("persona1", self.deposito, COMIDA),
+                    ]
+                },
+                "hay dos personas con el nombre persona1",
+            ),
+            "contenido": (
+                {"contenidos": [COMIDA, Contenido("comida")]},
+                "hay dos contenidos con el nombre comida",
+            ),
+            "transportador": (
+                {
+                    "transportadores": [
+                        self.transportador,
+                        Transportador("transportador1", self.deposito, 4),
+                    ]
+                },
+                "hay dos transportadores con el nombre transportador1",
+            ),
+            "dron y caja": (
+                {"cajas": [self.caja, Caja("dron1", self.deposito, COMIDA)]},
+                "el dron dron1 y la caja dron1 tienen el mismo nombre",
+            ),
+            "localizacion y contenido": (
+                {"contenidos": [*CONTENIDOS, Contenido("deposito")]},
+                (
+                    "la localización deposito y el contenido deposito tienen el mismo "
+                    "nombre"
+                ),
+            ),
+        }
+
+        for caso, (cambio, mensaje) in repetido.items():
+            with self.subTest(repetido=caso):
+                with self.assertRaises(ValueError) as contexto:
+                    Mundo([self.coger_caja], **{**self._objetos(), **cambio})
+                self.assertEqual(str(contexto.exception), mensaje)
+
     def test_objetivo_con_un_objeto_no_declarado(self) -> None:
         """Comprueba que un objetivo solo se puede referir a objetos que se dieron."""
         otra_localizacion = Localizacion("otra-localizacion")
