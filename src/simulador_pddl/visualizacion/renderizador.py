@@ -383,9 +383,10 @@ class Renderizador:
     ) -> None:
         """Deja pendiente una ayuda si el ratón está en ``rectangulo``.
 
-        Si en el mismo fotograma ya hay una pendiente, se queda la primera.
+        Si en el mismo fotograma ya hay una pendiente, la sustituye: el elemento que
+        se dibuja después queda encima, así que la ayuda es la del que se ve.
         """
-        if not lineas or self._ayuda is not None:
+        if not lineas:
             return
 
         if rectangulo.collidepoint(pygame.mouse.get_pos()):
@@ -412,10 +413,28 @@ class Renderizador:
         # dibuja en dos columnas alineadas: rellenar con espacios no funcionaría,
         # porque la fuente tiene ancho variable y las cajas no quedarían alineadas
         # en vertical.
+        lineas_en_pares = [
+            linea if isinstance(linea, tuple) else (linea, None) for linea in lineas
+        ]
+
+        # Todas las líneas de la ayuda se tratan como si midieran lo mismo: el alto
+        # del texto más alto, de cualquiera de las dos columnas. Si cada línea
+        # midiera lo que su propio texto, unas serían más bajas que otras, porque
+        # el alto depende de las letras. Por ejemplo, en la ayuda de un
+        # transportador solo la primera línea lleva su nombre a la izquierda, y en
+        # las demás esa columna está vacía. Las líneas quedarían separadas de forma
+        # desigual, y al recortar no se podría saber cuántas caben. También cuenta
+        # la línea "… y N líneas más", que se añade si hay que recortar.
+        alto_linea = max(
+            self._fuente_pequena.size(texto)[1]
+            for texto in (
+                f"… y {len(lineas_en_pares)} líneas más",
+                *(izquierda for izquierda, _ in lineas_en_pares),
+                *(derecha for _, derecha in lineas_en_pares if derecha),
+            )
+        )
         lineas_en_pares = self._recortar_ayuda(
-            [linea if isinstance(linea, tuple) else (linea, None) for linea in lineas],
-            relleno,
-            espaciado,
+            lineas_en_pares, alto_linea, relleno, espaciado
         )
 
         superficies_izquierda = [
@@ -447,8 +466,9 @@ class Renderizador:
             ancho_contenido += separacion_columnas + ancho_derecha
 
         ancho = ancho_contenido + relleno * 2
-        alto = sum(superficie.get_height() for superficie in superficies_izquierda)
-        alto += espaciado * (len(lineas_en_pares) - 1) + relleno * 2
+        numero_lineas = len(lineas_en_pares)
+        alto = numero_lineas * alto_linea + (numero_lineas - 1) * espaciado
+        alto += relleno * 2
 
         # Anclada junto al elemento, pero nunca fuera de la zona del mundo, para
         # que no quede debajo de los paneles.
@@ -482,10 +502,14 @@ class Renderizador:
             if superficie_derecha is not None:
                 self._pantalla.blit(superficie_derecha, (x_derecha, y_linea))
 
-            y_linea += superficie_izquierda.get_height() + espaciado
+            y_linea += alto_linea + espaciado
 
     def _recortar_ayuda(
-        self, lineas: list[tuple[str, str | None]], relleno: int, espaciado: int
+        self,
+        lineas: list[tuple[str, str | None]],
+        alto_linea: int,
+        relleno: int,
+        espaciado: int,
     ) -> list[tuple[str, str | None]]:
         """Devuelve las líneas de una ayuda que caben en el alto del mundo.
 
@@ -494,12 +518,8 @@ class Renderizador:
         siempre tiene sitio para varias líneas, porque la ventana tiene un alto
         mínimo y el panel de control y la fuente crecen con ella.
         """
-        # El alto de una línea dibujada, que puede pasar del que da get_height().
-        alto_linea = espaciado + max(
-            self._fuente_pequena.size(izquierda)[1] for izquierda, _ in lineas
-        )
         alto_libre = self._alto_mundo - 2 * self._MARGEN_AYUDA - 2 * relleno + espaciado
-        maximo_lineas = alto_libre // alto_linea
+        maximo_lineas = alto_libre // (alto_linea + espaciado)
         if len(lineas) <= maximo_lineas:
             return lineas
 
@@ -524,7 +544,8 @@ class Renderizador:
         personas = simulacion._personas
         transportadores = simulacion._todos_los_transportadores
 
-        # Solo una ayuda por fotograma: gana el primer elemento bajo el ratón.
+        # Solo una ayuda por fotograma: gana el último elemento dibujado bajo el
+        # ratón, que es el que queda encima.
         self._ayuda = None
 
         self._pantalla.fill(_COLOR_FONDO)
@@ -608,7 +629,8 @@ class Renderizador:
     ) -> None:
         """Dibuja cada transportador como un rectángulo con su carga, p. ej. ``1/2``.
 
-        Si lo sujeta un dron, lleva además un contorno del color de los drones.
+        Si lo sujeta un dron, lleva además un contorno del color de los drones. Su
+        ayuda muestra su nombre y las cajas que lleva dentro.
         """
         # Casi tan ancho como el radio y la mitad de alto, con un mínimo para que
         # quepa la etiqueta.
@@ -648,11 +670,18 @@ class Renderizador:
                     border_radius=6,
                 )
 
+            # El nombre en la primera línea y, al lado, una caja por línea, como en
+            # la ayuda de las personas.
+            lineas: list[_LineaAyuda] = [(transportador.nombre, None)]
             if cajas_dibujadas_dentro:
-                self._dejar_ayuda_pendiente(
-                    [self._describir_caja(caja) for caja in cajas_dibujadas_dentro],
-                    rectangulo,
-                )
+                lineas = [
+                    (
+                        transportador.nombre if indice == 0 else "",
+                        f"| {self._describir_caja(caja)}",
+                    )
+                    for indice, caja in enumerate(cajas_dibujadas_dentro)
+                ]
+            self._dejar_ayuda_pendiente(lineas, rectangulo)
 
     def _dibujar_personas(self, personas: list[Persona]) -> None:
         """Dibuja un círculo por localización, con el número de personas que hay.

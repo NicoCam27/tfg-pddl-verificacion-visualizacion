@@ -12,6 +12,7 @@ encuentra aquí. No comprueban la imagen dibujada, solo posiciones y tamaños.
 from __future__ import annotations
 
 import logging
+import math
 import os
 import unittest
 from typing import TYPE_CHECKING
@@ -51,6 +52,9 @@ from simulador_pddl.visualizacion import (
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    from simulador_pddl import Accion
+    from simulador_pddl.visualizacion.renderizador import _LineaAyuda
 
 # Los contenidos de los problemas de este módulo. Un contenido no cambia al
 # ejecutar un plan, así que todas las pruebas pueden compartirlos.
@@ -162,8 +166,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
         drones = self.simulacion._drones
 
         # El SacarCajaDeTransportador de caja1 va de t=5 a t=6.
-        self.simulacion._reproducir()
-        self.simulacion._actualizar(5.5)
+        self.mundo.avanzar_hasta(5.5)
         self.dibujar_fotograma()
 
         self.assertEqual(transportador.cajas_dentro, [])
@@ -174,7 +177,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
         self.assertFalse(self.renderizador._caja_en_un_brazo(caja1, drones))
 
         # Al final de la descarga la sujeta el brazo, y el transportador no.
-        self.simulacion._actualizar(1)
+        self.mundo.avanzar_hasta(6.5)
         self.assertEqual(self.renderizador._cajas_dibujadas_en(transportador), [])
         self.assertTrue(self.renderizador._caja_en_un_brazo(caja1, drones))
 
@@ -194,6 +197,66 @@ class TestDibujoSinPantalla(unittest.TestCase):
                 ayudas += self.renderizador._ayuda is not None
 
         self.assertGreater(ayudas, 0)
+
+    def test_la_ayuda_de_un_transportador_lleva_su_nombre(self) -> None:
+        """Comprueba que la ayuda de un transportador empieza por su nombre.
+
+        Vacío, la ayuda es solo su nombre. Con cajas, el nombre va en la primera
+        línea y cada caja en la columna de al lado, como en la ayuda de las
+        personas. El PonerCajaEnTransportador de caja1 va de t=1 a t=2.
+        """
+
+        def lineas_del_transportador() -> list[_LineaAyuda]:
+            with mock.patch.object(
+                Renderizador, "_dejar_ayuda_pendiente", autospec=True
+            ) as dejar_ayuda_pendiente:
+                self.dibujar_fotograma()
+            return next(
+                llamada.args[1]
+                for llamada in dejar_ayuda_pendiente.call_args_list
+                if llamada.args[1] and llamada.args[1][0][0] == "transportador1"
+            )
+
+        self.assertEqual(lineas_del_transportador(), [("transportador1", None)])
+
+        self.mundo.avanzar_hasta(2.5)
+        self.assertEqual(
+            lineas_del_transportador(), [("transportador1", "| caja1 (comida)")]
+        )
+
+    def test_la_ayuda_es_la_del_elemento_de_encima(self) -> None:
+        """Comprueba que, si dos elementos se solapan, gana la ayuda del de encima.
+
+        Dos transportadores sueltos en la misma localización se dibujan en el mismo
+        sitio, y el segundo queda encima del primero. Con el ratón sobre ellos, la
+        ayuda tiene que ser la del segundo, que es el que se ve.
+        """
+        deposito = Localizacion("deposito")
+        transportadores = [
+            Transportador("transportador1", deposito, 2),
+            Transportador("transportador2", deposito, 2),
+        ]
+        mundo = Mundo(
+            [],
+            localizaciones=[deposito],
+            drones=[],
+            cajas=[],
+            personas=[],
+            contenidos=CONTENIDOS,
+            transportadores=transportadores,
+        )
+        self.renderizador._poner_localizaciones(mundo._simulacion._localizaciones)
+        posicion = self.renderizador._obtener_posiciones_dibujo(mundo._simulacion)[
+            transportadores[0]
+        ]
+
+        with mock.patch("pygame.mouse.get_pos", return_value=posicion):
+            self.renderizador._dibujar(mundo._simulacion)
+
+        # La ayuda es un par (líneas, rectángulo): aquí solo importan las líneas.
+        self.assertEqual(
+            self.renderizador._ayuda, ([("transportador2", None)], mock.ANY)
+        )
 
     def ayudas_de_personas(
         self, numero_personas: int
@@ -233,11 +296,12 @@ class TestDibujoSinPantalla(unittest.TestCase):
         def anotar_lineas(
             renderizador_ayuda: Renderizador,
             lineas_ayuda: list[tuple[str, str | None]],
+            alto_linea: int,
             relleno: int,
             espaciado: int,
         ) -> list[tuple[str, str | None]]:
             recortadas = recortar_ayuda(
-                renderizador_ayuda, lineas_ayuda, relleno, espaciado
+                renderizador_ayuda, lineas_ayuda, alto_linea, relleno, espaciado
             )
             lineas.append(recortadas)
             return recortadas
@@ -298,6 +362,81 @@ class TestDibujoSinPantalla(unittest.TestCase):
         for lineas_ayuda in recortadas:
             *lineas_personas, (ultima, _) = lineas_ayuda
             self.assertEqual(ultima, f"… y {60 - len(lineas_personas)} líneas más")
+
+    def test_una_ayuda_recortada_ocupa_todo_el_alto_del_mundo(self) -> None:
+        """Comprueba que una ayuda recortada ocupa todo el alto del mundo.
+
+        La ayuda de un transportador con cuarenta cajas solo lleva su nombre en la
+        primera línea: en las demás, la columna izquierda está vacía, y un texto
+        vacío se dibuja más bajo que un nombre. Si cada línea midiera lo que su
+        texto, la ayuda se recortaría contando con líneas más altas que las que
+        dibuja, y encima de ella quedaría sitio libre para varias líneas más.
+        """
+        deposito = Localizacion("deposito")
+        localizaciones = [deposito, *(Localizacion(f"loc{i}") for i in range(3))]
+        brazo = Brazo("brazo")
+        dron = Dron("dron1", deposito, [brazo])
+        transportador = Transportador("transportador1", deposito, 40)
+        cajas = [Caja(f"caja{i}", deposito, COMIDA) for i in range(40)]
+        acciones: list[Accion] = []
+        for indice, caja in enumerate(cajas):
+            acciones += [
+                CogerCaja(dron, brazo, caja, 2 * indice, 1),
+                PonerCajaEnTransportador(
+                    dron, brazo, caja, transportador, 2 * indice + 1, 1
+                ),
+            ]
+        mundo = Mundo(
+            acciones,
+            localizaciones=localizaciones,
+            drones=[dron],
+            cajas=cajas,
+            personas=[],
+            contenidos=CONTENIDOS,
+            transportadores=[transportador],
+        )
+        mundo.avanzar_hasta(math.inf)
+
+        ancho, alto = Renderizador.ANCHO_MINIMO, Renderizador.ALTO_MINIMO
+        pantalla = Renderizador(ancho, alto)
+        self.addCleanup(pantalla._cerrar)
+        pantalla._poner_localizaciones(mundo._simulacion._localizaciones)
+        pantalla._reservar_panel(PanelControl(ancho, alto)._alto_panel)
+
+        # El ratón se pone en el centro del transportador, que es donde se ancla su
+        # ayuda.
+        with mock.patch.object(
+            Renderizador,
+            "_dejar_ayuda_pendiente",
+            autospec=True,
+            side_effect=Renderizador._dejar_ayuda_pendiente,
+        ) as dejar_ayuda_pendiente:
+            pantalla._dibujar(mundo._simulacion)
+        rectangulo = next(
+            llamada.args[2]
+            for llamada in dejar_ayuda_pendiente.call_args_list
+            if llamada.args[1][0][0] == "transportador1"
+        )
+        with (
+            mock.patch("pygame.mouse.get_pos", return_value=rectangulo.center),
+            mock.patch("pygame.draw.rect", wraps=pygame.draw.rect) as rect,
+        ):
+            pantalla._dibujar(mundo._simulacion)
+            pantalla._dibujar_ayuda()
+        fondo = next(
+            pygame.Rect(llamada.args[2])
+            for llamada in rect.call_args_list
+            if llamada.args[1] == renderizador._COLOR_FONDO_AYUDA
+        )
+
+        # Acaba en el límite de abajo, y arriba no le queda sitio para otra línea.
+        self.assertEqual(
+            fondo.bottom, pantalla._alto_mundo - Renderizador._MARGEN_AYUDA
+        )
+        self.assertLess(
+            fondo.top - Renderizador._MARGEN_AYUDA,
+            pantalla._fuente_pequena.get_linesize(),
+        )
 
     def test_se_dibuja_el_mensaje_de_error(self) -> None:
         """Comprueba que se dibujan mensajes de error cortos y largos.
