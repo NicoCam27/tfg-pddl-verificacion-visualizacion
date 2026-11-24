@@ -42,8 +42,9 @@ class Transportador:
         # mientras haya alguna.
         self._cajas_entrantes: list[Caja] = []
         # Cajas cuyo SacarCajaDeTransportador ha empezado y no ha terminado: ya
-        # no están dentro del transportador, y el transportador no se puede coger
-        # mientras haya alguna.
+        # no están dentro del transportador, pero siguen ocupando su hueco hasta
+        # que termina la descarga, y el transportador no se puede coger mientras
+        # haya alguna.
         self._cajas_salientes: list[Caja] = []
         self._propietario_actual: Dron | None = None
         self._brazo_actual: Brazo | None = None
@@ -252,5 +253,10 @@ class Transportador:
 
     @property
     def _tiene_hueco_libre(self) -> bool:
-        """Si cabe una caja más, contando las que se están metiendo."""
-        return len(self._cajas_dentro) + len(self._cajas_entrantes) < self._capacidad
+        """Si cabe una caja más, contando las que se están metiendo o sacando."""
+        return (
+            len(self._cajas_dentro)
+            + len(self._cajas_entrantes)
+            + len(self._cajas_salientes)
+            < self._capacidad
+        )

@@ -495,7 +495,7 @@ class Dron:
             msg_capacidad_maxima_transportador = (
                 f"el transportador {transportador.nombre} ha llegado a su capacidad "
                 f"máxima de {transportador.capacidad}, contando las cajas que se están "
-                "metiendo en él"
+                "metiendo en él o sacando de él"
             )
             raise ValueError(msg_capacidad_maxima_transportador)
 
@@ -543,7 +543,9 @@ class Dron:
         caja tiene que estar dentro del transportador y no se puede estar sacando
         ya (otro dron, o el otro brazo de este), ningún dron puede estar
         sujetando el transportador, y el brazo tiene que estar libre. El
-        transportador no se puede coger hasta que termine la descarga.
+        transportador no se puede coger hasta que termine la descarga. La caja
+        sigue ocupando su hueco hasta el final de la descarga, así que ninguna
+        carga puede usarlo mientras tanto.
         """
         _exigir_misma_localizacion(self, transportador)
 
@@ -602,12 +604,12 @@ class Dron:
     ) -> None:
         """Pone la caja en el brazo: la descarga ha terminado.
 
-        Desde ahora esta descarga ya no impide coger el transportador. No
-        comprueba que la caja sigue siendo del dron, por lo mismo que
-        ``_terminar_coger_caja()``: nadie puede cogerla ni sacarla otra vez, y
-        ningún brazo la sujeta. Tampoco comprueba que el brazo sigue libre:
-        ``Simulacion`` no deja que otra acción del dron use el mismo brazo
-        mientras tanto.
+        Desde ahora esta descarga ya no impide coger el transportador, y el hueco
+        de la caja queda libre. No comprueba que la caja sigue siendo del dron, por
+        lo mismo que ``_terminar_coger_caja()``: nadie puede cogerla ni sacarla otra
+        vez, y ningún brazo la sujeta. Tampoco comprueba que el brazo sigue libre:
+        ``Simulacion`` no deja que otra acción del dron use el mismo brazo mientras
+        tanto.
         """
         brazo._poner_caja(caja)
         transportador._quitar_caja_saliente(caja)

@@ -11,6 +11,9 @@ También comprueban la regla de solapamiento, que se aplica al ejecutar, cuando
 empieza cada acción: un movimiento ocupa el dron entero, y cualquier otra acción
 solo el brazo que usa. Una acción que la incumple deja el plan como
 ``"NO EJECUTABLE"``.
+
+Por último, comprueban que el orden del plan no decide el veredicto cuando una
+descarga y una carga del mismo transportador empiezan en el mismo instante.
 """
 
 from __future__ import annotations
@@ -25,6 +28,8 @@ from simulador_pddl.acciones import (
     CogerTransportador,
     Mover,
     MoverTransportador,
+    PonerCajaEnTransportador,
+    SacarCajaDeTransportador,
     Soltar,
 )
 from simulador_pddl.mundo import Mundo
@@ -480,6 +485,138 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
 
         self.assertTrue(informe.ejecutable, informe.error)
         self.assertEqual(transportador.localizacion, localizacion1)
+
+
+class TestInicioSimultaneoDeDescargaYCarga(unittest.TestCase):
+    """El orden del plan no decide si una carga cabe en un transportador."""
+
+    def _ejecutar(
+        self,
+        *,
+        capacidad: int,
+        descargas_primero: bool = True,
+        inicio_cargas: float = 3,
+        descargas: int = 3,
+    ) -> InformeVerificacion:
+        """Ejecuta un plan con tres drones y un transportador, y devuelve su informe.
+
+        Cada dron tiene dos brazos, ``a`` y ``b``. El plan tiene tres partes:
+
+        1. De t=0 a t=2, cada dron coge una caja con el brazo ``a`` y la mete en
+           el transportador, que queda con tres cajas.
+        2. De t=2 a t=3, cada dron coge otra caja con el brazo ``b``.
+        3. En t=3 empiezan ``descargas`` acciones que sacan del transportador las
+           cajas de la parte 1, y en ``inicio_cargas`` empiezan tres acciones
+           que meten en él las cajas de la parte 2.
+
+        ``capacidad`` es la del transportador, y ``descargas_primero`` decide si en
+        la lista del plan van antes las descargas o las cargas.
+        """
+        deposito = Localizacion("deposito")
+        brazos_a = [Brazo(f"a{i}") for i in range(3)]
+        brazos_b = [Brazo(f"b{i}") for i in range(3)]
+        drones = [
+            Dron(f"dron{i}", deposito, [brazos_a[i], brazos_b[i]]) for i in range(3)
+        ]
+        cajas = [Caja(f"caja{i + 1}", deposito, COMIDA) for i in range(6)]
+        transportador = Transportador("transportador1", deposito, capacidad)
+
+        acciones: list[Accion] = []
+        for i in range(3):
+            acciones.append(CogerCaja(drones[i], brazos_a[i], cajas[i], inicio_sim=0))
+            acciones.append(
+                PonerCajaEnTransportador(
+                    drones[i], brazos_a[i], cajas[i], transportador, inicio_sim=1
+                )
+            )
+            acciones.append(
+                CogerCaja(drones[i], brazos_b[i], cajas[i + 3], inicio_sim=2)
+            )
+        sacar: list[Accion] = [
+            SacarCajaDeTransportador(
+                drones[i], brazos_a[i], cajas[i], transportador, inicio_sim=3
+            )
+            for i in range(descargas)
+        ]
+        meter: list[Accion] = [
+            PonerCajaEnTransportador(
+                drones[i],
+                brazos_b[i],
+                cajas[i + 3],
+                transportador,
+                inicio_sim=inicio_cargas,
+            )
+            for i in range(3)
+        ]
+        acciones += sacar + meter if descargas_primero else meter + sacar
+
+        mundo = Mundo(
+            acciones,
+            localizaciones=[deposito],
+            drones=drones,
+            cajas=cajas,
+            personas=[],
+            contenidos=CONTENIDOS,
+            transportadores=[transportador],
+        )
+        return ejecutar_plan(mundo, paso_tiempo=0.5)
+
+    def test_descargar_y_cargar_a_la_vez_un_transportador_lleno_falla_siempre(
+        self,
+    ) -> None:
+        """Comprueba que el plan falla igual con las descargas antes o después.
+
+        El transportador está lleno, y una caja que se está sacando ocupa su hueco
+        hasta que termina la descarga: las cargas no caben, escritas antes o después
+        de las descargas.
+        """
+        errores = []
+        for descargas_primero in (True, False):
+            with self.subTest(descargas_primero=descargas_primero):
+                informe = self._ejecutar(
+                    capacidad=3, descargas_primero=descargas_primero
+                )
+                self.assertFalse(informe.ejecutable)
+                self.assertIn("capacidad máxima", informe.error or "")
+                errores.append(informe.error)
+        self.assertEqual(errores[0], errores[1])
+
+    def test_descargar_y_cargar_a_la_vez_con_sitio_se_permite(self) -> None:
+        """Comprueba que, si las cargas caben sin las descargas, el plan funciona."""
+        for descargas_primero in (True, False):
+            with self.subTest(descargas_primero=descargas_primero):
+                informe = self._ejecutar(
+                    capacidad=6, descargas_primero=descargas_primero
+                )
+                self.assertTrue(informe.ejecutable, informe.error)
+
+    def test_cargas_simultaneas_se_permiten(self) -> None:
+        """Comprueba que varias cargas en el mismo instante no se rechazan."""
+        informe = self._ejecutar(capacidad=6, descargas=0)
+        self.assertTrue(informe.ejecutable, informe.error)
+
+    def test_relevo_de_descarga_a_carga_se_permite(self) -> None:
+        """Comprueba que una carga puede empezar cuando termina la descarga.
+
+        Las descargas terminan en t=4 y las cargas empiezan en t=4: los finales se
+        aplican antes que los inicios, así que los huecos ya están libres.
+        Las cargas van antes en el plan, para que el orden del plan no baste.
+        """
+        informe = self._ejecutar(capacidad=3, descargas_primero=False, inicio_cargas=4)
+        self.assertTrue(informe.ejecutable, informe.error)
+
+    def test_una_carga_no_usa_el_hueco_de_una_caja_que_se_esta_sacando(
+        self,
+    ) -> None:
+        """Comprueba que el hueco de una descarga no queda libre hasta que termina.
+
+        Las descargas van de t=3 a t=4 y las cargas empiezan en t=3.5, con el
+        transportador lleno: las cajas que se están sacando siguen ocupando sus
+        huecos, así que las cargas no caben.
+        """
+        informe = self._ejecutar(capacidad=3, inicio_cargas=3.5)
+        self.assertFalse(informe.ejecutable)
+        self.assertIn("capacidad máxima", informe.error or "")
 
 
 if __name__ == "__main__":

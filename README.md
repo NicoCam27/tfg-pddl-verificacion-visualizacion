@@ -143,7 +143,7 @@ Cada acción tiene un instante de inicio y una duración, y sus efectos se aplic
 | `EntregarCaja` | `dron, brazo, caja, persona` | El dron entrega la caja a una persona que necesita su contenido. |
 | `Soltar` | `dron, brazo, caja` | El dron deja la caja en su localización, sin entregarla. |
 | `PonerCajaEnTransportador` | `dron, brazo, caja, transportador` | El dron mete en el transportador la caja que sujeta. |
-| `SacarCajaDeTransportador` | `dron, brazo, caja, transportador` | El dron saca una caja del transportador. |
+| `SacarCajaDeTransportador` | `dron, brazo, caja, transportador` | El dron saca una caja del transportador. Su hueco queda libre al terminar. |
 | `CogerTransportador` | `dron, brazo, transportador` | El dron coge el transportador con un brazo, para llevarlo. |
 | `SoltarTransportador` | `dron, brazo, transportador` | El dron suelta el transportador que lleva. |
 | `MoverTransportador` | `dron, brazo, transportador, origen, destino` | El dron coge el transportador, lo lleva a otra localización y lo suelta. |

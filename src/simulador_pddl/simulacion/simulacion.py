@@ -487,7 +487,10 @@ class Simulacion:
         Los empates se resuelven por el orden de la lista: los finales en el orden
         en que empezaron las acciones, los inicios en el orden del plan. Dos
         acciones en el mismo instante son realmente simultáneas, y el plan no dice
-        nada más para deshacer el empate.
+        nada más para deshacer el empate. Ningún inicio libera algo que otro inicio
+        necesite: solo comprueban condiciones o reservan algo. Si dos compiten por
+        lo mismo, uno falla en cualquier orden, así que este empate no cambia el
+        veredicto.
         """
         pendientes_de_terminar = [
             accion
