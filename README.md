@@ -46,6 +46,7 @@ Un problema se describe con tres cosas: los **objetos** del dominio, un **plan**
 
 Ejemplo básico:
 
+<!-- ejemplo: tests/ejemplo_basico.py -->
 ```python
 from simulador_pddl import *
 
@@ -164,6 +165,7 @@ Mientras un dron hace un `Mover` o un `MoverTransportador`, no puede hacer ningu
 
 Si el problema tiene transportadores, se pasan en el argumento `transportadores`:
 
+<!-- ejemplo: tests/ejemplo_transportador.py -->
 ```python
 """Ejemplo básico con un transportador: un dron entrega dos cajas.
 

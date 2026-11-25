@@ -66,4 +66,4 @@ for crear_plan in (plan_planificador_a, plan_planificador_b):
         objetivos=crear_objetivos(p),
     )
     informe = mundo.simulacion_texto()
-    print(crear_plan.__name__, informe.veredicto)
+    print(f"{crear_plan.__name__} - {informe.veredicto}")
