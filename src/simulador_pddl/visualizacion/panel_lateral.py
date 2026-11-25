@@ -4,12 +4,25 @@ from typing import TYPE_CHECKING
 
 import pygame
 
+from simulador_pddl.objetos.caja import Caja
+from simulador_pddl.objetos.dron import Dron
+from simulador_pddl.objetos.persona import Persona
+from simulador_pddl.objetos.transportador import Transportador
 from simulador_pddl.simulacion.verificacion import InformeVerificacion
 from simulador_pddl.visualizacion.panel_control import (
     Boton,
     PanelControl,
     _fuente,
     _truncar,
+)
+from simulador_pddl.visualizacion.renderizador import (
+    _COLOR_CAJA,
+    _COLOR_CAJA_ENTREGADA,
+    _COLOR_DRON,
+    _COLOR_PERSONA,
+    _COLOR_PERSONA_NECESIDADES_CUBIERTAS,
+    _COLOR_TRANSPORTADOR,
+    Renderizador,
 )
 
 if TYPE_CHECKING:
@@ -80,7 +93,8 @@ _COLORES_ACCION: dict[str, _Color] = {
 # Las pestañas del panel, en el orden en que aparecen. Cada una muestra una lista.
 _PESTANA_PLAN = "Plan"
 _PESTANA_OBJETIVOS = "Objetivos"
-_PESTANAS = (_PESTANA_PLAN, _PESTANA_OBJETIVOS)
+_PESTANA_OBJETOS = "Objetos"
+_PESTANAS = (_PESTANA_PLAN, _PESTANA_OBJETIVOS, _PESTANA_OBJETOS)
 
 # Espacio entre las líneas de texto del panel, en píxeles
 _INTERLINEADO = 6
@@ -171,6 +185,78 @@ def _detalles_accion(accion: Accion, error: str | None) -> list[str]:
     return detalles
 
 
+def _detalles_dron(dron: Dron) -> list[str]:
+    """Devuelve las líneas que se muestran debajo de un dron.
+
+    Dónde está y, por cada brazo, lo que sujeta: una caja, un transportador o
+    nada.
+    """
+    detalles = [f"En {dron.localizacion.nombre}"]
+    for brazo in dron.brazos:
+        if brazo.caja is not None:
+            sujeta = Renderizador._describir_caja(brazo.caja)
+        elif brazo.transportador is not None:
+            sujeta = brazo.transportador.nombre
+        else:
+            sujeta = "vacío"
+        detalles.append(f"Brazo {brazo.nombre}: {sujeta}")
+    return detalles
+
+
+def _detalles_transportador(transportador: Transportador) -> list[str]:
+    """Devuelve las líneas que se muestran debajo de un transportador.
+
+    Dónde está, qué dron lo lleva y con qué brazo, y las cajas que tiene dentro,
+    con cuántas son de su capacidad.
+    """
+    if transportador.brazo_actual is None:
+        llevado = "No lo lleva ningún dron"
+    else:
+        llevado = (
+            f"Lo lleva {transportador._nombre_propietario()} con el brazo "
+            f"{transportador.brazo_actual.nombre}"
+        )
+    cajas = transportador.cajas_dentro
+    nombres_cajas = ", ".join(Renderizador._describir_caja(caja) for caja in cajas)
+    return [
+        f"En {transportador.localizacion.nombre}",
+        llevado,
+        f"Cajas ({len(cajas)}/{transportador.capacidad}): {nombres_cajas or 'ninguna'}",
+    ]
+
+
+def _detalles_caja(caja: Caja) -> list[str]:
+    """Devuelve las líneas que se muestran debajo de una caja.
+
+    Quién la tiene, que puede ser un dron, un transportador o la persona a la que
+    se entregó, o que está disponible, y dónde está.
+    """
+    propietario = caja.propietario_actual
+    if isinstance(propietario, Dron):
+        estado = f"La lleva el dron {propietario.nombre}"
+    elif isinstance(propietario, Transportador):
+        estado = f"Dentro del transportador {propietario.nombre}"
+    elif isinstance(propietario, Persona):
+        estado = f"Entregada a la persona {propietario.nombre}"
+    else:
+        estado = "Disponible"
+    return [estado, f"En {caja.localizacion.nombre}"]
+
+
+def _detalles_persona(persona: Persona) -> list[str]:
+    """Devuelve las líneas que se muestran debajo de una persona.
+
+    Dónde está, lo que todavía necesita y las cajas que se le han entregado.
+    """
+    necesidades = ", ".join(necesidad.nombre for necesidad in persona.necesidades)
+    cajas = ", ".join(Renderizador._describir_caja(caja) for caja in persona.posee)
+    return [
+        f"En {persona.localizacion.nombre}",
+        f"Necesita: {necesidades}" if necesidades else "No necesita nada",
+        f"Tiene: {cajas}" if cajas else "No tiene ninguna caja",
+    ]
+
+
 def _con_mayuscula(texto: str) -> str:
     """Devuelve ``texto`` con la primera letra en mayúscula."""
     return texto[:1].upper() + texto[1:]
@@ -208,8 +294,11 @@ class PanelLateral:
     termina y, mientras se ejecuta, una barra con lo que ha avanzado. Al pulsar
     una, la simulación salta a su inicio. La de objetivos tiene cada objetivo con
     el color de cómo va, cuándo se cumplió o se rompió y, si no se cumple, por
-    qué. Cuando la lista no cabe, se desplaza con la rueda del ratón o con la
-    barra de su derecha, que se puede pulsar para saltar a un punto o arrastrar.
+    qué. La de objetos tiene los drones, los transportadores, las cajas y las
+    personas, agrupados por tipo y con el color que tienen en el mundo, cada uno
+    con dónde está y lo que lleva, tiene o necesita. Cuando la lista no cabe, se
+    desplaza con la rueda del ratón o con la barra de su derecha, que se puede
+    pulsar para saltar a un punto o arrastrar.
 
     Args:
         ancho_ventana: El ancho de la ventana, en píxeles.
@@ -520,8 +609,10 @@ class PanelLateral:
         y_lista = self._zona_lista.y - self._desplazamiento
         if self._pestana == _PESTANA_PLAN:
             y_lista = self._dibujar_plan(pantalla, simulacion, x, y_lista)
-        else:
+        elif self._pestana == _PESTANA_OBJETIVOS:
             y_lista = self._dibujar_objetivos(pantalla, informe, x, y_lista)
+        else:
+            y_lista = self._dibujar_objetos(pantalla, simulacion, x, y_lista)
         pantalla.set_clip(None)
 
         # Lo que mide la lista cambia con la ejecución: si ha encogido, el
@@ -620,6 +711,73 @@ class PanelLateral:
                 y,
             )
             y = fila.bottom + self._margen
+        return y
+
+    def _dibujar_objetos(
+        self, pantalla: pygame.Surface, simulacion: Simulacion, x: int, y: int
+    ) -> int:
+        """Dibuja los objetos desde ``y`` y devuelve la ``y`` siguiente.
+
+        Van agrupados por tipo, cada grupo con un título y el número de objetos.
+        Un tipo sin objetos no se muestra, como los transportadores en un problema
+        que no los tiene. Las cajas entregadas y las personas que ya no necesitan
+        nada llevan el color más oscuro que tienen en el mundo.
+        """
+        grupos = [
+            (
+                "Drones",
+                [
+                    (dron.nombre, _COLOR_DRON, _detalles_dron(dron))
+                    for dron in simulacion._drones
+                ],
+            ),
+            (
+                "Transportadores",
+                [
+                    (
+                        transportador.nombre,
+                        _COLOR_TRANSPORTADOR,
+                        _detalles_transportador(transportador),
+                    )
+                    for transportador in simulacion._todos_los_transportadores
+                ],
+            ),
+            (
+                "Cajas",
+                [
+                    (
+                        Renderizador._describir_caja(caja),
+                        _COLOR_CAJA_ENTREGADA
+                        if caja.estado == Caja.ENTREGADA
+                        else _COLOR_CAJA,
+                        _detalles_caja(caja),
+                    )
+                    for caja in simulacion._cajas
+                ],
+            ),
+            (
+                "Personas",
+                [
+                    (
+                        persona.nombre,
+                        _COLOR_PERSONA
+                        if persona.necesidades
+                        else _COLOR_PERSONA_NECESIDADES_CUBIERTAS,
+                        _detalles_persona(persona),
+                    )
+                    for persona in simulacion._personas
+                ],
+            ),
+        ]
+        for titulo, filas in grupos:
+            if not filas:
+                continue
+            y = self._dibujar_linea(
+                pantalla, f"{titulo} ({len(filas)})", x, y, self._zona_lista.width
+            )
+            for nombre, color, detalles in filas:
+                fila = self._dibujar_fila(pantalla, color, nombre, detalles, x, y)
+                y = fila.bottom + self._margen
         return y
 
     def _dibujar_fila(

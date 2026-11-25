@@ -2,12 +2,13 @@
 
 Comprueban el estado del plan que muestra el panel (``"EN CURSO"`` mientras el
 plan no ha terminado ni ha fallado ninguna acción, y el veredicto después), su
-línea de objetivos, cómo va cada acción del plan y cada objetivo, que pulsar una
-acción salta a su inicio, que el botón abre y cierra el panel, que abierto deja al
-mundo solo el ancho que queda, que las pestañas cambian la lista, que la rueda del
-ratón y la barra la desplazan y que se dibuja, abierto y cerrado, en la ventana
-más pequeña. Como las de ``test_simulacion_visual.py``, no comprueban la imagen
-dibujada, solo posiciones y tamaños.
+línea de objetivos, cómo va cada acción del plan y cada objetivo, lo que se dice
+de cada objeto, que pulsar una acción salta a su inicio, que el botón abre y
+cierra el panel, que abierto deja al mundo solo el ancho que queda, que las
+pestañas cambian la lista, que la rueda del ratón y la barra la desplazan y que se
+dibuja, abierto y cerrado, en la ventana más pequeña. Como las de
+``test_simulacion_visual.py``, no comprueban la imagen dibujada, solo posiciones y
+tamaños.
 """
 
 from __future__ import annotations
@@ -29,6 +30,7 @@ from simulador_pddl import (
     Brazo,
     Caja,
     CogerCaja,
+    CogerTransportador,
     Contenido,
     Dron,
     DronEnLocalizacion,
@@ -38,6 +40,8 @@ from simulador_pddl import (
     Mundo,
     Persona,
     PersonaTieneContenido,
+    PonerCajaEnTransportador,
+    Transportador,
 )
 from simulador_pddl.simulacion import InformeVerificacion
 from simulador_pddl.visualizacion import PanelControl, PanelLateral, Renderizador
@@ -45,7 +49,11 @@ from simulador_pddl.visualizacion.panel_lateral import (
     _clase_accion,
     _clase_objetivo,
     _detalles_accion,
+    _detalles_caja,
+    _detalles_dron,
     _detalles_objetivo,
+    _detalles_persona,
+    _detalles_transportador,
     _estado_del_plan,
     _partir_en_lineas,
     _texto_objetivos,
@@ -421,6 +429,108 @@ class TestSaltarAUnaAccion(unittest.TestCase):
         self.assertTrue(coger.iniciada)
 
 
+class TestObjetosDeLaLista(unittest.TestCase):
+    """Lo que dice de cada objeto la lista de objetos."""
+
+    def setUp(self) -> None:
+        """Silencia el registro."""
+        logging.disable(logging.CRITICAL)
+        self.addCleanup(logging.disable, logging.NOTSET)
+
+    def test_detalles_de_un_dron_y_de_una_caja(self) -> None:
+        """Comprueba el dron y la caja antes, durante y después de llevarla.
+
+        Mientras el dron coge la caja, la caja ya es suya, pero no está en el brazo
+        hasta que la acción termina.
+        """
+        mundo = crear_mundo()
+        simulacion = mundo._simulacion
+        [dron] = simulacion._drones
+        [caja] = simulacion._cajas
+        self.assertEqual(_detalles_dron(dron), ["En deposito", "Brazo brazo: vacío"])
+        self.assertEqual(_detalles_caja(caja), ["Disponible", "En deposito"])
+
+        casos = {
+            0.5: (
+                ["En deposito", "Brazo brazo: vacío"],
+                ["La lleva el dron dron1", "En deposito"],
+            ),
+            1.5: (
+                ["En deposito", "Brazo brazo: caja1 (comida)"],
+                ["La lleva el dron dron1", "En deposito"],
+            ),
+            math.inf: (
+                ["En loc1", "Brazo brazo: vacío"],
+                ["Entregada a la persona persona1", "En loc1"],
+            ),
+        }
+        for instante, (detalles_dron, detalles_caja) in casos.items():
+            with self.subTest(instante=instante):
+                mundo.avanzar_hasta(instante)
+                self.assertEqual(_detalles_dron(dron), detalles_dron)
+                self.assertEqual(_detalles_caja(caja), detalles_caja)
+
+    def test_detalles_de_una_persona(self) -> None:
+        """Comprueba la persona antes y después de recibir la caja."""
+        mundo = crear_mundo()
+        [persona] = mundo._simulacion._personas
+
+        self.assertEqual(
+            _detalles_persona(persona),
+            ["En loc1", "Necesita: comida", "No tiene ninguna caja"],
+        )
+        mundo.avanzar_hasta(math.inf)
+        self.assertEqual(
+            _detalles_persona(persona),
+            ["En loc1", "No necesita nada", "Tiene: caja1 (comida)"],
+        )
+
+    def test_detalles_de_un_transportador(self) -> None:
+        """Comprueba el transportador vacío y con una caja, llevado por un dron.
+
+        El brazo del dron que lo lleva lo nombra, y la caja dice que está dentro.
+        """
+        deposito = Localizacion("deposito")
+        brazo = Brazo("brazo")
+        dron = Dron("dron1", deposito, [brazo])
+        caja = Caja("caja1", deposito, COMIDA)
+        transportador = Transportador("transportador1", deposito, 2)
+        mundo = Mundo(
+            [
+                CogerCaja(dron, brazo, caja, 0, 1),
+                PonerCajaEnTransportador(dron, brazo, caja, transportador, 1, 1),
+                CogerTransportador(dron, brazo, transportador, 2, 1),
+            ],
+            localizaciones=[deposito],
+            drones=[dron],
+            cajas=[caja],
+            personas=[],
+            contenidos=CONTENIDOS,
+            transportadores=[transportador],
+        )
+
+        self.assertEqual(
+            _detalles_transportador(transportador),
+            ["En deposito", "No lo lleva ningún dron", "Cajas (0/2): ninguna"],
+        )
+        mundo.avanzar_hasta(math.inf)
+        self.assertEqual(
+            _detalles_transportador(transportador),
+            [
+                "En deposito",
+                "Lo lleva dron1 con el brazo brazo",
+                "Cajas (1/2): caja1 (comida)",
+            ],
+        )
+        self.assertEqual(
+            _detalles_dron(dron), ["En deposito", "Brazo brazo: transportador1"]
+        )
+        self.assertEqual(
+            _detalles_caja(caja),
+            ["Dentro del transportador transportador1", "En deposito"],
+        )
+
+
 class TestPanelLateral(unittest.TestCase):
     """El botón del panel, el ancho que ocupa y su dibujo."""
 
@@ -508,7 +618,10 @@ class TestPanelLateral(unittest.TestCase):
         )
 
     def test_se_dibuja_en_la_ventana_mas_pequena(self) -> None:
-        """Comprueba que el panel se dibuja abierto y cerrado, con y sin error."""
+        """Comprueba que el panel se dibuja abierto y cerrado, con y sin error.
+
+        Abierto, se dibuja con cada pestaña.
+        """
         ancho, alto = Renderizador.ANCHO_MINIMO, Renderizador.ALTO_MINIMO
         renderizador = Renderizador(ancho, alto)
         self.addCleanup(renderizador._cerrar)
@@ -524,9 +637,17 @@ class TestPanelLateral(unittest.TestCase):
             mundo = crear_mundo(con_error=con_error)
             mundo.avanzar_hasta(math.inf)
             renderizador._poner_localizaciones(mundo._simulacion._localizaciones)
-            for abierto in (False, True):
-                with self.subTest(con_error=con_error, abierto=abierto):
+            for abierto, pestana in (
+                (False, "Plan"),
+                (True, "Plan"),
+                (True, "Objetivos"),
+                (True, "Objetos"),
+            ):
+                with self.subTest(
+                    con_error=con_error, abierto=abierto, pestana=pestana
+                ):
                     lateral._abierto = abierto
+                    lateral._pestana = pestana
                     renderizador._reservar_panel_lateral(
                         lateral._ancho_ocupado, lateral._ancho_esquina
                     )
@@ -596,6 +717,28 @@ class TestPanelLateral(unittest.TestCase):
         plan = self.lateral._rectangulos_pestanas["Plan"].center
         self.lateral._gestionar_evento(raton(pygame.MOUSEBUTTONDOWN, plan))
         self.assertEqual(self.lateral._pestana, "Plan")
+
+    def test_la_pestana_de_objetos_los_agrupa_por_tipo(self) -> None:
+        """Comprueba los títulos de los grupos de la lista de objetos.
+
+        Un tipo sin objetos no tiene grupo: este problema no tiene transportadores.
+        """
+        self.lateral._gestionar_evento(self.clic_en(self.lateral))
+        self.lateral._dibujar(self.renderizador._pantalla, self.simulacion)
+        objetos = self.lateral._rectangulos_pestanas["Objetos"].center
+        self.lateral._gestionar_evento(raton(pygame.MOUSEBUTTONDOWN, objetos))
+
+        with mock.patch.object(
+            PanelLateral,
+            "_dibujar_linea",
+            autospec=True,
+            side_effect=PanelLateral._dibujar_linea,
+        ) as dibujar_linea:
+            self.lateral._dibujar(self.renderizador._pantalla, self.simulacion)
+
+        # Las dos primeras líneas son las de la cabecera: el tiempo y los objetivos.
+        titulos = [llamada.args[2] for llamada in dibujar_linea.call_args_list][2:]
+        self.assertEqual(titulos, ["Drones (1)", "Cajas (1)", "Personas (1)"])
 
     def test_cambiar_de_pestana_vuelve_al_principio_de_la_lista(self) -> None:
         """Comprueba que la lista de la otra pestaña se ve desde su principio."""

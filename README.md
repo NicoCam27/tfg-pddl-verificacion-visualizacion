@@ -249,7 +249,7 @@ print(informe.resumen())  # Una vez se cierra la ventana se imprime el veredicto
 `Mundo` ofrece dos formas de simular el plan. Las dos devuelven un informe (`InformeVerificacion`):
 
 - `simulacion_texto()`: muestra en la terminal el inicio y el final de cada acción y, al terminar, el veredicto.
-- `simulacion_visual()`: abre una ventana de Pygame con botones para reproducir, pausar y reiniciar el plan, y un control de velocidad. Un botón en la esquina superior derecha abre un panel lateral con el tiempo simulado, el estado del plan y dos pestañas: la del plan, con cada acción, un color que indica si está sin empezar, en ejecución, terminada, interrumpida o fallida, y una barra de progreso mientras se ejecuta (al pulsar una acción, la simulación salta a su inicio, en pausa), y la de objetivos, cada uno con un color que indica si está pendiente, cumplido, roto o no logrado. Devuelve el informe cuando se cierra la ventana.
+- `simulacion_visual()`: abre una ventana de Pygame con botones para reproducir, pausar y reiniciar el plan, y un control de velocidad. Un botón en la esquina superior derecha abre un panel lateral con el tiempo simulado, el estado del plan y tres pestañas: la del plan, con cada acción, un color que indica si está sin empezar, en ejecución, terminada, interrumpida o fallida, y una barra de progreso mientras se ejecuta (al pulsar una acción, la simulación salta a su inicio, en pausa), la de objetivos, cada uno con un color que indica si está pendiente, cumplido, roto o no logrado, y la de objetos, con dónde está cada dron, transportador, caja y persona y lo que lleva, tiene o necesita. Devuelve el informe cuando se cierra la ventana.
 
 ```python
 informe = nuevo_mundo.simulacion_visual()
