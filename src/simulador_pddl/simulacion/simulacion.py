@@ -823,14 +823,28 @@ class Simulacion:
     # ------------------------------------------------------------------
 
     def _texto_recuento_acciones(self) -> str:
-        """Devuelve cuántas acciones están pendientes, en curso y terminadas."""
-        pendientes = sum(not accion.iniciada for accion in self._acciones)
-        en_curso = sum(accion._en_curso for accion in self._acciones)
+        """Devuelve cuántas acciones están pendientes, en curso y terminadas.
+
+        Si ha fallado una acción, ninguna sigue en curso: las que habían empezado
+        y no han terminado quedan interrumpidas, y la que falló se cuenta aparte,
+        tanto si falló al empezar como al terminar. Así las cuentas siempre suman
+        el total del plan.
+        """
+        # La acción que falló no cuenta como pendiente ni como empezada.
+        otras = [
+            accion for accion in self._acciones if accion is not self._accion_fallida
+        ]
+        pendientes = sum(not accion.iniciada for accion in otras)
+        empezadas = sum(accion._en_curso for accion in otras)
         terminadas = sum(accion.terminada for accion in self._acciones)
 
+        if self._accion_fallida is None:
+            empezadas_y_fallida = f"En curso: {empezadas}"
+        else:
+            empezadas_y_fallida = f"Interrumpidas: {empezadas} | Fallida: 1"
         return (
             f"Pendientes: {pendientes} | "
-            f"En curso: {en_curso} | "
+            f"{empezadas_y_fallida} | "
             f"Terminadas: {terminadas}/{len(self._acciones)}"
         )
 

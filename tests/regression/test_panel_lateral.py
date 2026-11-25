@@ -352,6 +352,27 @@ class TestAccionesDelPlan(unittest.TestCase):
             ["sin empezar", "sin empezar", "sin empezar"],
         )
 
+    def test_el_recuento_del_panel_de_control_cuadra_con_la_lista(self) -> None:
+        """Comprueba que el recuento de acciones dice lo mismo que la lista del plan.
+
+        Mientras el plan se ejecuta, cuenta las acciones pendientes, en curso y
+        terminadas. Si falla una acción, ya no hay ninguna en curso: cuenta las
+        interrumpidas y la que falló.
+        """
+        mundo = crear_mundo()
+        mundo.avanzar_hasta(1.5)
+        self.assertEqual(
+            mundo._simulacion._texto_recuento_acciones(),
+            "Pendientes: 1 | En curso: 1 | Terminadas: 1/3",
+        )
+
+        mundo = crear_mundo_con_dos_brazos()
+        mundo.avanzar_hasta(math.inf)
+        self.assertEqual(
+            mundo._simulacion._texto_recuento_acciones(),
+            "Pendientes: 1 | Interrumpidas: 1 | Fallida: 1 | Terminadas: 0/3",
+        )
+
     def test_detalles_de_una_accion(self) -> None:
         """Comprueba los detalles de una acción, y los de la que falló."""
         mundo = crear_mundo(con_error=True)
