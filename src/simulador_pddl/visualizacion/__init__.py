@@ -8,10 +8,11 @@ la barra de la parte inferior de la ventana, con los botones de reproducir,
 pausar y reiniciar, el deslizador de velocidad y dos líneas de texto (el
 recuento de acciones y una línea de estado, con la última acción que empezó).
 ``PanelLateral`` es el panel plegable del lado derecho, que se abre con un botón
-en la esquina superior derecha y muestra el tiempo simulado, el estado del plan
-y cuántos objetivos se cumplen. ``ventana.py`` tiene el bucle de la ventana, que
-crea los tres, reparte los eventos, avanza la simulación y dibuja cada
-fotograma. Lo llama ``Mundo.simulacion_visual()``.
+en la esquina superior derecha y muestra el tiempo simulado, el estado del plan,
+cuántos objetivos se cumplen y dos pestañas: las acciones del plan, que se pueden
+pulsar para saltar a su inicio, y los objetivos. ``ventana.py`` tiene el bucle
+de la ventana, que crea los tres, reparte los eventos, avanza la simulación y
+dibuja cada fotograma. Lo llama ``Mundo.simulacion_visual()``.
 
 Importar este paquete importa pygame, así que ``Mundo`` solo importa el paquete
 dentro de ``simulacion_visual()``.

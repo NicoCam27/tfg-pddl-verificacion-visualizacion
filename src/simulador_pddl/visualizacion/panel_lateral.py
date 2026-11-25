@@ -13,6 +13,7 @@ from simulador_pddl.visualizacion.panel_control import (
 )
 
 if TYPE_CHECKING:
+    from simulador_pddl.acciones.accion import Accion
     from simulador_pddl.simulacion.simulacion import Simulacion
     from simulador_pddl.simulacion.verificacion import EstadoObjetivo
 
@@ -27,6 +28,9 @@ _COLOR_TEXTO_DETALLE = (80, 80, 85)
 _COLOR_TEXTO_ESTADO = (255, 255, 255)
 _COLOR_BARRA_LISTA = (200, 200, 205)
 _COLOR_MANDO_LISTA = (130, 130, 140)
+_COLOR_PESTANA = (200, 200, 207)
+_COLOR_PESTANA_ELEGIDA = (245, 245, 248)
+_COLOR_FILA_BAJO_RATON = (240, 240, 245)
 
 # El estado del plan mientras no ha terminado ni ha fallado ninguna acción. No es
 # un veredicto: el de un plan sin terminar sería siempre "INCOMPLETO".
@@ -56,6 +60,27 @@ _COLORES_OBJETIVO: dict[str, _Color] = {
     _ROTO: (215, 120, 0),
     _NO_LOGRADO: (200, 30, 30),
 }
+
+# Cómo va cada acción del plan, que se muestra con su color. Si falla una acción,
+# las que estaban en ejecución ya no van a terminar: quedan interrumpidas.
+_SIN_EMPEZAR = "sin empezar"
+_EN_EJECUCION = "en ejecución"
+_TERMINADA = "terminada"
+_INTERRUMPIDA = "interrumpida"
+_FALLIDA = "fallida"
+
+_COLORES_ACCION: dict[str, _Color] = {
+    _SIN_EMPEZAR: (150, 150, 155),
+    _EN_EJECUCION: (50, 100, 200),
+    _TERMINADA: (30, 140, 60),
+    _INTERRUMPIDA: (215, 120, 0),
+    _FALLIDA: (200, 30, 30),
+}
+
+# Las pestañas del panel, en el orden en que aparecen. Cada una muestra una lista.
+_PESTANA_PLAN = "Plan"
+_PESTANA_OBJETIVOS = "Objetivos"
+_PESTANAS = (_PESTANA_PLAN, _PESTANA_OBJETIVOS)
 
 # Espacio entre las líneas de texto del panel, en píxeles
 _INTERLINEADO = 6
@@ -114,6 +139,38 @@ def _detalles_objetivo(estado: EstadoObjetivo, clase: str) -> list[str]:
     return detalles
 
 
+def _clase_accion(accion: Accion, simulacion: Simulacion) -> str:
+    """Devuelve cómo va una acción del plan.
+
+    Puede estar sin empezar, en ejecución, terminada, interrumpida o fallida. La
+    acción que falló está fallida, tanto si falló al empezar como al terminar.
+    Las demás que estaban en ejecución ya no van a terminar, así que quedan
+    interrumpidas, y las que no habían empezado siguen sin empezar.
+    """
+    if accion is simulacion._accion_fallida:
+        return _FALLIDA
+    if accion.terminada:
+        return _TERMINADA
+    if accion.iniciada:
+        return _INTERRUMPIDA if simulacion._tiene_error else _EN_EJECUCION
+    return _SIN_EMPEZAR
+
+
+def _detalles_accion(accion: Accion, error: str | None) -> list[str]:
+    """Devuelve las líneas que se muestran debajo de una acción.
+
+    La primera dice con qué objetos se hace, y la segunda cuándo empieza y
+    termina. Si la acción falló, ``error`` es su mensaje, y la tercera lo muestra.
+    """
+    detalles = [
+        ", ".join(objeto.nombre for objeto in accion.objetos.values()),
+        f"De t={accion.inicio_sim:.2f}s a t={accion.tiempo_fin:.2f}s",
+    ]
+    if error is not None:
+        detalles.append(f"Falló: {error}")
+    return detalles
+
+
 def _con_mayuscula(texto: str) -> str:
     """Devuelve ``texto`` con la primera letra en mayúscula."""
     return texto[:1].upper() + texto[1:]
@@ -146,10 +203,13 @@ class PanelLateral:
     franja a la derecha, encima del panel de control, y el renderizador le deja
     ese ancho libre para no dibujar el mundo debajo. Arriba muestra el tiempo
     simulado, el estado del plan, con su color, y cuántos objetivos se cumplen.
-    Debajo, la lista de objetivos: cada uno con el color de cómo va, cuándo se
-    cumplió o se rompió y, si no se cumple, por qué. Cuando la lista no cabe, se
-    desplaza con la rueda del ratón o con la barra de su derecha, que se puede
-    pulsar para saltar a un punto o arrastrar.
+    Debajo, dos pestañas, cada una con una lista. La del plan tiene sus acciones,
+    numeradas, cada una con el color de cómo va, sus objetos, cuándo empieza y
+    termina y, mientras se ejecuta, una barra con lo que ha avanzado. Al pulsar
+    una, la simulación salta a su inicio. La de objetivos tiene cada objetivo con
+    el color de cómo va, cuándo se cumplió o se rompió y, si no se cumple, por
+    qué. Cuando la lista no cabe, se desplaza con la rueda del ratón o con la
+    barra de su derecha, que se puede pulsar para saltar a un punto o arrastrar.
 
     Args:
         ancho_ventana: El ancho de la ventana, en píxeles.
@@ -168,6 +228,7 @@ class PanelLateral:
     ) -> None:
         self._abierto = False
         self._boton = Boton("Mostrar panel")
+        self._pestana = _PESTANA_PLAN
 
         # Cuántos píxeles se ha desplazado la lista hacia arriba, con la rueda del
         # ratón o con la barra, y si se está arrastrando la barra. Los pone
@@ -178,6 +239,10 @@ class PanelLateral:
         self._zona_lista = pygame.Rect(0, 0, 0, 0)
         self._barra_lista = pygame.Rect(0, 0, 0, 0)
         self._alto_lista = 0
+        # También los pone _dibujar_panel(): dónde está cada pestaña y, con la del
+        # plan elegida, dónde está la fila de cada acción, para saber qué se pulsa.
+        self._rectangulos_pestanas: dict[str, pygame.Rect] = {}
+        self._filas_plan: list[tuple[pygame.Rect, Accion]] = []
 
         # Los pone _redimensionar(), a partir del tamaño de la ventana.
         self._rectangulo: pygame.Rect
@@ -191,7 +256,7 @@ class PanelLateral:
         self._redimensionar(ancho_ventana, alto_ventana, alto_panel_control)
 
     def __repr__(self) -> str:
-        return f"PanelLateral(abierto={self._abierto!r})"
+        return f"PanelLateral(abierto={self._abierto!r}, pestana={self._pestana!r})"
 
     def _redimensionar(
         self, ancho_ventana: int, alto_ventana: int, alto_panel_control: int
@@ -263,9 +328,11 @@ class PanelLateral:
     def _gestionar_evento(self, evento: pygame.event.Event) -> bool:
         """Abre o cierra el panel si ``evento`` pulsa su botón.
 
-        Con el panel abierto, la rueda del ratón sobre la lista la desplaza, y un
-        clic izquierdo en su barra la lleva a ese punto. Si se mantiene pulsado, la
-        lista sigue al ratón hasta que se suelta, aunque se salga de la barra.
+        Con el panel abierto, un clic izquierdo en una pestaña muestra su lista, la
+        rueda del ratón sobre la lista la desplaza, y un clic izquierdo en su barra
+        la lleva a ese punto. Si se mantiene pulsado, la lista sigue al ratón hasta
+        que se suelta, aunque se salga de la barra. Un clic en una acción del plan
+        no lo atiende este método, sino ``_accion_pulsada()``.
 
         Returns:
             ``True`` si el panel se ha abierto o cerrado, que es cuando cambia el
@@ -281,6 +348,12 @@ class PanelLateral:
             evento.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP)
             and evento.button == pygame.BUTTON_LEFT
         )
+        if clic_izquierdo and evento.type == pygame.MOUSEBUTTONDOWN and self._abierto:
+            for pestana, rectangulo in self._rectangulos_pestanas.items():
+                if rectangulo.collidepoint(evento.pos):
+                    self._elegir_pestana(pestana)
+                    return False
+
         if (
             clic_izquierdo
             and evento.type == pygame.MOUSEBUTTONDOWN
@@ -309,6 +382,35 @@ class PanelLateral:
             # su principio.
             self._desplazar(-evento.y * self._paso_desplazamiento)
         return False
+
+    def _accion_pulsada(self, evento: pygame.event.Event) -> Accion | None:
+        """Devuelve la acción de la lista del plan que pulsa ``evento``, o ``None``.
+
+        Solo cuenta un clic izquierdo con el panel abierto y dentro de la zona de la
+        lista: una fila que el desplazamiento deja fuera de la zona no se ve, así
+        que no se puede pulsar.
+        """
+        if not (
+            self._abierto
+            and evento.type == pygame.MOUSEBUTTONDOWN
+            and evento.button == pygame.BUTTON_LEFT
+            and self._zona_lista.collidepoint(evento.pos)
+        ):
+            return None
+        for fila, accion in self._filas_plan:
+            if fila.collidepoint(evento.pos):
+                return accion
+        return None
+
+    def _elegir_pestana(self, pestana: str) -> None:
+        """Muestra la lista de ``pestana``, desde su principio.
+
+        Las filas del plan se olvidan hasta que se vuelva a dibujar su lista, para
+        que un clic no elija una acción que ya no se ve.
+        """
+        self._pestana = pestana
+        self._desplazamiento = 0
+        self._filas_plan = []
 
     def _desplazar(self, pixeles: int) -> None:
         """Desplaza la lista ``pixeles`` hacia arriba, sin salirse de ella."""
@@ -374,7 +476,7 @@ class PanelLateral:
         self._boton._dibujar(pantalla)
 
     def _dibujar_panel(self, pantalla: pygame.Surface, simulacion: Simulacion) -> None:
-        """Dibuja el fondo del panel, la cabecera y la lista de objetivos."""
+        """Dibuja el fondo del panel, la cabecera, las pestañas y la lista elegida."""
         pygame.draw.rect(pantalla, _COLOR_FONDO_PANEL, self._rectangulo)
         pygame.draw.line(
             pantalla,
@@ -397,8 +499,10 @@ class PanelLateral:
         y = self._dibujar_estado(pantalla, _estado_del_plan(informe), x, y, ancho_texto)
         # Cuántos objetivos se cumplen.
         y = self._dibujar_linea(pantalla, _texto_objetivos(informe), x, y, ancho_texto)
+        # Las pestañas.
+        y = self._dibujar_pestanas(pantalla, x, y, ancho_texto)
 
-        # La lista de objetivos ocupa el resto del panel, salvo una franja a la
+        # La lista de la pestaña elegida ocupa el resto del panel, salvo una franja a la
         # derecha para su barra. Solo se dibuja dentro de su zona, así que lo que
         # queda fuera al desplazarla no se ve. La franja se reserva siempre, aunque
         # la lista quepa y no haya barra: si dependiera de eso, al aparecer la barra
@@ -413,16 +517,16 @@ class PanelLateral:
             self._zona_lista.right + separacion, y, self._ancho_barra, alto_zona
         )
         pantalla.set_clip(self._zona_lista)
-        y_objetivo = self._zona_lista.y - self._desplazamiento
-        for estado in informe.estados_objetivos:
-            y_objetivo = self._dibujar_objetivo(
-                pantalla, estado, _clase_objetivo(estado, informe), x, y_objetivo
-            )
+        y_lista = self._zona_lista.y - self._desplazamiento
+        if self._pestana == _PESTANA_PLAN:
+            y_lista = self._dibujar_plan(pantalla, simulacion, x, y_lista)
+        else:
+            y_lista = self._dibujar_objetivos(pantalla, informe, x, y_lista)
         pantalla.set_clip(None)
 
         # Lo que mide la lista cambia con la ejecución: si ha encogido, el
         # desplazamiento se ajusta para que no quede espacio vacío abajo.
-        self._alto_lista = y_objetivo + self._desplazamiento - self._zona_lista.y
+        self._alto_lista = y_lista + self._desplazamiento - self._zona_lista.y
         self._desplazar(0)
 
         if self._lista_desborda:
@@ -434,43 +538,158 @@ class PanelLateral:
                 pantalla, _COLOR_MANDO_LISTA, self._mando_lista, border_radius=radio
             )
 
-    def _dibujar_objetivo(
+    def _dibujar_pestanas(
+        self, pantalla: pygame.Surface, x: int, y: int, ancho: int
+    ) -> int:
+        """Dibuja las pestañas en ``(x, y)`` y devuelve la ``y`` siguiente.
+
+        Se reparten el ``ancho`` a partes iguales. La elegida es más clara y las
+        demás, más oscuras. Debajo, una línea las separa de la lista.
+        """
+        alto = self._fuente_texto.get_height() + self._margen
+        for indice, pestana in enumerate(_PESTANAS):
+            izquierda = x + ancho * indice // len(_PESTANAS)
+            derecha = x + ancho * (indice + 1) // len(_PESTANAS)
+            rectangulo = pygame.Rect(izquierda, y, derecha - izquierda, alto)
+            self._rectangulos_pestanas[pestana] = rectangulo
+
+            color = (
+                _COLOR_PESTANA_ELEGIDA if pestana == self._pestana else _COLOR_PESTANA
+            )
+            pygame.draw.rect(
+                pantalla,
+                color,
+                rectangulo,
+                border_top_left_radius=6,
+                border_top_right_radius=6,
+            )
+            texto = self._fuente_texto.render(
+                _truncar(self._fuente_texto, pestana, rectangulo.width),
+                True,
+                _COLOR_TEXTO,
+            )
+            pantalla.blit(texto, texto.get_rect(center=rectangulo.center))
+
+        fondo = y + alto
+        pygame.draw.line(
+            pantalla, _COLOR_BORDE_PANEL, (x, fondo), (x + ancho, fondo), 2
+        )
+        return fondo + self._margen
+
+    def _dibujar_plan(
+        self, pantalla: pygame.Surface, simulacion: Simulacion, x: int, y: int
+    ) -> int:
+        """Dibuja las acciones del plan desde ``y`` y devuelve la ``y`` siguiente.
+
+        Las acciones van en el orden del plan, numeradas desde 1. Guarda la fila de
+        cada una, para saber cuál se pulsa.
+        """
+        self._filas_plan = []
+        for numero, accion in enumerate(simulacion._acciones, start=1):
+            clase = _clase_accion(accion, simulacion)
+            error = simulacion._error if clase == _FALLIDA else None
+            progreso = None
+            if clase == _EN_EJECUCION:
+                progreso = accion._progreso(simulacion._tiempo_simulacion)
+            fila = self._dibujar_fila(
+                pantalla,
+                _COLORES_ACCION[clase],
+                f"{numero}. {type(accion).__name__}",
+                _detalles_accion(accion, error),
+                x,
+                y,
+                progreso=progreso,
+                pulsable=True,
+            )
+            self._filas_plan.append((fila, accion))
+            y = fila.bottom + self._margen
+        return y
+
+    def _dibujar_objetivos(
+        self, pantalla: pygame.Surface, informe: InformeVerificacion, x: int, y: int
+    ) -> int:
+        """Dibuja los objetivos desde ``y`` y devuelve la ``y`` siguiente."""
+        for estado in informe.estados_objetivos:
+            clase = _clase_objetivo(estado, informe)
+            fila = self._dibujar_fila(
+                pantalla,
+                _COLORES_OBJETIVO[clase],
+                _con_mayuscula(estado.objetivo._describir()),
+                _detalles_objetivo(estado, clase),
+                x,
+                y,
+            )
+            y = fila.bottom + self._margen
+        return y
+
+    def _dibujar_fila(
         self,
         pantalla: pygame.Surface,
-        estado: EstadoObjetivo,
-        clase: str,
+        color: _Color,
+        titulo: str,
+        detalles: list[str],
         x: int,
         y: int,
-    ) -> int:
-        """Dibuja un objetivo de la lista y devuelve la ``y`` del siguiente.
+        *,
+        progreso: float | None = None,
+        pulsable: bool = False,
+    ) -> pygame.Rect:
+        """Dibuja una fila de una lista en ``(x, y)`` y devuelve lo que ocupa.
 
-        A la izquierda, un cuadrado del color de cómo va. A su derecha, lo que
-        exige el objetivo y, debajo, en letra más pequeña, sus detalles.
+        A la izquierda, un cuadrado de ``color``. A su derecha, ``titulo`` y, debajo,
+        en letra más pequeña, los ``detalles``. Si se da ``progreso``, de 0 a 1,
+        debajo va una barra con esa parte rellena. Si la fila es ``pulsable`` y el
+        ratón está encima, se dibuja sobre un fondo más claro, para que se vea que
+        se puede pulsar.
         """
         lado = self._fuente_texto.get_height()
-        pygame.draw.rect(
-            pantalla, _COLORES_OBJETIVO[clase], (x, y, lado, lado), border_radius=3
-        )
-
         x_texto = x + lado + self._margen // 2
         ancho = self._zona_lista.right - x_texto
-        lineas = [
-            (self._fuente_texto, _COLOR_TEXTO, linea)
-            for linea in _partir_en_lineas(
-                self._fuente_texto, _con_mayuscula(estado.objetivo._describir()), ancho
-            )
+        superficies = [
+            self._fuente_texto.render(linea, True, _COLOR_TEXTO)
+            for linea in _partir_en_lineas(self._fuente_texto, titulo, ancho)
         ]
-        for detalle in _detalles_objetivo(estado, clase):
-            lineas += [
-                (self._fuente_detalle, _COLOR_TEXTO_DETALLE, linea)
+        for detalle in detalles:
+            superficies += [
+                self._fuente_detalle.render(linea, True, _COLOR_TEXTO_DETALLE)
                 for linea in _partir_en_lineas(self._fuente_detalle, detalle, ancho)
             ]
 
-        for fuente, color, linea in lineas:
-            superficie = fuente.render(linea, True, color)
+        # El alto de la fila se conoce antes de dibujarla, para poner debajo el
+        # fondo del ratón.
+        alto_barra = self._margen // 2
+        alto = sum(superficie.get_height() for superficie in superficies)
+        if progreso is not None:
+            alto += alto_barra + _INTERLINEADO
+        fila = pygame.Rect(x, y, self._zona_lista.right - x, alto)
+
+        raton = pygame.mouse.get_pos()
+        if (
+            pulsable
+            and fila.collidepoint(raton)
+            and self._zona_lista.collidepoint(raton)
+        ):
+            pygame.draw.rect(
+                pantalla,
+                _COLOR_FILA_BAJO_RATON,
+                fila.inflate(0, self._margen // 2),
+                border_radius=4,
+            )
+
+        pygame.draw.rect(pantalla, color, (x, y, lado, lado), border_radius=3)
+        for superficie in superficies:
             pantalla.blit(superficie, (x_texto, y))
             y += superficie.get_height()
-        return y + self._margen
+
+        if progreso is not None:
+            barra = pygame.Rect(x_texto, y + _INTERLINEADO, ancho, alto_barra)
+            pygame.draw.rect(pantalla, _COLOR_BARRA_LISTA, barra)
+            pygame.draw.rect(
+                pantalla,
+                color,
+                (barra.x, barra.y, int(barra.width * progreso), barra.h),
+            )
+        return fila
 
     def _dibujar_estado(
         self, pantalla: pygame.Surface, estado: str, x: int, y: int, ancho: int

@@ -2,9 +2,10 @@
 
 Comprueban el estado del plan que muestra el panel (``"EN CURSO"`` mientras el
 plan no ha terminado ni ha fallado ninguna acción, y el veredicto después), su
-línea de objetivos y cómo va cada objetivo de la lista, que el botón lo abre y lo
-cierra, que abierto deja al mundo solo el ancho que queda, que la rueda del ratón
-y la barra desplazan la lista y que se dibuja, abierto y cerrado, en la ventana
+línea de objetivos, cómo va cada acción del plan y cada objetivo, que pulsar una
+acción salta a su inicio, que el botón abre y cierra el panel, que abierto deja al
+mundo solo el ancho que queda, que las pestañas cambian la lista, que la rueda del
+ratón y la barra la desplazan y que se dibuja, abierto y cerrado, en la ventana
 más pequeña. Como las de ``test_simulacion_visual.py``, no comprueban la imagen
 dibujada, solo posiciones y tamaños.
 """
@@ -41,12 +42,15 @@ from simulador_pddl import (
 from simulador_pddl.simulacion import InformeVerificacion
 from simulador_pddl.visualizacion import PanelControl, PanelLateral, Renderizador
 from simulador_pddl.visualizacion.panel_lateral import (
+    _clase_accion,
     _clase_objetivo,
+    _detalles_accion,
     _detalles_objetivo,
     _estado_del_plan,
     _partir_en_lineas,
     _texto_objetivos,
 )
+from simulador_pddl.visualizacion.ventana import _saltar_a_accion
 
 if TYPE_CHECKING:
     from simulador_pddl import Objetivo
@@ -105,6 +109,36 @@ def crear_mundo(*, objetivos: str = "alcanzables", con_error: bool = False) -> M
         personas=[persona],
         contenidos=CONTENIDOS,
         objetivos=lista_objetivos,
+    )
+
+
+def crear_mundo_con_dos_brazos() -> Mundo:
+    """Crea un mundo cuyo plan falla mientras otra acción está en ejecución.
+
+    Con el brazo izquierdo, el dron coge una caja de t=0 a t=2. Con el derecho,
+    que está vacío, intenta entregar otra caja en t=1, y falla al empezar. El
+    movimiento de t=3 ya no llega a empezar.
+    """
+    deposito = Localizacion("deposito")
+    loc1 = Localizacion("loc1")
+    izquierdo = Brazo("izquierdo")
+    derecho = Brazo("derecho")
+    dron = Dron("dron1", deposito, [izquierdo, derecho])
+    caja1 = Caja("caja1", deposito, COMIDA)
+    caja2 = Caja("caja2", deposito, COMIDA)
+    persona = Persona("persona1", deposito, COMIDA)
+
+    return Mundo(
+        [
+            CogerCaja(dron, izquierdo, caja1, 0, 2),
+            EntregarCaja(dron, derecho, caja2, persona, 1, 1),
+            Mover(dron, deposito, loc1, 3, 1),
+        ],
+        localizaciones=[deposito, loc1],
+        drones=[dron],
+        cajas=[caja1, caja2],
+        personas=[persona],
+        contenidos=CONTENIDOS,
     )
 
 
@@ -262,6 +296,131 @@ class TestObjetivosDeLaLista(unittest.TestCase):
         self.assertLessEqual(fuente.size(acortada)[0], 60)
 
 
+class TestAccionesDelPlan(unittest.TestCase):
+    """Cómo va cada acción de la lista del plan y sus detalles."""
+
+    def setUp(self) -> None:
+        """Silencia el registro."""
+        logging.disable(logging.CRITICAL)
+        self.addCleanup(logging.disable, logging.NOTSET)
+
+    def test_clase_de_cada_accion(self) -> None:
+        """Comprueba cómo va cada acción a lo largo de un plan sin errores."""
+        mundo = crear_mundo()
+        simulacion = mundo._simulacion
+        casos = {
+            0: ["en ejecución", "sin empezar", "sin empezar"],
+            1.5: ["terminada", "en ejecución", "sin empezar"],
+            math.inf: ["terminada", "terminada", "terminada"],
+        }
+        for instante, clases in casos.items():
+            with self.subTest(instante=instante):
+                mundo.avanzar_hasta(instante)
+                self.assertEqual(
+                    [
+                        _clase_accion(accion, simulacion)
+                        for accion in simulacion._acciones
+                    ],
+                    clases,
+                )
+
+    def test_si_falla_una_accion_las_que_se_ejecutaban_se_interrumpen(self) -> None:
+        """Comprueba la acción que falla, la interrumpida y la que no empieza.
+
+        Al reiniciar, ninguna acción queda marcada como fallida.
+        """
+        mundo = crear_mundo_con_dos_brazos()
+        simulacion = mundo._simulacion
+
+        mundo.avanzar_hasta(math.inf)
+        self.assertEqual(
+            [_clase_accion(accion, simulacion) for accion in simulacion._acciones],
+            ["interrumpida", "fallida", "sin empezar"],
+        )
+
+        mundo.reiniciar()
+        self.assertEqual(
+            [_clase_accion(accion, simulacion) for accion in simulacion._acciones],
+            ["sin empezar", "sin empezar", "sin empezar"],
+        )
+
+    def test_detalles_de_una_accion(self) -> None:
+        """Comprueba los detalles de una acción, y los de la que falló."""
+        mundo = crear_mundo(con_error=True)
+        simulacion = mundo._simulacion
+        mundo.avanzar_hasta(math.inf)
+        coger, *_, mover = simulacion._acciones
+
+        self.assertEqual(
+            _detalles_accion(coger, None),
+            ["dron1, brazo, caja1", "De t=0.00s a t=1.00s"],
+        )
+        self.assertEqual(
+            _detalles_accion(mover, simulacion._error),
+            [
+                "dron1, deposito, loc1",
+                "De t=3.00s a t=4.00s",
+                (
+                    "Falló: el dron dron1 no está en la localización deposito, está "
+                    "en la localización loc1"
+                ),
+            ],
+        )
+
+
+class TestSaltarAUnaAccion(unittest.TestCase):
+    """Pulsar una acción de la lista lleva la simulación a su inicio, en pausa."""
+
+    def setUp(self) -> None:
+        """Silencia el registro."""
+        logging.disable(logging.CRITICAL)
+        self.addCleanup(logging.disable, logging.NOTSET)
+
+    def test_salta_a_una_accion_anterior(self) -> None:
+        """Comprueba que la acción queda recién empezada, con lo anterior aplicado."""
+        mundo = crear_mundo()
+        simulacion = mundo._simulacion
+        coger, mover, entregar = simulacion._acciones
+        mundo.avanzar_hasta(math.inf)
+
+        _saltar_a_accion(simulacion, mover)
+
+        self.assertEqual(simulacion._tiempo_simulacion, mover.inicio_sim)
+        self.assertTrue(coger.terminada)
+        self.assertTrue(mover.iniciada)
+        self.assertFalse(mover.terminada)
+        self.assertFalse(entregar.iniciada)
+
+    def test_salta_a_una_accion_posterior_y_queda_en_pausa(self) -> None:
+        """Comprueba que se salta también hacia delante, y que se pausa."""
+        mundo = crear_mundo()
+        simulacion = mundo._simulacion
+        entregar = simulacion._acciones[2]
+        simulacion._reproducir()
+
+        _saltar_a_accion(simulacion, entregar)
+
+        self.assertEqual(simulacion._tiempo_simulacion, entregar.inicio_sim)
+        self.assertTrue(entregar.iniciada)
+        self.assertFalse(simulacion._reproduciendo)
+
+    def test_si_falla_una_accion_anterior_se_detiene_en_ella(self) -> None:
+        """Comprueba que el salto se para en el error, y que otro salto lo deshace."""
+        mundo = crear_mundo_con_dos_brazos()
+        simulacion = mundo._simulacion
+        coger, entregar, mover = simulacion._acciones
+
+        _saltar_a_accion(simulacion, mover)
+        self.assertEqual(simulacion._tiempo_simulacion, entregar.inicio_sim)
+        self.assertIs(simulacion._accion_fallida, entregar)
+        self.assertFalse(mover.iniciada)
+
+        _saltar_a_accion(simulacion, coger)
+        self.assertEqual(simulacion._tiempo_simulacion, 0)
+        self.assertFalse(simulacion._tiene_error)
+        self.assertTrue(coger.iniciada)
+
+
 class TestPanelLateral(unittest.TestCase):
     """El botón del panel, el ancho que ocupa y su dibujo."""
 
@@ -375,19 +534,27 @@ class TestPanelLateral(unittest.TestCase):
                     lateral._dibujar(renderizador._pantalla, mundo._simulacion)
                     renderizador._dibujar_ayuda()
 
-    def panel_con_lista_larga(self) -> PanelLateral:
+    def panel_con_lista_larga(self, pestana: str = "Objetivos") -> PanelLateral:
         """Devuelve un panel abierto, en la ventana más pequeña, cuya lista no cabe.
 
-        La lista tiene doce objetivos, y el panel ya se ha dibujado una vez, así que
-        conoce la zona de la lista, la de su barra y lo que mide la lista.
+        Las dos listas tienen doce filas: el dron va y viene doce veces, y hay doce
+        personas que necesitan comida. El panel se abre, se pulsa ``pestana`` y se
+        dibuja, así que conoce la zona de la lista, la de su barra, lo que mide la
+        lista y, en la pestaña del plan, dónde está cada acción.
         """
         ancho, alto = Renderizador.ANCHO_MINIMO, Renderizador.ALTO_MINIMO
         deposito = Localizacion("deposito")
+        loc1 = Localizacion("loc1")
+        dron = Dron("dron1", deposito, [])
+        idas = [(deposito, loc1), (loc1, deposito)] * 6
         personas = [Persona(f"persona{i}", deposito, COMIDA) for i in range(12)]
-        mundo = Mundo(
-            [],
-            localizaciones=[deposito],
-            drones=[],
+        self.mundo_largo = Mundo(
+            [
+                Mover(dron, origen, destino, i, 1)
+                for i, (origen, destino) in enumerate(idas)
+            ],
+            localizaciones=[deposito, loc1],
+            drones=[dron],
             cajas=[],
             personas=personas,
             contenidos=CONTENIDOS,
@@ -397,9 +564,97 @@ class TestPanelLateral(unittest.TestCase):
         self.addCleanup(renderizador._cerrar)
         lateral = PanelLateral(ancho, alto, PanelControl(ancho, alto)._alto_panel)
         lateral._gestionar_evento(self.clic_en(lateral))
-        lateral._dibujar(renderizador._pantalla, mundo._simulacion)
+        # Las pestañas se colocan al dibujar el panel.
+        lateral._dibujar(renderizador._pantalla, self.mundo_largo._simulacion)
+        pulsar = lateral._rectangulos_pestanas[pestana].center
+        lateral._gestionar_evento(raton(pygame.MOUSEBUTTONDOWN, pulsar))
+        lateral._dibujar(renderizador._pantalla, self.mundo_largo._simulacion)
         self.assertTrue(lateral._lista_desborda)
         return lateral
+
+    def test_empieza_en_el_plan_y_las_pestanas_cambian_la_lista(self) -> None:
+        """Comprueba que se empieza en la pestaña del plan y que se puede cambiar.
+
+        Con la pestaña de objetivos, no queda ninguna fila del plan que pulsar.
+        """
+        self.lateral._gestionar_evento(self.clic_en(self.lateral))
+        self.lateral._dibujar(self.renderizador._pantalla, self.simulacion)
+        self.assertEqual(self.lateral._pestana, "Plan")
+        self.assertEqual(
+            [accion for _, accion in self.lateral._filas_plan],
+            self.simulacion._acciones,
+        )
+
+        objetivos = self.lateral._rectangulos_pestanas["Objetivos"].center
+        self.assertFalse(
+            self.lateral._gestionar_evento(raton(pygame.MOUSEBUTTONDOWN, objetivos))
+        )
+        self.lateral._dibujar(self.renderizador._pantalla, self.simulacion)
+        self.assertEqual(self.lateral._pestana, "Objetivos")
+        self.assertEqual(self.lateral._filas_plan, [])
+
+        plan = self.lateral._rectangulos_pestanas["Plan"].center
+        self.lateral._gestionar_evento(raton(pygame.MOUSEBUTTONDOWN, plan))
+        self.assertEqual(self.lateral._pestana, "Plan")
+
+    def test_cambiar_de_pestana_vuelve_al_principio_de_la_lista(self) -> None:
+        """Comprueba que la lista de la otra pestaña se ve desde su principio."""
+        lateral = self.panel_con_lista_larga()
+        lateral._desplazar(lateral._desplazamiento_maximo)
+        self.assertGreater(lateral._desplazamiento, 0)
+
+        plan = lateral._rectangulos_pestanas["Plan"].center
+        lateral._gestionar_evento(raton(pygame.MOUSEBUTTONDOWN, plan))
+
+        self.assertEqual(lateral._desplazamiento, 0)
+
+    def test_un_clic_en_una_accion_la_devuelve(self) -> None:
+        """Comprueba qué acción del plan pulsa cada clic.
+
+        Solo cuenta un clic izquierdo en una fila, con el panel abierto y la
+        pestaña del plan elegida.
+        """
+        self.lateral._gestionar_evento(self.clic_en(self.lateral))
+        self.lateral._dibujar(self.renderizador._pantalla, self.simulacion)
+        fila, accion = self.lateral._filas_plan[1]
+        derecho = pygame.event.Event(
+            pygame.MOUSEBUTTONDOWN, pos=fila.center, button=pygame.BUTTON_RIGHT
+        )
+
+        self.assertIs(
+            self.lateral._accion_pulsada(raton(pygame.MOUSEBUTTONDOWN, fila.center)),
+            accion,
+        )
+        self.assertIsNone(self.lateral._accion_pulsada(derecho))
+        self.assertIsNone(self.lateral._accion_pulsada(self.clic_en(self.lateral)))
+
+        objetivos = self.lateral._rectangulos_pestanas["Objetivos"].center
+        self.lateral._gestionar_evento(raton(pygame.MOUSEBUTTONDOWN, objetivos))
+        self.assertIsNone(
+            self.lateral._accion_pulsada(raton(pygame.MOUSEBUTTONDOWN, fila.center))
+        )
+
+        self.lateral._gestionar_evento(self.clic_en(self.lateral))
+        self.assertIsNone(
+            self.lateral._accion_pulsada(raton(pygame.MOUSEBUTTONDOWN, fila.center))
+        )
+
+    def test_una_accion_fuera_de_la_zona_no_se_puede_pulsar(self) -> None:
+        """Comprueba que no se pulsa una fila que el desplazamiento ha subido.
+
+        La fila sigue ahí, encima de la zona de la lista, pero no se ve.
+        """
+        lateral = self.panel_con_lista_larga("Plan")
+        lateral._desplazar(lateral._desplazamiento_maximo)
+        lateral._dibujar(self.renderizador._pantalla, self.mundo_largo._simulacion)
+        encima = (lateral._zona_lista.centerx, lateral._zona_lista.top - 1)
+        self.assertTrue(
+            any(fila.collidepoint(encima) for fila, _ in lateral._filas_plan)
+        )
+
+        self.assertIsNone(
+            lateral._accion_pulsada(raton(pygame.MOUSEBUTTONDOWN, encima))
+        )
 
     def test_la_rueda_desplaza_la_lista(self) -> None:
         """Comprueba que la rueda del ratón desplaza la lista sin salirse de ella.
@@ -499,7 +754,9 @@ class TestPanelLateral(unittest.TestCase):
 
     def test_repr(self) -> None:
         """Comprueba ``repr()`` del panel lateral."""
-        self.assertEqual(repr(self.lateral), "PanelLateral(abierto=False)")
+        self.assertEqual(
+            repr(self.lateral), "PanelLateral(abierto=False, pestana='Plan')"
+        )
 
 
 if __name__ == "__main__":

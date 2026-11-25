@@ -201,7 +201,9 @@ class TestEjecucionSinTerminar(unittest.TestCase):
         Una ejecución sin terminar en la que hay un error es ``"NO EJECUTABLE"``.
         """
         self.mundo.avanzar_hasta(1.5)
-        self.simulacion._poner_error("fallo simulado")
+        self.simulacion._poner_error(
+            "fallo simulado", self.simulacion._acciones_activas[0]
+        )
         informe = self.simulacion._crear_informe()
 
         self.assertFalse(informe.completado)

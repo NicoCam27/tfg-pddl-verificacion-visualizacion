@@ -831,6 +831,38 @@ class TestSimulacionVisualSinPantalla(unittest.TestCase):
         # Se ejecutaron los fotogramas 0 a 7, a 0.25 segundos cada uno.
         self.assertEqual(self.mundo._simulacion._tiempo_simulacion, 2.0)
 
+    def test_pulsar_una_accion_del_plan_salta_a_su_inicio(self) -> None:
+        """Comprueba que la ventana salta al inicio de la acción pulsada, en pausa.
+
+        Saber dónde queda cada fila exigiría dibujar el panel, así que se sustituye
+        ``_accion_pulsada()``: devuelve la acción solo para un evento concreto, que
+        llega cuando el plan ya ha pasado de ella.
+        """
+        accion = self.mundo._simulacion._acciones[2]
+        pulsar_accion = pygame.event.Event(pygame.USEREVENT)
+
+        def accion_pulsada(
+            _panel: PanelLateral, evento: pygame.event.Event
+        ) -> Accion | None:
+            return accion if evento is pulsar_accion else None
+
+        with mock.patch.object(
+            PanelLateral, "_accion_pulsada", autospec=True, side_effect=accion_pulsada
+        ):
+            self.ejecutar_ventana(
+                fotogramas=30,
+                eventos_en={
+                    0: [self.clic("_boton_reproducir")],
+                    20: [pulsar_accion],
+                },
+            )
+
+        simulacion = self.mundo._simulacion
+        self.assertEqual(simulacion._tiempo_simulacion, accion.inicio_sim)
+        self.assertFalse(simulacion._reproduciendo)
+        self.assertTrue(accion.iniciada)
+        self.assertFalse(accion.terminada)
+
     def test_boton_reiniciar_vuelve_al_principio(self) -> None:
         """Comprueba que pulsar reiniciar vuelve al instante 0, en pausa."""
         self.ejecutar_ventana(

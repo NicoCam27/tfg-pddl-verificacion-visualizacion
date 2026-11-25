@@ -11,6 +11,7 @@ from simulador_pddl.visualizacion.panel_lateral import PanelLateral
 from simulador_pddl.visualizacion.renderizador import Renderizador
 
 if TYPE_CHECKING:
+    from simulador_pddl.acciones.accion import Accion
     from simulador_pddl.simulacion.simulacion import Simulacion
     from simulador_pddl.visualizacion.panel_control import _ComandoPanel
 
@@ -23,8 +24,9 @@ def _ejecutar_ventana(
     Solo la llama ``Mundo.simulacion_visual()``, que ya ha comprobado los
     argumentos. Crea el ``Renderizador``, el ``PanelControl`` y el
     ``PanelLateral``. En cada fotograma, envía cada evento de pygame al
-    renderizador (un cambio de tamaño), al panel lateral (su botón) o al panel de
-    control (los botones y el deslizador), avanza la simulación el tiempo real
+    renderizador (un cambio de tamaño), al panel lateral (su botón, sus pestañas,
+    su lista y las acciones del plan) o al panel de control (los botones y el
+    deslizador), avanza la simulación el tiempo real
     transcurrido multiplicado por la velocidad del deslizador, y dibuja el mundo,
     los dos paneles y, encima de todo, la ayuda emergente. Al terminar, cierra la
     ventana aunque haya habido una excepción.
@@ -75,6 +77,13 @@ def _ejecutar_ventana(
                     )
                     continue
 
+                # Al pulsar una acción de la lista del plan, la simulación salta a
+                # su inicio.
+                accion = lateral._accion_pulsada(evento)
+                if accion is not None:
+                    _saltar_a_accion(simulacion, accion)
+                    continue
+
                 _aplicar_comando(simulacion, control._gestionar_evento(evento))
 
             # El break anterior solo sale del for: este sale también del while,
@@ -120,3 +129,18 @@ def _aplicar_comando(simulacion: Simulacion, comando: _ComandoPanel | None) -> N
         # Es lo mismo que hace Mundo.reiniciar(): si un día hiciera algo más,
         # habría que hacerlo también aquí.
         simulacion._reiniciar()
+
+
+def _saltar_a_accion(simulacion: Simulacion, accion: Accion) -> None:
+    """Lleva la simulación al instante en que empieza ``accion``, en pausa.
+
+    Reinicia la simulación y la avanza hasta ese instante, así que ``accion``
+    queda recién empezada, con todo lo anterior ya aplicado. Si una acción
+    anterior falla, la simulación se detiene en ella. Reinicia también cuando la
+    acción es posterior al instante actual: el resultado es el mismo, porque lo
+    que pasa en un instante no depende de cómo se ha llegado a él, y así no hay
+    que distinguir casos, como una acción que ya ha empezado o un plan que ya ha
+    fallado.
+    """
+    simulacion._reiniciar()
+    simulacion._avanzar_hasta(accion.inicio_sim)

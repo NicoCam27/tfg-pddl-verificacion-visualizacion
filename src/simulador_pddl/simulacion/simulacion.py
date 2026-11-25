@@ -201,8 +201,10 @@ class Simulacion:
         # todavía no ha empezado ninguna ("Simulación reiniciada" después de un
         # reinicio).
         self._texto_estado = "Simulación preparada"
-        # El mensaje de error de la acción que falló, o None si ninguna falló.
+        # El mensaje de error de la acción que falló y la propia acción, o None si
+        # ninguna falló. El panel lateral de la simulación visual marca esa acción.
         self._error: str | None = None
+        self._accion_fallida: Accion | None = None
 
         # Funciones opcionales que se llaman con cada acción justo después de que
         # empiece o termine, si no son None. Solo _simulacion_texto() les da valor,
@@ -618,7 +620,7 @@ class Simulacion:
             error = accion._iniciar_ejecucion()
 
         if error is not None:
-            self._poner_error(error)
+            self._poner_error(error, accion)
             return
 
         self._acciones_activas.append(accion)
@@ -640,7 +642,7 @@ class Simulacion:
         error = accion._terminar_ejecucion()
 
         if error is not None:
-            self._poner_error(error)
+            self._poner_error(error, accion)
             return
 
         self._acciones_activas.remove(accion)
@@ -665,14 +667,15 @@ class Simulacion:
                 tiempo_simulacion=self._tiempo_simulacion,
             )
 
-    def _poner_error(self, mensaje: str) -> None:
-        """Detiene la simulación con un mensaje de error.
+    def _poner_error(self, mensaje: str, accion: Accion) -> None:
+        """Detiene la simulación con el mensaje de error de ``accion``.
 
         Las acciones en curso ya no van a terminar, así que se quitan de
         ``_acciones_activas``: así el ``Renderizador`` deja de dibujar a mitad de
         camino un dron cuyo movimiento no terminó.
         """
         self._error = mensaje
+        self._accion_fallida = accion
         self._reproduciendo = False
         self._acciones_activas.clear()
 
@@ -696,6 +699,7 @@ class Simulacion:
         self._tiempo_simulacion = 0.0
         self._acciones_activas.clear()
         self._error = None
+        self._accion_fallida = None
         self._texto_estado = "Simulación reiniciada"
 
         for accion in self._acciones:
