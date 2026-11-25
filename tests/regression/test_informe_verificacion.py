@@ -1,11 +1,12 @@
 """Pruebas del veredicto y los objetivos de un ``InformeVerificacion``.
 
-Comprueban tres cosas. Un informe refleja la simulación en el momento en que se
+Comprueban cuatro cosas. Un informe refleja la simulación en el momento en que se
 obtiene: no cambia cuando su simulación se reinicia o se vuelve a ejecutar. El
 veredicto es el correcto en cada situación: una ejecución sin terminar es
 ``"INCOMPLETO"``, un plan terminado sin objetivos es ``"EJECUTABLE"``, y un error es
-``"NO EJECUTABLE"``. Y los instantes en que un objetivo se logró y se rompió describen
-el último periodo en el que se cumplió.
+``"NO EJECUTABLE"``. Los instantes en que un objetivo se logró y se rompió describen
+el último periodo en el que se cumplió. Y si falla una acción, el informe la
+devuelve, y ``simulacion_texto()`` la imprime.
 """
 
 from __future__ import annotations
@@ -13,6 +14,7 @@ from __future__ import annotations
 import contextlib
 import io
 import logging
+import math
 import unittest
 from typing import TYPE_CHECKING
 
@@ -42,6 +44,121 @@ if TYPE_CHECKING:
 # ejecutar un plan, así que todas las pruebas pueden compartirlos.
 COMIDA = Contenido("comida")
 CONTENIDOS = (COMIDA,)
+
+
+def crear_mundo_que_falla(*, al_terminar: bool) -> Mundo:
+    """Crea un mundo cuyo plan falla al empezar o al terminar una acción.
+
+    Al empezar: el dron va del depósito a loc1 de t=0 a t=1, y en t=1 intenta
+    volver a salir del depósito. Al terminar: dos entregas de comida a la misma
+    persona empiezan en t=1, y la que acaba en t=3 falla porque la persona ya
+    recibió la comida en t=2.
+    """
+    deposito = Localizacion("deposito")
+    loc1 = Localizacion("loc1")
+    izquierdo = Brazo("izquierdo")
+    derecho = Brazo("derecho")
+    dron = Dron("dron1", deposito, [izquierdo, derecho])
+    caja1 = Caja("caja1", deposito, COMIDA)
+    caja2 = Caja("caja2", deposito, COMIDA)
+    persona = Persona("persona1", deposito, COMIDA)
+
+    if al_terminar:
+        acciones: list[Accion] = [
+            CogerCaja(dron, izquierdo, caja1, 0, 1),
+            CogerCaja(dron, derecho, caja2, 0, 1),
+            EntregarCaja(dron, izquierdo, caja1, persona, 1, 2),
+            EntregarCaja(dron, derecho, caja2, persona, 1, 1),
+        ]
+    else:
+        acciones = [
+            Mover(dron, deposito, loc1, 0, 1),
+            Mover(dron, deposito, loc1, 1, 1),
+        ]
+    return Mundo(
+        acciones,
+        localizaciones=[deposito, loc1],
+        drones=[dron],
+        cajas=[caja1, caja2],
+        personas=[persona],
+        contenidos=CONTENIDOS,
+    )
+
+
+class TestAccionFallida(unittest.TestCase):
+    """El informe devuelve la acción que falló, y la salida de texto la nombra."""
+
+    def setUp(self) -> None:
+        """Silencia el registro."""
+        logging.disable(logging.CRITICAL)
+        self.addCleanup(logging.disable, logging.NOTSET)
+
+    def test_el_informe_devuelve_la_accion_que_fallo_y_cuando(self) -> None:
+        """Comprueba la acción fallida y su instante, con y sin fallos.
+
+        Es la misma acción del plan, no una copia. Si la acción falla al empezar,
+        ``fallo_en`` es su ``inicio_sim``, y si falla al terminar, su
+        ``tiempo_fin``. Un informe sin fallos no tiene acción fallida ni instante.
+        """
+        casos = {False: (1, 1), True: (2, 3)}
+        for al_terminar, (indice, instante) in casos.items():
+            with self.subTest(al_terminar=al_terminar):
+                mundo = crear_mundo_que_falla(al_terminar=al_terminar)
+                informe = mundo.avanzar_hasta(math.inf)
+                self.assertIs(
+                    informe.accion_fallida, mundo._simulacion._acciones[indice]
+                )
+                self.assertEqual(informe.fallo_en, instante)
+
+        mundo = crear_mundo_que_falla(al_terminar=True)
+        informe = mundo.avanzar_hasta(0.5)
+        self.assertIsNone(informe.accion_fallida)
+        self.assertIsNone(informe.fallo_en)
+
+    def test_un_informe_conserva_su_accion_fallida_al_reiniciar(self) -> None:
+        """Comprueba que ``reiniciar()`` no cambia la acción fallida de un informe.
+
+        Tampoco cambia su instante, aunque la acción ya no conste como empezada.
+        """
+        mundo = crear_mundo_que_falla(al_terminar=True)
+        informe = mundo.avanzar_hasta(math.inf)
+        fallida = informe.accion_fallida
+
+        mundo.reiniciar()
+
+        self.assertIsNotNone(fallida)
+        self.assertIs(informe.accion_fallida, fallida)
+        self.assertEqual(informe.fallo_en, 3)
+        nuevo = mundo.verificar()
+        self.assertIsNone(nuevo.accion_fallida)
+        self.assertIsNone(nuevo.fallo_en)
+
+    def test_la_salida_de_texto_nombra_la_accion_que_fallo(self) -> None:
+        """Comprueba la línea ``NO INICIA`` o ``NO TERMINA``, justo antes del error.
+
+        Va en el instante en que falla la acción: su inicio o su final.
+        """
+        casos = {
+            False: (
+                "[t=  1.00s] NO INICIA Mover(dron=dron1, origen=deposito, "
+                "destino=loc1, inicio_sim=1, duracion_sim=1)"
+            ),
+            True: (
+                "[t=  3.00s] NO TERMINA EntregarCaja(dron=dron1, brazo=izquierdo, "
+                "caja=caja1, persona=persona1, inicio_sim=1, duracion_sim=2)"
+            ),
+        }
+        for al_terminar, linea in casos.items():
+            with self.subTest(al_terminar=al_terminar):
+                mundo = crear_mundo_que_falla(al_terminar=al_terminar)
+                salida = io.StringIO()
+                with contextlib.redirect_stdout(salida):
+                    informe = mundo.simulacion_texto()
+
+                lineas = salida.getvalue().splitlines()
+                error = f"Error en la simulación: {informe.error}"
+                # Entre la línea y el error hay una línea en blanco.
+                self.assertEqual(lineas[lineas.index(error) - 2], linea)
 
 
 class TestInformeNoSigueALaSimulacion(unittest.TestCase):

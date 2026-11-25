@@ -268,7 +268,7 @@ El informe indica el veredicto en `informe.veredicto`:
 | `INCOMPLETO` | La simulación se detuvo antes de terminar el plan (por ejemplo, al cerrar la ventana). |
 | `NO EJECUTABLE` | Una acción no se pudo aplicar: el plan no es ejecutable. |
 
-Además, `informe.es_valido` es `True` solo si el veredicto es `VÁLIDO`, `informe.error` contiene el mensaje de la acción que falló (o `None`) y `informe.resumen()` devuelve el texto completo, con el estado de cada objetivo. Para usar esos datos desde el código (por ejemplo, para comparar planes o en pruebas), el informe también los ofrece como objetos `EstadoObjetivo`, uno por objetivo, en `informe.estados_objetivos`, `informe.objetivos_cumplidos` e `informe.objetivos_no_cumplidos`, con las propiedades `objetivo`, `cumplido`, `logrado_en`, `roto_en` y `explicacion_fallo`.
+Además, `informe.es_valido` es `True` solo si el veredicto es `VÁLIDO`, `informe.error` contiene el mensaje de la acción que falló, `informe.accion_fallida` la propia acción (la misma que se dio en el plan) e `informe.fallo_en` el instante en que falló (los tres son `None` si no falló ninguna), y `informe.resumen()` devuelve el texto completo, con el estado de cada objetivo. Para usar esos datos desde el código (por ejemplo, para comparar planes o en pruebas), el informe también los ofrece como objetos `EstadoObjetivo`, uno por objetivo, en `informe.estados_objetivos`, `informe.objetivos_cumplidos` e `informe.objetivos_no_cumplidos`, con las propiedades `objetivo`, `cumplido`, `logrado_en`, `roto_en` y `explicacion_fallo`.
 
 ### Varios planes para el mismo problema
 

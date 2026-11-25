@@ -21,6 +21,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from simulador_pddl.acciones import Accion
     from simulador_pddl.objetivos import Objetivo
 
 
@@ -158,6 +159,10 @@ class InformeVerificacion:
         completado: Si han terminado todas las acciones del plan.
         error: El mensaje de error de la acción que falló, o ``None`` si no falló
             ninguna.
+        accion_fallida: La acción que falló, la misma que se dio en el plan, o
+            ``None`` si no falló ninguna.
+        fallo_en: El instante en que falló la acción, o ``None`` si no falló
+            ninguna.
         estados_objetivos: El estado de cada objetivo, en el orden en que se
             dieron los objetivos.
         acciones_totales: El número de acciones del plan.
@@ -176,6 +181,8 @@ class InformeVerificacion:
         ejecutable: bool,
         completado: bool,
         error: str | None,
+        accion_fallida: Accion | None,
+        fallo_en: float | None,
         estados_objetivos: list[EstadoObjetivo],
         acciones_totales: int,
         acciones_terminadas: int,
@@ -183,6 +190,8 @@ class InformeVerificacion:
         self._ejecutable = ejecutable
         self._completado = completado
         self._error = error
+        self._accion_fallida = accion_fallida
+        self._fallo_en = fallo_en
         # Simulacion ya pasa una lista nueva con copias de sus estados, para que el
         # informe no cambie cuando la simulación avance o se reinicie, así que aquí
         # no hace falta copiarla.
@@ -259,6 +268,26 @@ class InformeVerificacion:
     def error(self) -> str | None:
         """El mensaje de error de la acción que falló, o ``None`` si ninguna falló."""
         return self._error
+
+    @property
+    def accion_fallida(self) -> Accion | None:
+        """La acción que falló, o ``None`` si ninguna falló.
+
+        Es la misma acción que se dio en el plan, no una copia, así que se puede
+        buscar en la lista de acciones, p. ej. con ``acciones.index()``. El mensaje
+        de ``error`` dice por qué falló.
+        """
+        return self._accion_fallida
+
+    @property
+    def fallo_en(self) -> float | None:
+        """El instante en que falló la acción, o ``None`` si ninguna falló.
+
+        Es el ``inicio_sim`` de la acción si no pudo empezar, o su ``tiempo_fin``
+        si no pudo terminar. Como una acción siempre dura más de 0, los dos
+        instantes son distintos, así que comparándolos se sabe en cuál falló.
+        """
+        return self._fallo_en
 
     @property
     def estados_objetivos(self) -> list[EstadoObjetivo]:

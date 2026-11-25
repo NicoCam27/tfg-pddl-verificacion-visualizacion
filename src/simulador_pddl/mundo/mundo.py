@@ -134,9 +134,9 @@ class Mundo:
         """Ejecuta el plan en la terminal y devuelve su informe.
 
         Imprime cada inicio y final de acción, lo que narra cada dron y, al
-        terminar, el resumen del informe. La ejecución llega al final del plan o
-        se detiene en la primera acción que falla, así que el veredicto nunca es
-        ``"INCOMPLETO"``.
+        terminar, el resumen del informe. Si falla una acción, la nombra antes del
+        error. La ejecución llega al final del plan o se detiene en la primera
+        acción que falla, así que el veredicto nunca es ``"INCOMPLETO"``.
 
         La ejecución sigue desde donde esté la simulación: una segunda llamada no
         vuelve a ejecutar el plan, solo da otra vez su informe. Para ejecutarlo de

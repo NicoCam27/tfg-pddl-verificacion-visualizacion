@@ -733,6 +733,11 @@ class Simulacion:
             ejecutable=not self._tiene_error,
             completado=self._terminada,
             error=self._error,
+            accion_fallida=self._accion_fallida,
+            # Después de un error el reloj ya no avanza, así que sigue en el
+            # instante del suceso que falló. No se deduce de la acción (si había
+            # empezado), porque eso cambia al reiniciar, y el informe no.
+            fallo_en=self._tiempo_simulacion if self._tiene_error else None,
             # Copias, no los estados de la propia simulación: _reiniciar() y las
             # actualizaciones posteriores los cambian, y un informe tiene que
             # conservar el veredicto con el que se creó.
@@ -747,6 +752,9 @@ class Simulacion:
 
     def _simulacion_texto(self, paso_tiempo: float = 0.1) -> InformeVerificacion:
         """Ejecuta el plan en la terminal, imprimiendo cada inicio y final.
+
+        Si una acción falla, imprime también una línea ``NO INICIA`` o ``NO
+        TERMINA`` con ella, en el instante en que falló, antes del error.
 
         Args:
             paso_tiempo: Los segundos simulados que avanza la simulación en cada
@@ -803,7 +811,16 @@ class Simulacion:
             while not self._terminada and not self._tiene_error:
                 self._actualizar(paso_tiempo)
 
-            if self._tiene_error:
+            if self._accion_fallida is not None:
+                # La acción que falla no se narra como INICIA ni como TERMINA,
+                # porque esas líneas solo se imprimen cuando el suceso se aplica.
+                # Se narra aquí, en el instante en que falló: si había empezado,
+                # lo que no pudo hacer es terminar.
+                fase = "NO TERMINA" if self._accion_fallida.iniciada else "NO INICIA"
+                print(
+                    f"[t={self._tiempo_simulacion:6.2f}s] {fase} "
+                    f"{self._accion_fallida.desc}"
+                )
                 print(f"\nError en la simulación: {self._error}")
             else:
                 print(f"\nEjecución terminada en t={self._tiempo_simulacion:.2f}s")
