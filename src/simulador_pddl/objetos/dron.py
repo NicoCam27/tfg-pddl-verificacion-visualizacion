@@ -4,7 +4,6 @@ import logging
 from typing import TYPE_CHECKING
 
 from simulador_pddl.objetos.caja import Caja
-from simulador_pddl.objetos.persona import Persona
 from simulador_pddl.objetos.transportador import Transportador
 from simulador_pddl.objetos.utilidades_objetos import (
     con_articulo,
@@ -20,22 +19,9 @@ if TYPE_CHECKING:
 
     from simulador_pddl.objetos.brazo import Brazo
     from simulador_pddl.objetos.localizacion import Localizacion
+    from simulador_pddl.objetos.persona import Persona
 
 registrador = logging.getLogger(__name__)
-
-# Los objetos que están en una localización.
-type _Localizable = Caja | Transportador | Dron | Persona
-
-
-def _exigir_misma_localizacion(primero: _Localizable, segundo: _Localizable) -> None:
-    """Lanza ``ValueError`` si los dos objetos no están en la misma localización."""
-    if primero.localizacion != segundo.localizacion:
-        msg_localizacion = (
-            f"{con_articulo(primero)} está en la localización {primero.localizacion} "
-            f"pero {con_articulo(segundo)} está en la localización "
-            f"{segundo.localizacion}"
-        )
-        raise ValueError(msg_localizacion)
 
 
 class Dron:
@@ -188,6 +174,20 @@ class Dron:
             )
             raise ValueError(msg_localizacion_dron)
 
+    def _exigir_junto_a(self, objeto: Caja | Transportador | Persona) -> None:
+        """Lanza ``ValueError`` si el dron no está donde está ``objeto``.
+
+        Lo llaman los ``_iniciar_*`` de las acciones de un brazo, porque el dron
+        tiene que estar donde está la caja, el transportador o la persona.
+        """
+        if self._localizacion != objeto.localizacion:
+            msg_localizacion = (
+                f"el dron {self._nombre} está en la localización {self._localizacion} "
+                f"pero {con_articulo(objeto)} está en la localización "
+                f"{objeto.localizacion}"
+            )
+            raise ValueError(msg_localizacion)
+
     # ------------------------------------------------------------------
     # Transportadores: coger y soltar
     # ------------------------------------------------------------------
@@ -231,7 +231,7 @@ class Dron:
         transportador._exigir_no_sujeto(intento)
         transportador._exigir_sin_carga_ni_descarga_en_curso(intento)
 
-        _exigir_misma_localizacion(self, transportador)
+        self._exigir_junto_a(transportador)
 
         transportador._coger(self, brazo)
 
@@ -321,7 +321,7 @@ class Dron:
         brazo tiene que estar libre. Todavía no pone la caja en el brazo: eso se
         hace al final, en ``_terminar_coger_caja()``.
         """
-        _exigir_misma_localizacion(self, caja)
+        self._exigir_junto_a(caja)
 
         brazo._exigir_libre()
 
@@ -391,7 +391,7 @@ class Dron:
         sujetar la caja. Todavía no cambia nada: la caja sigue en el brazo, y se
         entrega a la persona al final.
         """
-        _exigir_misma_localizacion(self, persona)
+        self._exigir_junto_a(persona)
 
         self._exigir_necesidad_persona(persona, caja)
 
@@ -482,7 +482,7 @@ class Dron:
         caja sigue en el brazo hasta el final. Desde este momento el hueco está
         reservado y el transportador no se puede coger.
         """
-        _exigir_misma_localizacion(self, transportador)
+        self._exigir_junto_a(transportador)
 
         transportador._exigir_no_sujeto(
             f"la caja {caja.nombre} no se puede meter en el transportador "
@@ -547,7 +547,7 @@ class Dron:
         sigue ocupando su hueco hasta el final de la descarga, así que ninguna
         carga puede usarlo mientras tanto.
         """
-        _exigir_misma_localizacion(self, transportador)
+        self._exigir_junto_a(transportador)
 
         # Una carga no mete la caja en cajas_dentro hasta que termina, y una
         # descarga la quita en cuanto empieza. Así que si hay una carga o otra
