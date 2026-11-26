@@ -637,12 +637,22 @@ class TestExcepcionesSimulacion(unittest.TestCase):
             self.dron, self.brazo, self.transportador, inicio_sim=0
         )
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as contexto:
             Mundo([coger], **self._objetos())
+        self.assertEqual(
+            str(contexto.exception),
+            "la acción CogerTransportador no se puede realizar si no se dan "
+            "transportadores",
+        )
 
         # Con la lista, pero sin ese transportador en ella.
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as contexto:
             Mundo([coger], **self._objetos(), transportadores=[])
+        self.assertEqual(
+            str(contexto.exception),
+            "el transportador transportador1 no aparece en la lista de "
+            "transportadores dada",
+        )
 
     def test_tipo_de_objetivos_incorrecto(self) -> None:
         """Comprueba que ``objetivos`` es una lista o tupla de objetivos."""

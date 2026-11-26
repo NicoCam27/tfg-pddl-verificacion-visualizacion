@@ -450,6 +450,81 @@ class TestCogerCajaQueYaEsDelDron(unittest.TestCase):
         self.assertFalse(acciones[3].iniciada)
 
 
+class TestBrazoOcupado(unittest.TestCase):
+    """Un brazo que ya sujeta algo no puede coger otra cosa hasta soltarlo."""
+
+    def setUp(self) -> None:
+        """Crea un dron con dos brazos, dos cajas y un transportador en el depósito."""
+        self.deposito = Localizacion("deposito")
+        self.izquierdo = Brazo("izquierdo")
+        self.derecho = Brazo("derecho")
+        self.dron = Dron("dron1", self.deposito, [self.izquierdo, self.derecho])
+        self.caja1 = Caja("caja1", self.deposito, COMIDA)
+        self.caja2 = Caja("caja2", self.deposito, COMIDA)
+        self.transportador = Transportador("transportador1", self.deposito, 4)
+
+    def ejecutar(self, acciones: list[Any]) -> InformeVerificacion:
+        """Ejecuta las acciones como un plan y devuelve su informe."""
+        mundo = Mundo(
+            acciones,
+            localizaciones=[self.deposito],
+            drones=[self.dron],
+            cajas=[self.caja1, self.caja2],
+            personas=[],
+            contenidos=[COMIDA],
+            transportadores=[self.transportador],
+        )
+        return ejecutar_plan(mundo, paso_tiempo=0.1)
+
+    def test_un_brazo_con_una_caja_no_puede_coger_otra(self) -> None:
+        """Comprueba que un brazo no coge una segunda caja sin soltar la primera.
+
+        Las dos cargas no se solapan, así que no las rechaza la regla de
+        solapamiento: lo hace la comprobación de que el brazo está libre.
+        """
+        acciones = [
+            CogerCaja(
+                self.dron, self.izquierdo, self.caja1, inicio_sim=0, duracion_sim=1
+            ),
+            CogerCaja(
+                self.dron, self.izquierdo, self.caja2, inicio_sim=2, duracion_sim=1
+            ),
+        ]
+        informe = self.ejecutar(acciones)
+
+        self.assertFalse(informe.ejecutable)
+        self.assertIs(informe.accion_fallida, acciones[1])
+        self.assertIn("el brazo izquierdo ya sujeta la caja caja1", informe.error or "")
+        self.assertIs(self.izquierdo.caja, self.caja1)
+        self.assertIsNone(self.caja2.propietario_actual)
+
+    def test_un_brazo_con_un_transportador_no_puede_coger_una_caja(self) -> None:
+        """Comprueba que un brazo que lleva un transportador no coge una caja."""
+        acciones = [
+            CogerTransportador(
+                self.dron,
+                self.izquierdo,
+                self.transportador,
+                inicio_sim=0,
+                duracion_sim=1,
+            ),
+            CogerCaja(
+                self.dron, self.izquierdo, self.caja1, inicio_sim=2, duracion_sim=1
+            ),
+        ]
+        informe = self.ejecutar(acciones)
+
+        self.assertFalse(informe.ejecutable)
+        self.assertIs(informe.accion_fallida, acciones[1])
+        self.assertIn(
+            "el brazo izquierdo ya está reservado para llevar el transportador "
+            "transportador1",
+            informe.error or "",
+        )
+        self.assertIs(self.izquierdo.transportador, self.transportador)
+        self.assertIsNone(self.caja1.propietario_actual)
+
+
 class TestIdaYVueltaTransportador(unittest.TestCase):
     """Poner y sacar una caja de un transportador: la caja entra y sale."""
 
@@ -820,6 +895,47 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
         )
         self.assertFalse(acciones[1].iniciada)
         self.assertIs(transportador.propietario_actual, dron2)
+
+    def test_soltar_con_el_otro_brazo_del_dron_falla_al_empezar(self) -> None:
+        """Comprueba que el transportador solo se suelta con el brazo que lo sujeta.
+
+        El dron que lo sujeta es el mismo, así que la comprobación del dron no
+        basta: hace falta comprobar también el brazo.
+        """
+        deposito = Localizacion("deposito")
+        izquierdo = Brazo("izquierdo")
+        derecho = Brazo("derecho")
+        dron = Dron("dron1", deposito, [izquierdo, derecho])
+        transportador = Transportador("transportador1", deposito, 4)
+
+        acciones = [
+            CogerTransportador(
+                dron, izquierdo, transportador, inicio_sim=0, duracion_sim=1
+            ),
+            SoltarTransportador(
+                dron, derecho, transportador, inicio_sim=1, duracion_sim=1
+            ),
+        ]
+        mundo = Mundo(
+            acciones,
+            localizaciones=[deposito],
+            drones=[dron],
+            cajas=[],
+            personas=[],
+            contenidos=[],
+            transportadores=[transportador],
+        )
+        informe = ejecutar_plan(mundo, paso_tiempo=0.1)
+
+        self.assertFalse(informe.ejecutable)
+        self.assertIn(
+            "el dron dron1 no puede soltar el transportador transportador1 con el "
+            "brazo derecho, está sujeto con el brazo izquierdo",
+            informe.error or "",
+        )
+        self.assertFalse(acciones[1].iniciada)
+        self.assertIs(izquierdo.transportador, transportador)
+        self.assertIs(transportador.propietario_actual, dron)
 
 
 class TestMoverTransportadorDePrincipioAFin(unittest.TestCase):
@@ -1205,6 +1321,53 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         self.assertIn("se está sacando de él la caja caja1", informe.error or "")
         self.assertEqual(self.transportador.localizacion, self.deposito)
         self.assertIsNone(self.transportador.propietario_actual)
+
+    def test_segunda_descarga_de_una_caja_nombra_al_dron_que_la_saca(self) -> None:
+        """Comprueba el error de sacar una caja que otro dron ya está sacando.
+
+        Una descarga quita la caja de ``cajas_dentro`` al empezar, así que sin una
+        comprobación propia el error diría que la caja no está en el transportador.
+        """
+        acciones = [
+            CogerCaja(
+                self.dron1, self.brazo1, self.caja1, inicio_sim=0, duracion_sim=1
+            ),
+            PonerCajaEnTransportador(
+                self.dron1,
+                self.brazo1,
+                self.caja1,
+                self.transportador,
+                inicio_sim=1,
+                duracion_sim=1,
+            ),
+            SacarCajaDeTransportador(
+                self.dron1,
+                self.brazo1,
+                self.caja1,
+                self.transportador,
+                inicio_sim=2,
+                duracion_sim=4,
+            ),
+            SacarCajaDeTransportador(
+                self.dron2,
+                self.brazo2,
+                self.caja1,
+                self.transportador,
+                inicio_sim=3,
+                duracion_sim=1,
+            ),
+        ]
+        mundo = Mundo(acciones, **self._objetos())
+        informe = ejecutar_plan(mundo, paso_tiempo=0.1)
+
+        self.assertFalse(informe.ejecutable)
+        self.assertIs(informe.accion_fallida, acciones[3])
+        self.assertIn(
+            "la caja caja1 no se puede sacar del transportador transportador1, "
+            "el dron dron1 ya la está sacando",
+            informe.error or "",
+        )
+        self.assertIs(self.caja1.propietario_actual, self.dron1)
 
     def test_segunda_carga_solapada_en_un_transportador_lleno_falla_al_empezar(
         self,
