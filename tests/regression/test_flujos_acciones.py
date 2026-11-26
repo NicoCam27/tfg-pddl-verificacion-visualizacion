@@ -1165,6 +1165,47 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         self.assertIs(self.brazo1.caja, self.caja1)
         self.assertEqual(self.transportador.cajas_dentro, [])
 
+    def test_el_transportador_no_se_puede_llevar_durante_una_descarga(self) -> None:
+        """Comprueba que el transportador no se mueve mientras se saca una caja."""
+        acciones = [
+            CogerCaja(
+                self.dron1, self.brazo1, self.caja1, inicio_sim=0, duracion_sim=1
+            ),
+            PonerCajaEnTransportador(
+                self.dron1,
+                self.brazo1,
+                self.caja1,
+                self.transportador,
+                inicio_sim=1,
+                duracion_sim=1,
+            ),
+            SacarCajaDeTransportador(
+                self.dron1,
+                self.brazo1,
+                self.caja1,
+                self.transportador,
+                inicio_sim=2,
+                duracion_sim=4,
+            ),
+            MoverTransportador(
+                self.dron2,
+                self.brazo2,
+                self.transportador,
+                self.deposito,
+                self.localizacion1,
+                inicio_sim=3,
+                duracion_sim=1,
+            ),
+        ]
+        mundo = Mundo(acciones, **self._objetos())
+        informe = ejecutar_plan(mundo, paso_tiempo=0.1)
+
+        self.assertFalse(informe.ejecutable)
+        self.assertIs(informe.accion_fallida, acciones[3])
+        self.assertIn("se está sacando de él la caja caja1", informe.error or "")
+        self.assertEqual(self.transportador.localizacion, self.deposito)
+        self.assertIsNone(self.transportador.propietario_actual)
+
     def test_segunda_carga_solapada_en_un_transportador_lleno_falla_al_empezar(
         self,
     ) -> None:

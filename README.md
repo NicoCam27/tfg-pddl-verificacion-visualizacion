@@ -315,6 +315,12 @@ python tests/ejemplo_basico.py
 
 ## Pruebas
 
+Las pruebas necesitan, además de la biblioteca, las herramientas de desarrollo del grupo `dev` de `pyproject.toml`: Hypothesis, que genera los planes al azar de las pruebas de propiedades, mypy y ruff. Se instalan desde una copia local del repositorio (la opción `--group` necesita pip 25.1 o posterior):
+
+```bash
+pip install -e . --group dev
+```
+
 El directorio `tests/regression/` contiene la batería de pruebas de regresión, que conviene ejecutar después de cada cambio en la biblioteca:
 
 ```bash
@@ -325,6 +331,7 @@ python -m unittest discover -s tests/regression -p "test_*.py"
 
 - Python 3.12.10
 - Pygame 2.6.1
+- Hypothesis 6.170.17
 - PDDL (Planning Domain Definition Language)
 - Git
 - GitHub
