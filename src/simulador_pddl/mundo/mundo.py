@@ -262,9 +262,13 @@ class Mundo:
 
         La ventana, que se puede redimensionar, tiene botones para reproducir,
         pausar y reiniciar el plan, y un deslizador para la velocidad: a 1x, un
-        segundo simulado dura un segundo real. Si una acción falla, la ejecución
-        se detiene y la ventana sigue abierta mostrando el error. El método
-        vuelve cuando se cierra la ventana.
+        segundo simulado dura un segundo real. Un botón en la esquina superior
+        derecha abre un panel lateral con el tiempo simulado, el estado del plan
+        y tres pestañas: las acciones del plan, los objetivos y los objetos. Al
+        pulsar una acción del plan, la simulación vuelve a empezar y salta al
+        inicio de esa acción, en pausa. Si una acción falla, la ejecución se
+        detiene y la ventana sigue abierta mostrando el error. El método vuelve
+        cuando se cierra la ventana.
 
         La ventana muestra la simulación tal como esté: un mundo recién
         construido o reiniciado se abre en pausa, y el plan avanza al pulsar
