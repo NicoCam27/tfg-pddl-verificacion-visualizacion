@@ -83,7 +83,7 @@ class EntregarCaja(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
-        """Da la caja a la persona y deja libre el brazo (``at end``)."""
+        """Entrega la caja a la persona y deja libre el brazo (``at end``)."""
         try:
             self._dron._terminar_entregar_caja(self._brazo, self._caja, self._persona)
             self._terminada = True

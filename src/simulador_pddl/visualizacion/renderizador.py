@@ -440,7 +440,8 @@ class Renderizador:
         """Dibuja la ayuda pendiente a la derecha de su elemento.
 
         Si no cabe, la pone a la izquierda, y nunca fuera de la zona del mundo. Se
-        llama después de dibujar los paneles, para que ninguno la tape.
+        llama después de dibujar los paneles para que no la tape el botón del panel
+        lateral, que está dentro de esa zona.
         """
         if self._ayuda is None:
             return
@@ -517,7 +518,7 @@ class Renderizador:
         alto += relleno * 2
 
         # Anclada junto al elemento, pero nunca fuera de la zona del mundo, para
-        # que no quede debajo de los paneles.
+        # que no pase por encima de los paneles.
         x = rectangulo.right + relleno
         y = rectangulo.top - relleno
 
