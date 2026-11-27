@@ -74,8 +74,16 @@ class TestObjetosInstanciables(unittest.TestCase):
         self.deposito = Localizacion("deposito")
 
     def test_localizacion_instanciable(self) -> None:
-        """Comprueba que una localización conserva su nombre."""
+        """Comprueba que una localización conserva su nombre y se compara por él.
+
+        Dos localizaciones con el mismo nombre son iguales y tienen el mismo hash, y
+        una localización no es igual a la cadena de su nombre.
+        """
         self.assertEqual(self.deposito.nombre, "deposito")
+        self.assertEqual(Localizacion("deposito"), self.deposito)
+        self.assertEqual(len({Localizacion("deposito"), self.deposito}), 1)
+        self.assertNotEqual(Localizacion("almacen"), self.deposito)
+        self.assertNotEqual(self.deposito, "deposito")
 
     def test_contenido_instanciable(self) -> None:
         """Comprueba que un contenido conserva su nombre y se compara por él.
@@ -88,6 +96,18 @@ class TestObjetosInstanciables(unittest.TestCase):
         self.assertEqual(len({Contenido("comida"), COMIDA}), 1)
         self.assertNotEqual(Contenido("agua"), COMIDA)
         self.assertNotEqual(COMIDA, "comida")
+
+    def test_localizacion_y_contenido_con_el_mismo_nombre_son_distintos(self) -> None:
+        """Comprueba que la igualdad por nombre solo vale entre objetos de un tipo.
+
+        Una localización y un contenido que se llaman igual no son el mismo objeto,
+        aunque los dos se comparen por su nombre.
+        """
+        localizacion = Localizacion("comida")
+
+        self.assertNotEqual(localizacion, COMIDA)
+        self.assertNotEqual(COMIDA, localizacion)
+        self.assertEqual(len({localizacion, COMIDA}), 2)
 
     def test_brazo_instanciable(self) -> None:
         """Comprueba que un brazo nuevo conserva su nombre y no sujeta nada."""
@@ -130,6 +150,27 @@ class TestObjetosInstanciables(unittest.TestCase):
         brazos.append(Brazo("derecha"))
 
         self.assertEqual(dron.brazos, [izquierda])
+
+    def test_las_listas_que_devuelve_un_objeto_son_copias(self) -> None:
+        """Comprueba que cambiar una lista que devuelve un objeto no cambia el objeto.
+
+        Así, el estado de un objeto solo lo cambia la biblioteca al ejecutar un plan.
+        """
+        izquierda = Brazo("izquierda")
+        dron = Dron("dron1", self.deposito, [izquierda])
+        persona = Persona("persona1", self.deposito, COMIDA)
+        transportador = Transportador("transportador1", self.deposito, 4)
+        caja = Caja("caja1", self.deposito, COMIDA)
+
+        dron.brazos.append(Brazo("derecha"))
+        persona.necesidades.append(MEDICINA)
+        persona.posee.append(caja)
+        transportador.cajas_dentro.append(caja)
+
+        self.assertEqual(dron.brazos, [izquierda])
+        self.assertEqual(persona.necesidades, [COMIDA])
+        self.assertEqual(persona.posee, [])
+        self.assertEqual(transportador.cajas_dentro, [])
 
     def test_caja_instanciable(self) -> None:
         """Comprueba que una caja nueva conserva sus argumentos y está disponible."""

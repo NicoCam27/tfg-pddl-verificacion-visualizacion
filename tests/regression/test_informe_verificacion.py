@@ -3,10 +3,11 @@
 Comprueban cuatro cosas. Un informe refleja la simulación en el momento en que se
 obtiene: no cambia cuando su simulación se reinicia o se vuelve a ejecutar. El
 veredicto es el correcto en cada situación: una ejecución sin terminar es
-``"INCOMPLETO"``, un plan terminado sin objetivos es ``"EJECUTABLE"``, y un error es
-``"NO EJECUTABLE"``. Los instantes en que un objetivo se logró y se rompió describen
-el último periodo en el que se cumplió. Y si falla una acción, el informe la
-devuelve, y ``simulacion_texto()`` la imprime.
+``"INCOMPLETO"``, un plan terminado sin objetivos es ``"EJECUTABLE"``, uno que no
+logra sus objetivos es ``"NO RESUELVE"``, y un error es ``"NO EJECUTABLE"``. Los
+instantes en que un objetivo se logró y se rompió describen el último periodo en el
+que se cumplió. Y si falla una acción, el informe la devuelve, y
+``simulacion_texto()`` la imprime.
 """
 
 from __future__ import annotations
@@ -330,7 +331,7 @@ class TestEjecucionSinTerminar(unittest.TestCase):
 class TestPlanSinObjetivos(unittest.TestCase):
     """Un plan terminado sin objetivos es ``"EJECUTABLE"``.
 
-    Si tiene objetivos y los cumple, es ``"VÁLIDO"``.
+    Si tiene objetivos y los cumple, es ``"VÁLIDO"``, y si no, ``"NO RESUELVE"``.
     """
 
     def setUp(self) -> None:
@@ -360,7 +361,7 @@ class TestPlanSinObjetivos(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             return mundo.simulacion_texto()
 
-    def test_plan_terminado_sin_objetivos_es_ejecutable_no_valido(self) -> None:
+    def test_plan_terminado_sin_objetivos_es_ejecutable_no_es_valido(self) -> None:
         """Comprueba que un plan sin objetivos es ``"EJECUTABLE"``.
 
         También lo dice el resumen.
@@ -380,6 +381,23 @@ class TestPlanSinObjetivos(unittest.TestCase):
 
         self.assertEqual(informe.veredicto, informe.VALIDO)
         self.assertTrue(informe.es_valido)
+
+    def test_el_mismo_plan_con_un_objetivo_que_no_cumple_no_resuelve(self) -> None:
+        """Comprueba que el plan con un objetivo que no logra es ``"NO RESUELVE"``.
+
+        El objetivo es que el dron esté en el depósito: se cumple al empezar y se
+        rompe cuando el dron llega a su destino. El plan se ejecuta entero sin
+        errores, pero no lo resuelve.
+        """
+        informe = self.ejecutar_plan(
+            lambda dron, _localizacion: [DronEnLocalizacion(dron, dron.localizacion)]
+        )
+
+        self.assertEqual(informe.veredicto, informe.NO_RESUELVE)
+        self.assertTrue(informe.ejecutable)
+        self.assertTrue(informe.completado)
+        self.assertFalse(informe.es_valido)
+        self.assertIn("Veredicto: NO RESUELVE", informe.resumen())
 
     def test_plan_vacio_sin_objetivos_es_ejecutable(self) -> None:
         """Comprueba que un plan vacío sin objetivos es ``"EJECUTABLE"``."""

@@ -4,9 +4,9 @@ Los objetos, las acciones, los objetivos y ``Mundo`` comprueban sus argumentos a
 construirse: un valor de tipo incorrecto lanza ``TypeError``, y un valor del tipo
 correcto que no está permitido lanza ``ValueError``. Un error que ocurre mientras
 se ejecuta un plan no se lanza: se devuelve en el ``InformeVerificacion`` (ver
-``test_flujos_acciones.py``). Los valores y los objetos de una acción que
-comprueba ``Mundo`` no se pueden escribir después de construirla
-(``AttributeError``).
+``test_flujos_acciones.py``). Lo que se comprueba al construir no se puede
+escribir después (``AttributeError``): ni los atributos de un objeto o de un
+objetivo, ni los valores y los objetos de una acción.
 """
 
 from __future__ import annotations
@@ -113,6 +113,49 @@ class TestExcepcionesObjetos(unittest.TestCase):
         for objeto in (Localizacion("deposito"), Contenido("comida")):
             with self.subTest(objeto=objeto), self.assertRaises(AttributeError):
                 objeto.nombre = "otro"  # type: ignore[misc]
+
+    def test_atributos_de_los_objetos_son_de_solo_lectura(self) -> None:
+        """Comprueba que ningún atributo de los demás objetos se escribe desde fuera.
+
+        Su estado solo lo cambia la biblioteca al ejecutar un plan, así que
+        escribirlo a mano se saltaría las reglas del dominio.
+        """
+        atributos = {
+            self.brazo: ("nombre", "caja", "transportador"),
+            Caja("caja1", self.deposito, COMIDA): (
+                "nombre",
+                "localizacion",
+                "contenido",
+                "estado",
+                "propietario_actual",
+            ),
+            Dron("dron1", self.deposito, [Brazo("otro-brazo")]): (
+                "nombre",
+                "localizacion",
+                "brazos",
+            ),
+            Persona("persona1", self.deposito, COMIDA): (
+                "nombre",
+                "localizacion",
+                "necesidades",
+                "posee",
+            ),
+            Transportador("transportador1", self.deposito, 4): (
+                "nombre",
+                "localizacion",
+                "capacidad",
+                "cajas_dentro",
+                "propietario_actual",
+                "brazo_actual",
+            ),
+        }
+        for objeto, nombres in atributos.items():
+            for atributo in nombres:
+                with (
+                    self.subTest(objeto=objeto, atributo=atributo),
+                    self.assertRaises(AttributeError),
+                ):
+                    setattr(objeto, atributo, None)
 
     def test_caja_incorrecta(self) -> None:
         """Comprueba que una caja rechaza argumentos incorrectos.
@@ -408,7 +451,10 @@ class TestExcepcionesAcciones(unittest.TestCase):
 
 
 class TestExcepcionesObjetivos(unittest.TestCase):
-    """Cada objetivo rechaza argumentos incorrectos al construirse."""
+    """Cada objetivo rechaza argumentos incorrectos al construirse.
+
+    Después, los objetos a los que se refiere no se pueden cambiar.
+    """
 
     def setUp(self) -> None:
         """Crea un objeto de cada tipo al que se puede referir un objetivo."""
@@ -458,6 +504,28 @@ class TestExcepcionesObjetivos(unittest.TestCase):
         for localizacion in NO_LOCALIZACIONES:
             with self.subTest(localizacion=localizacion), self.assertRaises(TypeError):
                 TransportadorEnLocalizacion(self.transportador, localizacion)  # type: ignore[arg-type]
+
+    def test_atributos_de_los_objetivos_son_de_solo_lectura(self) -> None:
+        """Comprueba que los objetos de un objetivo no se cambian tras construirlo.
+
+        ``Mundo`` comprueba al construirse que cada objetivo se puede lograr, así
+        que cambiarlos después se saltaría esa comprobación.
+        """
+        atributos = {
+            PersonaTieneContenido(self.persona, COMIDA): ("persona", "contenido"),
+            DronEnLocalizacion(self.dron, self.deposito): ("dron", "localizacion"),
+            TransportadorEnLocalizacion(self.transportador, self.deposito): (
+                "transportador",
+                "localizacion",
+            ),
+        }
+        for objetivo, nombres in atributos.items():
+            for atributo in nombres:
+                with (
+                    self.subTest(objetivo=objetivo, atributo=atributo),
+                    self.assertRaises(AttributeError),
+                ):
+                    setattr(objetivo, atributo, None)
 
 
 class TestExcepcionesSimulacion(unittest.TestCase):
