@@ -758,8 +758,8 @@ class Simulacion:
 
         Args:
             paso_tiempo: Los segundos simulados que avanza la simulación en cada
-                actualización. Opcional: 0.1 por defecto. El veredicto no depende
-                de él.
+                actualización, mayor que 0. Opcional: 0.1 por defecto. El
+                veredicto no depende de él.
 
         Returns:
             El ``InformeVerificacion`` de la ejecución. La ejecución siempre llega
@@ -769,22 +769,9 @@ class Simulacion:
             se cumplen todos los objetivos al final (un plan sin objetivos es
             ``"EJECUTABLE"``, nunca ``"VÁLIDO"``).
 
-        Raises:
-            TypeError: Si ``paso_tiempo`` no es un int o un float.
-            ValueError: Si ``paso_tiempo`` no es mayor que 0.
+        Solo lo llama ``Mundo.simulacion_texto()``, que antes comprueba
+        ``paso_tiempo``. Por eso este método no lo comprueba.
         """
-        # bool es una subclase de int, así que True y False se rechazan expresamente.
-        if isinstance(paso_tiempo, bool) or not isinstance(paso_tiempo, (int, float)):
-            msg_tipo_paso_tiempo = (
-                f"'paso_tiempo' debe ser un int o un float, se recibió {paso_tiempo!r}"
-            )
-            raise TypeError(msg_tipo_paso_tiempo)
-        if not paso_tiempo > 0:
-            msg_rango_paso_tiempo = (
-                f"'paso_tiempo' debe ser mayor que 0, se recibió {paso_tiempo!r}"
-            )
-            raise ValueError(msg_rango_paso_tiempo)
-
         # Los drones narran mediante logging, no con print(), para que la
         # biblioteca no diga nada cuando la usa otro código. _simulacion_texto()
         # es para la terminal, así que activa esa narración. basicConfig no hace

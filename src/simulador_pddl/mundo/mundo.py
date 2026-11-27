@@ -154,6 +154,18 @@ class Mundo:
             TypeError: Si ``paso_tiempo`` no es un int o un float.
             ValueError: Si ``paso_tiempo`` no es mayor que 0.
         """
+        # bool es una subclase de int, así que True y False se rechazan expresamente.
+        if isinstance(paso_tiempo, bool) or not isinstance(paso_tiempo, (int, float)):
+            msg_tipo_paso_tiempo = (
+                f"'paso_tiempo' debe ser un int o un float, se recibió {paso_tiempo!r}"
+            )
+            raise TypeError(msg_tipo_paso_tiempo)
+        if not paso_tiempo > 0:
+            msg_rango_paso_tiempo = (
+                f"'paso_tiempo' debe ser mayor que 0, se recibió {paso_tiempo!r}"
+            )
+            raise ValueError(msg_rango_paso_tiempo)
+
         return self._simulacion._simulacion_texto(paso_tiempo)
 
     def verificar(self) -> InformeVerificacion:
