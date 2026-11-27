@@ -19,6 +19,9 @@ class CogerCaja(Accion):
 
     El dron coge una caja de su localización con uno de sus brazos.
 
+    Mientras dura, ocupa solo el brazo: el dron puede hacer a la vez otra acción
+    con otro brazo, pero no otra con el mismo brazo ni moverse.
+
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
     propiedades se describen en ``Accion``.
@@ -61,9 +64,12 @@ class CogerCaja(Accion):
 
     @override
     def _iniciar_ejecucion(self) -> str | None:
+        """Reclama la caja con el brazo (``at start``).
+
+        La caja deja de estar disponible, así que ninguna otra acción solapada
+        puede cogerla.
+        """
         try:
-            # ``at start``: la caja deja de estar disponible, así que ninguna otra
-            # acción solapada puede cogerla.
             self._dron._iniciar_coger_caja(self._brazo, self._caja)
             self._iniciada = True
         except ValueError as e:
@@ -73,8 +79,8 @@ class CogerCaja(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
+        """Hace que el brazo sujete formalmente la caja (``at end``)."""
         try:
-            # ``at end``: el brazo pasa formalmente a sujetar la caja.
             self._dron._terminar_coger_caja(self._brazo, self._caja)
             self._terminada = True
         except ValueError as e:

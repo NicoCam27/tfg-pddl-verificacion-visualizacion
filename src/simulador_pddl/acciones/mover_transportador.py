@@ -28,6 +28,9 @@ class MoverTransportador(Accion):
     El dron coge un transportador con uno de sus brazos, lo lleva de una
     localización a otra y lo suelta allí.
 
+    Mientras dura, ocupa el dron entero: el dron no puede empezar ninguna otra
+    acción hasta que termine.
+
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
     propiedades se describen en ``Accion``.

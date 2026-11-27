@@ -21,6 +21,9 @@ class EntregarCaja(Accion):
     El dron entrega la caja que sujeta con uno de sus brazos a una persona que
     está en su localización. La persona tiene la caja cuando termina la acción.
 
+    Mientras dura, ocupa solo el brazo: el dron puede hacer a la vez otra acción
+    con otro brazo, pero no otra con el mismo brazo ni moverse.
+
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
     propiedades se describen en ``Accion``.
@@ -66,9 +69,11 @@ class EntregarCaja(Accion):
 
     @override
     def _iniciar_ejecucion(self) -> str | None:
+        """Comprueba que la caja se puede entregar (``at start``).
+
+        La caja sigue en el brazo hasta el final de la acción.
+        """
         try:
-            # ``at start``: se comprueba que la caja se puede entregar. La caja sigue
-            # en el brazo.
             self._dron._iniciar_entregar_caja(self._brazo, self._caja, self._persona)
             self._iniciada = True
         except ValueError as e:
@@ -78,8 +83,8 @@ class EntregarCaja(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
+        """Da la caja a la persona y deja libre el brazo (``at end``)."""
         try:
-            # ``at end``: la caja se da a la persona y el brazo queda libre.
             self._dron._terminar_entregar_caja(self._brazo, self._caja, self._persona)
             self._terminada = True
         except ValueError as e:

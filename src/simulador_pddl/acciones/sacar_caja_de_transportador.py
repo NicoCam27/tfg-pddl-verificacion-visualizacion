@@ -21,6 +21,9 @@ class SacarCajaDeTransportador(Accion):
     El dron saca una caja de un transportador que está en su localización con
     uno de sus brazos.
 
+    Mientras dura, ocupa solo el brazo: el dron puede hacer a la vez otra acción
+    con otro brazo, pero no otra con el mismo brazo ni moverse.
+
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
     propiedades se describen en ``Accion``.
@@ -69,9 +72,11 @@ class SacarCajaDeTransportador(Accion):
 
     @override
     def _iniciar_ejecucion(self) -> str | None:
+        """Saca la caja del transportador y la reclama para el dron (``at start``).
+
+        El transportador no se puede coger hasta el final de la acción.
+        """
         try:
-            # ``at start``: la caja sale del transportador y este dron la reclama
-            # enseguida. El transportador no se puede coger hasta el final.
             self._dron._iniciar_sacar_caja_de_transportador(
                 self._brazo, self._caja, self._transportador
             )
@@ -83,9 +88,11 @@ class SacarCajaDeTransportador(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
+        """Hace que el brazo sujete formalmente la caja (``at end``).
+
+        Desde este momento, el transportador se puede volver a coger.
+        """
         try:
-            # ``at end``: el brazo pasa formalmente a sujetar la caja, y el
-            # transportador se puede volver a coger.
             self._dron._terminar_sacar_caja_de_transportador(
                 self._brazo, self._caja, self._transportador
             )

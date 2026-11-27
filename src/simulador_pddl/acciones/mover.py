@@ -19,6 +19,9 @@ class Mover(Accion):
     El dron se desplaza de una localización a otra, llevando consigo lo que
     sujeten sus brazos.
 
+    Mientras dura, ocupa el dron entero: el dron no puede empezar ninguna otra
+    acción hasta que termine.
+
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
     propiedades se describen en ``Accion``.
@@ -79,8 +82,8 @@ class Mover(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
+        """Mueve al destino el dron y todo lo que lleva consigo (``at end``)."""
         try:
-            # ``at end``: el dron y todo lo que lleva consigo llegan al destino.
             self._dron._mover(self._destino)
             self._terminada = True
         except ValueError as e:

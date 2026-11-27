@@ -20,6 +20,9 @@ class CogerTransportador(Accion):
     El dron coge un transportador de su localización con uno de sus brazos, para
     llevarlo.
 
+    Mientras dura, ocupa solo el brazo: el dron puede hacer a la vez otra acción
+    con otro brazo, pero no otra con el mismo brazo ni moverse.
+
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
     propiedades se describen en ``Accion``.
@@ -63,9 +66,12 @@ class CogerTransportador(Accion):
 
     @override
     def _iniciar_ejecucion(self) -> str | None:
+        """Reclama el transportador con el brazo (``at start``).
+
+        El transportador deja de estar libre, así que ningún otro dron puede
+        cogerlo mientras tanto.
+        """
         try:
-            # ``at start``: el transportador deja de estar libre, así que ningún
-            # otro dron puede cogerlo mientras tanto.
             self._dron._iniciar_coger_transportador(self._brazo, self._transportador)
             self._iniciada = True
         except ValueError as e:
@@ -75,8 +81,8 @@ class CogerTransportador(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
+        """Reserva formalmente el brazo para el transportador (``at end``)."""
         try:
-            # ``at end``: el brazo queda formalmente reservado para el transportador.
             self._dron._terminar_coger_transportador(self._brazo, self._transportador)
             self._terminada = True
         except ValueError as e:

@@ -20,6 +20,9 @@ class SoltarTransportador(Accion):
     El dron suelta el transportador que lleva, que se queda en la localización
     del dron. El transportador vuelve a estar libre cuando termina la acción.
 
+    Mientras dura, ocupa solo el brazo: el dron puede hacer a la vez otra acción
+    con otro brazo, pero no otra con el mismo brazo ni moverse.
+
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
     propiedades se describen en ``Accion``.
@@ -63,9 +66,11 @@ class SoltarTransportador(Accion):
 
     @override
     def _iniciar_ejecucion(self) -> str | None:
+        """Comprueba que se puede soltar el transportador (``at start``).
+
+        El dron sigue sujetando el transportador hasta el final de la acción.
+        """
         try:
-            # ``at start``: se comprueba que se puede soltar. El dron aún sujeta el
-            # transportador.
             self._dron._iniciar_soltar_transportador(self._brazo, self._transportador)
             self._iniciada = True
         except ValueError as e:
@@ -75,8 +80,8 @@ class SoltarTransportador(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
+        """Suelta el transportador, que vuelve a estar libre (``at end``)."""
         try:
-            # ``at end``: el dron suelta el transportador, que vuelve a estar libre.
             self._dron._terminar_soltar_transportador(self._brazo, self._transportador)
             self._terminada = True
         except ValueError as e:

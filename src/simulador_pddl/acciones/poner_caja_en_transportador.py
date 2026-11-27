@@ -21,7 +21,10 @@ class PonerCajaEnTransportador(Accion):
     El dron mete la caja que sujeta con uno de sus brazos en un transportador que
     está en su localización. La caja está dentro del transportador cuando
     termina la acción. Desde el inicio, se reserva un hueco en el transportador y
-    no se puede coger al transportador.
+    no se puede coger el transportador.
+
+    Mientras dura, ocupa solo el brazo: el dron puede hacer a la vez otra acción
+    con otro brazo, pero no otra con el mismo brazo ni moverse.
 
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
@@ -71,9 +74,11 @@ class PonerCajaEnTransportador(Accion):
 
     @override
     def _iniciar_ejecucion(self) -> str | None:
+        """Reserva un hueco del transportador para la caja (``at start``).
+
+        La caja sigue en el brazo hasta el final de la acción.
+        """
         try:
-            # ``at start``: se reserva un hueco del transportador. La caja sigue
-            # en el brazo.
             self._dron._iniciar_poner_caja_en_transportador(
                 self._brazo, self._caja, self._transportador
             )
@@ -85,8 +90,8 @@ class PonerCajaEnTransportador(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
+        """Saca la caja del brazo y la mete en el transportador (``at end``)."""
         try:
-            # ``at end``: la caja sale del brazo y entra en el transportador.
             self._dron._terminar_poner_caja_en_transportador(
                 self._brazo, self._caja, self._transportador
             )

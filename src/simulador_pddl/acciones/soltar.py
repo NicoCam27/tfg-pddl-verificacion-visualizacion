@@ -21,6 +21,9 @@ class Soltar(Accion):
     entregarla a una persona. La caja vuelve a estar disponible cuando termina la
     acción.
 
+    Mientras dura, ocupa solo el brazo: el dron puede hacer a la vez otra acción
+    con otro brazo, pero no otra con el mismo brazo ni moverse.
+
     Cada objeto que se pasa como argumento se puede leer después como una
     propiedad de solo lectura con el mismo nombre, mientras que el resto de
     propiedades se describen en ``Accion``.
@@ -62,8 +65,11 @@ class Soltar(Accion):
 
     @override
     def _iniciar_ejecucion(self) -> str | None:
+        """Comprueba que se puede soltar la caja (``at start``).
+
+        La caja sigue en el brazo hasta el final de la acción.
+        """
         try:
-            # ``at start``: se comprueba que se puede soltar. La caja sigue en el brazo.
             self._dron._iniciar_soltar(self._brazo, self._caja)
             self._iniciada = True
         except ValueError as e:
@@ -73,8 +79,8 @@ class Soltar(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
+        """Suelta la caja, que vuelve a estar disponible (``at end``)."""
         try:
-            # ``at end``: el brazo suelta la caja, que vuelve a estar disponible.
             self._dron._terminar_soltar(self._brazo, self._caja)
             self._terminada = True
         except ValueError as e:
