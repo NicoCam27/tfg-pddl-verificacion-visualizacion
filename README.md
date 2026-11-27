@@ -246,6 +246,16 @@ informe = nuevo_mundo.simulacion_visual()
 print(informe.resumen())  # Al cerrar la ventana, se imprime el resumen del informe
 ```
 
+### Errores: al construir y al simular
+
+Los errores se detectan en tres momentos:
+
+- **Al crear cada objeto, acción u objetivo**, se lanza una excepción si sus argumentos son incorrectos: por ejemplo, un `inicio_sim` negativo, un transportador con capacidad 0 o una persona que necesita dos veces lo mismo.
+- **Al construir el `Mundo`**, se lanza una excepción si el problema o el plan están mal escritos, cosas que se ven sin simular nada: una acción o un objetivo que usa un objeto que no está en su lista, un objeto en una localización que no se ha dado, una caja o una persona con un contenido que no está en `contenidos`, un brazo en dos drones, dos objetos con el mismo nombre, una misma acción dos veces en el plan, una acción que ya empezó en otro mundo o un objetivo que ningún plan puede lograr.
+- **Al simular**, se juzga todo lo demás: si cada acción se puede aplicar en el estado de ese momento, si se respetan las reglas de solapamiento y si se logran los objetivos. Un fallo en este punto no lanza ninguna excepción: queda en el informe, con el veredicto `NO EJECUTABLE`.
+
+Así, una excepción indica un error al escribir el problema o el plan, y un veredicto, un defecto del plan.
+
 ### Simulación y veredicto
 
 `Mundo` ofrece dos formas de simular el plan. Las dos devuelven un informe (`InformeVerificacion`):
