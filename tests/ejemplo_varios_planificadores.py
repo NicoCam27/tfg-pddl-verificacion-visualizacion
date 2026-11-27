@@ -7,8 +7,8 @@ acciones, termina en t=6). El planificador B minimiza la duración del plan y
 pasa por ``loc2`` (4 acciones, termina en t=4). Los dos planes son válidos.
 
 El problema se escribe una vez, en ``crear_problema()``, y esa función se llama
-una vez por plan: ``Mundo`` cambia los objetos que recibe al ejecutar el plan, así que cada
-plan necesita objetos nuevos.
+una vez por plan: ``Mundo`` cambia los objetos que recibe al ejecutar el plan,
+así que cada plan necesita objetos nuevos.
 """
 
 from types import SimpleNamespace

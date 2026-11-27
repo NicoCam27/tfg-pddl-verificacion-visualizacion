@@ -41,7 +41,19 @@ localizacion8 = Localizacion("localizacion8")
 localizacion9 = Localizacion("localizacion9")
 localizacion10 = Localizacion("localizacion10")
 
-localizaciones = [deposito, localizacion1, localizacion2, localizacion3, localizacion4, localizacion5, localizacion6, localizacion7, localizacion8, localizacion9, localizacion10]
+localizaciones = [
+    deposito,
+    localizacion1,
+    localizacion2,
+    localizacion3,
+    localizacion4,
+    localizacion5,
+    localizacion6,
+    localizacion7,
+    localizacion8,
+    localizacion9,
+    localizacion10,
+]
 
 izq = Brazo("izq")
 der = Brazo("der")
@@ -68,7 +80,6 @@ caja10 = Caja("caja10", deposito, medicina)
 
 caja11 = Caja("caja11", deposito, comida)
 
-
 persona1 = Persona("persona1", localizacion10, medicina)
 persona2 = Persona("persona2", localizacion9, medicina)
 persona3 = Persona("persona3", localizacion8, medicina)
@@ -81,7 +92,6 @@ persona9 = Persona("persona9", localizacion6, medicina)
 persona10 = Persona("persona10", localizacion4, medicina)
 
 contenidos = [comida, medicina]
-
 
 transportador1 = Transportador("transportador1", deposito, 4)
 
@@ -133,13 +143,23 @@ acciones = [
     CogerCaja(dron1, der, caja10, 36, 1),
     Mover(dron1, deposito, localizacion10, 37, 1),
     EntregarCaja(dron1, der, caja10, persona1, 38, 1),
-    Mover(dron1, localizacion10, deposito, 39, 1)
+    Mover(dron1, localizacion10, deposito, 39, 1),
 ]
-drones=[dron1, dron2]
-transportadores=[transportador1]
-cajas=[caja1, caja2, caja3, caja4, caja5, caja6, caja7, caja8, caja9, caja10, caja11]
-personas=[persona1, persona2, persona3, persona4, persona5, persona6, persona7, persona8, persona9, persona10]
-
+drones = [dron1, dron2]
+transportadores = [transportador1]
+cajas = [caja1, caja2, caja3, caja4, caja5, caja6, caja7, caja8, caja9, caja10, caja11]
+personas = [
+    persona1,
+    persona2,
+    persona3,
+    persona4,
+    persona5,
+    persona6,
+    persona7,
+    persona8,
+    persona9,
+    persona10,
+]
 
 # El problema se resuelve cuando todas las personas tienen lo que necesitan y los
 # dos drones han vuelto al depósito.
@@ -169,9 +189,8 @@ nuevo_mundo = Mundo(
     objetivos=objetivos,
 )
 
-# simulacion_texto() imprime ella misma el veredicto.
-# simulacion_visual() devuelve el informe cuando se cierra la
-# ventana ("INCOMPLETO" si se cierra antes del final).
-#informe = nuevo_mundo.simulacion_texto()
+# Para simularlo en la terminal, sin ventana, se cambia la línea siguiente por
+# informe = nuevo_mundo.simulacion_texto(). Si la ventana se cierra antes del
+# final del plan, el veredicto es "INCOMPLETO".
 informe = nuevo_mundo.simulacion_visual()
 print(informe.resumen())  # Al cerrar la ventana, se imprime el resumen del informe

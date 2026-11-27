@@ -48,6 +48,13 @@ Ejemplo básico:
 
 <!-- ejemplo: tests/ejemplo_basico.py -->
 ```python
+"""Ejemplo básico: un dron con dos brazos entrega dos cajas.
+
+El dron coge las dos cajas en el depósito, lleva cada una a su persona y vuelve
+al depósito. Simula el plan en la terminal, que muestra el informe con su
+veredicto, ``"VÁLIDO"``.
+"""
+
 from simulador_pddl import *
 
 # Objetos del dominio
