@@ -373,7 +373,7 @@ class TestCogerCajaQueYaEsDelDron(unittest.TestCase):
         return ejecutar_plan(mundo, paso_tiempo=0.1)
 
     def test_cogerla_mientras_la_coge_con_otro_brazo_falla_al_empezar(self) -> None:
-        """Comprueba el error de coger una caja que el dron ya está cogiendo."""
+        """Comprueba que coger una caja que ya se está cogiendo falla al empezar."""
         acciones = [
             CogerCaja(
                 self.dron, self.izquierdo, self.caja, inicio_sim=0, duracion_sim=2
@@ -416,7 +416,7 @@ class TestCogerCajaQueYaEsDelDron(unittest.TestCase):
     def test_cogerla_mientras_la_saca_de_un_transportador_falla_al_empezar(
         self,
     ) -> None:
-        """Comprueba el error de coger una caja que el dron ya está sacando."""
+        """Comprueba que coger una caja que ya se está sacando falla al empezar."""
         acciones = [
             CogerCaja(
                 self.dron, self.izquierdo, self.caja, inicio_sim=0, duracion_sim=1
@@ -1062,7 +1062,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
     """El mensaje que registra un dron cuando se mueve dice lo que lleva."""
 
     def test_mensaje_sin_llevar_nada(self) -> None:
-        """Comprueba el único mensaje que registra un dron que se mueve sin llevar nada.
+        """Comprueba que un dron que se mueve sin llevar nada registra un solo mensaje.
 
         Solo nombra el origen y el destino, sin la parte de lo que lleva.
         """
@@ -1089,7 +1089,10 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
         )
 
     def test_mensaje_con_cajas_y_un_transportador(self) -> None:
-        """Comprueba el plural de las cajas y el singular del transportador."""
+        """Comprueba que un dron con dos cajas y un transportador usa plural y singular.
+
+        El mensaje termina en ``"con 2 cajas y 1 transportador"``.
+        """
         deposito = Localizacion("deposito")
         localizacion1 = Localizacion("localizacion1")
         brazos = [Brazo("brazo1"), Brazo("brazo2"), Brazo("brazo3")]
@@ -1125,7 +1128,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
         )
 
     def test_mensaje_con_una_caja(self) -> None:
-        """Comprueba el singular de una sola caja, sin transportador."""
+        """Comprueba que el mensaje de un dron con una sola caja dice ``"1 caja"``."""
         deposito = Localizacion("deposito")
         localizacion1 = Localizacion("localizacion1")
         brazo = Brazo("brazo")
@@ -1154,7 +1157,10 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
         )
 
     def test_mensaje_con_transportadores_y_sin_cajas(self) -> None:
-        """Comprueba el plural de los transportadores cuando el dron no lleva cajas."""
+        """Comprueba que un dron con dos transportadores y sin cajas usa el plural.
+
+        El mensaje termina en ``"con 2 transportadores"``, sin la parte de las cajas.
+        """
         deposito = Localizacion("deposito")
         localizacion1 = Localizacion("localizacion1")
         brazos = [Brazo("brazo1"), Brazo("brazo2")]
@@ -1329,7 +1335,7 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         self.assertIsNone(self.transportador.propietario_actual)
 
     def test_segunda_descarga_de_una_caja_nombra_al_dron_que_la_saca(self) -> None:
-        """Comprueba el error de sacar una caja que otro dron ya está sacando.
+        """Comprueba que sacar una caja que otro dron ya está sacando nombra a ese dron.
 
         Una descarga quita la caja de ``cajas_dentro`` al empezar, así que sin una
         comprobación propia el error diría que la caja no está en el transportador.

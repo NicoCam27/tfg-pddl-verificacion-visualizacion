@@ -177,7 +177,7 @@ class TestEstadoDelPlan(unittest.TestCase):
                 self.assertEqual(_estado_del_plan(informe), "EN CURSO")
 
     def test_al_terminar_el_estado_es_el_veredicto(self) -> None:
-        """Comprueba los tres veredictos de un plan que termina sin errores."""
+        """Comprueba que el estado de un plan terminado sin errores es su veredicto."""
         casos = {
             "alcanzables": InformeVerificacion.VALIDO,
             "uno sin lograr": InformeVerificacion.NO_RESUELVE,
@@ -195,7 +195,7 @@ class TestEstadoDelPlan(unittest.TestCase):
         self.assertEqual(_estado_del_plan(informe), InformeVerificacion.NO_EJECUTABLE)
 
     def test_linea_de_objetivos(self) -> None:
-        """Comprueba la línea de objetivos, con y sin objetivos."""
+        """Comprueba que la línea cuenta los objetivos cumplidos, o dice que no hay."""
         mundo = crear_mundo(objetivos="uno sin lograr")
         self.assertEqual(
             _texto_objetivos(mundo.verificar()), "Objetivos cumplidos: 1/2"
@@ -219,12 +219,14 @@ class TestObjetivosDeLaLista(unittest.TestCase):
         self.addCleanup(logging.disable, logging.NOTSET)
 
     def test_clase_de_cada_objetivo(self) -> None:
-        """Comprueba las cuatro clases de objetivo a lo largo del plan.
+        """Comprueba que un objetivo sigue pendiente hasta cumplirse o acabar el plan.
 
         La persona recibe la comida en t=3. El dron está en el depósito al empezar
         y lo deja en t=2, al terminar el movimiento, y nunca llega a loc2. Un
-        objetivo que nunca se ha cumplido solo deja de estar pendiente al terminar
-        el plan.
+        objetivo que nunca se ha cumplido sigue pendiente hasta que el plan
+        termina, y entonces no se ha logrado. Uno que se cumplió y después se
+        deshizo está roto: no vuelve a estar pendiente mientras el plan sigue, ni
+        pasa a no logrado cuando termina.
         """
         mundo = crear_mundo(objetivos="de cada clase")
         casos = {
@@ -254,7 +256,12 @@ class TestObjetivosDeLaLista(unittest.TestCase):
         )
 
     def test_detalles_de_un_objetivo(self) -> None:
-        """Comprueba los detalles de un objetivo pendiente, cumplido y roto."""
+        """Comprueba que los detalles de un objetivo explican cómo va.
+
+        Uno pendiente dice que todavía no se ha cumplido; uno roto, cuándo se
+        cumplió y cuándo se rompió, y uno cumplido, desde cuándo se cumple.
+        Mientras no se cumple, se añade por qué.
+        """
         mundo = crear_mundo(objetivos="uno sin lograr")
         informe = mundo.avanzar_hasta(2.5)
         estado_persona, estado_dron = informe.estados_objetivos
@@ -313,7 +320,7 @@ class TestAccionesDelPlan(unittest.TestCase):
         self.addCleanup(logging.disable, logging.NOTSET)
 
     def test_clase_de_cada_accion(self) -> None:
-        """Comprueba cómo va cada acción a lo largo de un plan sin errores."""
+        """Comprueba que cada acción pasa de sin empezar a en ejecución y terminada."""
         mundo = crear_mundo()
         simulacion = mundo._simulacion
         casos = {
@@ -333,7 +340,7 @@ class TestAccionesDelPlan(unittest.TestCase):
                 )
 
     def test_si_falla_una_accion_las_que_se_ejecutaban_se_interrumpen(self) -> None:
-        """Comprueba la acción que falla, la interrumpida y la que no empieza.
+        """Comprueba que, si falla una acción, las que estaban en curso se interrumpen.
 
         Al reiniciar, ninguna acción queda marcada como fallida.
         """
@@ -374,7 +381,7 @@ class TestAccionesDelPlan(unittest.TestCase):
         )
 
     def test_detalles_de_una_accion(self) -> None:
-        """Comprueba los detalles de una acción y los de la que falló."""
+        """Comprueba que los detalles de una acción dan sus objetos, tiempos y error."""
         mundo = crear_mundo(con_error=True)
         simulacion = mundo._simulacion
         mundo.avanzar_hasta(math.inf)
@@ -459,7 +466,7 @@ class TestObjetosDeLaLista(unittest.TestCase):
         self.addCleanup(logging.disable, logging.NOTSET)
 
     def test_detalles_de_un_dron_y_de_una_caja(self) -> None:
-        """Comprueba el dron y la caja antes, durante y después de llevarla.
+        """Comprueba que los detalles del dron y la caja cambian al coger y al entregar.
 
         Mientras el dron coge la caja, la caja ya es suya, pero no está en el brazo
         hasta que la acción termina.
@@ -492,7 +499,7 @@ class TestObjetosDeLaLista(unittest.TestCase):
                 self.assertEqual(_detalles_caja(caja), detalles_caja)
 
     def test_detalles_de_una_persona(self) -> None:
-        """Comprueba la persona antes y después de recibir la caja."""
+        """Comprueba que los detalles de una persona cambian al recibir la caja."""
         mundo = crear_mundo()
         [persona] = mundo._simulacion._personas
 
@@ -507,7 +514,7 @@ class TestObjetosDeLaLista(unittest.TestCase):
         )
 
     def test_detalles_de_un_transportador(self) -> None:
-        """Comprueba el transportador vacío y con una caja, llevado por un dron.
+        """Comprueba que los detalles dicen quién lleva el transportador y qué contiene.
 
         El brazo del dron que lo lleva lo nombra, y la caja dice que está dentro.
         """
@@ -740,7 +747,7 @@ class TestPanelLateral(unittest.TestCase):
         self.assertEqual(self.lateral._pestana, "Plan")
 
     def test_la_pestana_de_objetos_los_agrupa_por_tipo(self) -> None:
-        """Comprueba los títulos de los grupos de la lista de objetos.
+        """Comprueba que la pestaña de objetos agrupa los objetos por tipo.
 
         Un tipo sin objetos no tiene grupo: este problema no tiene transportadores.
         """
@@ -773,7 +780,7 @@ class TestPanelLateral(unittest.TestCase):
         self.assertEqual(lateral._desplazamiento, 0)
 
     def test_un_clic_en_una_accion_la_devuelve(self) -> None:
-        """Comprueba qué acción del plan pulsa cada clic.
+        """Comprueba que un clic izquierdo en una fila del plan devuelve su acción.
 
         Solo cuenta un clic izquierdo en una fila, con el panel abierto y la
         pestaña del plan elegida.

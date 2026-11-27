@@ -96,7 +96,7 @@ class TestAccionFallida(unittest.TestCase):
         self.addCleanup(logging.disable, logging.NOTSET)
 
     def test_el_informe_devuelve_la_accion_que_fallo_y_cuando(self) -> None:
-        """Comprueba la acción fallida y su instante, con y sin fallos.
+        """Comprueba que el informe da la acción que falló y el instante en que falló.
 
         Es la misma acción del plan, no una copia. Si la acción falla al empezar,
         ``fallo_en`` es su ``inicio_sim``, y si falla al terminar, su
@@ -136,9 +136,10 @@ class TestAccionFallida(unittest.TestCase):
         self.assertIsNone(nuevo.fallo_en)
 
     def test_la_salida_de_texto_nombra_la_accion_que_fallo(self) -> None:
-        """Comprueba la línea ``NO INICIA`` o ``NO TERMINA``, justo antes del error.
+        """Comprueba que la salida nombra la acción que falla, justo antes del error.
 
-        Va en el instante en que falla la acción: su inicio o su final.
+        La línea dice ``NO INICIA`` o ``NO TERMINA`` y va en el instante en que falla
+        la acción: su inicio o su final.
         """
         casos = {
             False: (
@@ -518,7 +519,7 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
         self.assertEqual(informe.estados_objetivos[0].logrado_en, 5)
 
     def test_la_caja_sigue_en_el_brazo_mientras_dura_la_entrega(self) -> None:
-        """Comprueba el estado a mitad de ``EntregarCaja`` y al final.
+        """Comprueba que la caja sigue en el brazo hasta que termina ``EntregarCaja``.
 
         En t=2.5 el dron todavía sujeta la caja, la persona todavía necesita su
         contenido y el objetivo no se cumple. Pedir un informe en ese momento no

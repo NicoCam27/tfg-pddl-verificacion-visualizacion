@@ -117,7 +117,7 @@ class TestScriptsDeEjemplo(unittest.TestCase):
         self.addCleanup(logging.disable, logging.NOTSET)
 
     def test_cada_script_da_el_veredicto_que_dice_su_documentacion(self) -> None:
-        """Comprueba el veredicto final de cada script con un solo plan.
+        """Comprueba que cada script de un solo plan da el veredicto que documenta.
 
         ``ejemplo_dos_drones_paralelos.py`` suelta una caja en lugar de entregarla
         a propósito, así que su veredicto es ``"NO RESUELVE"``.

@@ -536,7 +536,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
         self.assertEqual(repr(self.control._deslizador), "Deslizador(valor=1)")
 
     def test_el_panel_atiende_clics_y_arrastres(self) -> None:
-        """Comprueba la respuesta del panel a clics en sus botones y su deslizador."""
+        """Comprueba que un botón da su comando y el deslizador cambia la velocidad."""
         comandos = [
             self.control._gestionar_evento(
                 evento_raton(pygame.MOUSEBUTTONDOWN, boton._rectangulo.center)
