@@ -271,7 +271,7 @@ class TestExcepcionesAcciones(unittest.TestCase):
     """Cada acción rechaza argumentos incorrectos al construirse."""
 
     def setUp(self) -> None:
-        """Crea un objeto de cada tipo, y un brazo que no es de ningún dron."""
+        """Crea un objeto de cada tipo y un brazo que no es de ningún dron."""
         self.deposito = Localizacion("deposito")
         self.localizacion1 = Localizacion("localizacion1")
         self.brazo = Brazo("brazo")

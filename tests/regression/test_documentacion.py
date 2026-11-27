@@ -13,7 +13,7 @@ estas fallan.
 No abren ninguna ventana: ``Mundo.simulacion_visual()`` se sustituye por una
 ejecución sin pantalla hasta el final del plan, que devuelve el mismo informe. La
 ventana ya la prueba ``test_simulacion_visual.py``. Aquí importa que el ejemplo
-construye un plan correcto y que llama a la biblioteca como permite su API. La
+construye un plan válido y que llama a la biblioteca como permite su API. La
 sustitución conserva la firma del método, así que una llamada con argumentos que
 ya no existen sigue fallando.
 """

@@ -206,7 +206,7 @@ class TestReprAcciones(unittest.TestCase):
         self.transportador = Transportador("transportador1", self.deposito, 2)
 
     def test_objetos_en_el_orden_de_los_argumentos(self) -> None:
-        """Comprueba que los objetos aparecen como se pasan, y después los tiempos."""
+        """Comprueba que los objetos aparecen como se pasan y después los tiempos."""
         accion = MoverTransportador(
             self.dron, self.brazo, self.transportador, self.deposito, self.loc1, 2, 1.5
         )

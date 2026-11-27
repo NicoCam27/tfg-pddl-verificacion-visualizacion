@@ -374,7 +374,7 @@ class TestAccionesDelPlan(unittest.TestCase):
         )
 
     def test_detalles_de_una_accion(self) -> None:
-        """Comprueba los detalles de una acción, y los de la que falló."""
+        """Comprueba los detalles de una acción y los de la que falló."""
         mundo = crear_mundo(con_error=True)
         simulacion = mundo._simulacion
         mundo.avanzar_hasta(math.inf)

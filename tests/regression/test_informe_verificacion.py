@@ -508,7 +508,7 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
     def test_objetivo_de_entrega_se_logra_al_terminar_la_entrega(self) -> None:
         """Comprueba que el objetivo se anota en t=5, el final de ``EntregarCaja``.
 
-        Dar la caja a la persona es el efecto ``at end`` de ``EntregarCaja``.
+        Entregar la caja a la persona es el efecto ``at end`` de ``EntregarCaja``.
         """
         with contextlib.redirect_stdout(io.StringIO()):
             informe = self.mundo.simulacion_texto()
@@ -517,7 +517,7 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
         self.assertEqual(informe.estados_objetivos[0].logrado_en, 5)
 
     def test_la_caja_sigue_en_el_brazo_mientras_dura_la_entrega(self) -> None:
-        """Comprueba el estado en mitad de ``EntregarCaja``, y al final.
+        """Comprueba el estado en mitad de ``EntregarCaja`` y al final.
 
         En t=2.5 el dron todavía sujeta la caja, la persona todavía necesita su
         contenido y el objetivo no se cumple. Pedir un informe en ese momento no

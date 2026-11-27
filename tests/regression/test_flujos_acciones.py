@@ -1058,8 +1058,8 @@ class TestOrigenDeMover(unittest.TestCase):
 class TestMensajeDeRegistroDeMover(unittest.TestCase):
     """El mensaje que registra un dron cuando se mueve dice lo que lleva."""
 
-    def test_mensaje_sin_carga(self) -> None:
-        """Comprueba el único mensaje que registra un dron sin carga al moverse.
+    def test_mensaje_sin_llevar_nada(self) -> None:
+        """Comprueba el único mensaje que registra un dron que se mueve sin llevar nada.
 
         Solo nombra el origen y el destino, sin la parte de lo que lleva.
         """

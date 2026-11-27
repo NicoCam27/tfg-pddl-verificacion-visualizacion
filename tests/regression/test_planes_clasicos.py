@@ -6,9 +6,9 @@ Como las acciones no se solapan, entre el inicio y el final de una acción no
 ocurre nada más, así que aplicar sus efectos en dos fases produce el mismo
 estado que aplicarlos a la vez, como en PDDL clásico.
 
-Por tanto, un plan clásico correcto es ``"VÁLIDO"``, un paso imposible hace que el plan
-sea ``"NO EJECUTABLE"`` justo en ese paso, y el veredicto no depende de la duración
-elegida para los pasos.
+Por tanto, un plan clásico que resuelve el problema es ``"VÁLIDO"``, un paso
+imposible hace que el plan sea ``"NO EJECUTABLE"`` justo en ese paso, y el
+veredicto no depende de la duración elegida para los pasos.
 """
 
 from __future__ import annotations
@@ -103,8 +103,8 @@ def construir_mundo(duracion_paso: float, *, omitir_regreso: bool = False) -> Mu
 class TestPlanesClasicos(unittest.TestCase):
     """Un plan clásico, escrito con un paso por unidad de tiempo."""
 
-    def test_plan_clasico_correcto_es_valido(self) -> None:
-        """Comprueba que un plan clásico correcto es ``"VÁLIDO"``."""
+    def test_plan_clasico_que_resuelve_el_problema_es_valido(self) -> None:
+        """Comprueba que un plan clásico que resuelve el problema es ``"VÁLIDO"``."""
         informe = ejecutar_plan(construir_mundo(1))
 
         self.assertEqual(informe.veredicto, InformeVerificacion.VALIDO)
@@ -158,7 +158,9 @@ class TestPlanesClasicos(unittest.TestCase):
 class TestDuracionDelPaso(unittest.TestCase):
     """El veredicto de un plan clásico no depende de la duración de los pasos."""
 
-    def test_plan_correcto_es_valido_con_cualquier_duracion(self) -> None:
+    def test_plan_que_resuelve_el_problema_es_valido_con_cualquier_duracion(
+        self,
+    ) -> None:
         """Comprueba que el plan es ``"VÁLIDO"`` con cada duración de paso.
 
         Cada objetivo se logra al final de la misma entrega, así que su instante
