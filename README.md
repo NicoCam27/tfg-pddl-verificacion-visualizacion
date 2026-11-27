@@ -130,7 +130,7 @@ Este ejemplo y otros tres están en el directorio `tests/` (`ejemplo_basico.py`,
 | `Dron` | `Dron(nombre, localizacion, brazos)` | Un dron, con su localización y su lista de brazos. |
 | `Caja` | `Caja(nombre, localizacion, contenido)` | Una caja, con su contenido. |
 | `Contenido` | `Contenido(nombre)` | Lo que contiene una caja y lo que necesita una persona (por ejemplo `Contenido("comida")`). Dos contenidos con el mismo nombre son el mismo. |
-| `Persona` | `Persona(nombre, localizacion, necesidades)` | Una persona, con lo que necesita: un contenido o una lista de contenidos distintos. |
+| `Persona` | `Persona(nombre, localizacion, necesidades)` | Una persona, con lo que necesita: un contenido o una lista de contenidos distintos. Sin `necesidades`, no necesita nada. |
 | `Transportador` | `Transportador(nombre, localizacion, capacidad)` | Un transportador en el que caben `capacidad` cajas. Un problema puede no tener ninguno. |
 
 ### Acciones
@@ -149,7 +149,7 @@ Cada acción tiene un instante de inicio y una duración, y sus efectos se aplic
 | `SoltarTransportador` | `dron, brazo, transportador` | El dron suelta el transportador que lleva. |
 | `MoverTransportador` | `dron, brazo, transportador, origen, destino` | El dron coge el transportador, lo lleva a otra localización y lo suelta. |
 
-Mientras un dron hace un `Mover` o un `MoverTransportador`, no puede hacer ninguna otra acción. Las demás acciones solo ocupan su brazo, así que un dron con dos brazos puede, por ejemplo, coger dos cajas al mismo tiempo. Un plan que incumple estas reglas es `NO EJECUTABLE`.
+Mientras un dron hace un `Mover` o un `MoverTransportador`, no puede hacer ninguna otra acción. Las demás acciones solo ocupan su brazo, así que un dron con dos brazos puede, por ejemplo, coger dos cajas al mismo tiempo, pero no moverse mientras alguno de sus brazos trabaja. Un plan que incumple estas reglas es `NO EJECUTABLE`.
 
 **Planes clásicos.** Un planificador clásico (LAMA, Metric-FF...) devuelve una secuencia de pasos sin tiempos. Se escribe numerando sus pasos desde 0: la acción del paso `i` tiene `inicio_sim=i` y `duracion_sim=1`, el valor por defecto, así que basta con indicar el inicio (por ejemplo, `CogerCaja(dron, brazo, caja, 0)`). Como sus acciones no se solapan, aplicar los efectos en dos fases produce el mismo estado que aplicarlos a la vez, y el veredicto es el mismo que tendría el plan en PDDL clásico.
 
