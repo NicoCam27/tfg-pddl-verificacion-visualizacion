@@ -6,10 +6,10 @@ acción y cada objetivo solo se refieren a objetos declarados, que los drones,
 las cajas, las personas y los transportadores están en localizaciones
 declaradas, que las cajas y las personas solo usan contenidos declarados, que
 ningún brazo pertenece a dos drones, que no hay dos objetos con el mismo nombre,
-que ninguna acción ha empezado ya en otra simulación y que ningún objetivo es
-imposible de lograr desde el estado inicial. Que ningún dron se mueva mientras
-hace otra cosa, ni un brazo haga dos cosas a la vez, se comprueba al ejecutar,
-cuando empieza cada acción.
+que ninguna acción aparece dos veces en el plan, que ninguna acción ha empezado
+ya en otra simulación y que ningún objetivo es imposible de lograr desde el
+estado inicial. Que ningún dron se mueva mientras hace otra cosa, ni un brazo
+haga dos cosas a la vez, se comprueba al ejecutar, cuando empieza cada acción.
 
 Después, ``_avanzar_hasta()`` aplica en orden temporal los efectos ``at start`` y
 ``at end`` de cada acción hasta un instante dado (``_actualizar()`` lo usa para
@@ -177,6 +177,7 @@ class Simulacion:
         # rechazaría. mypy no deja pasar una clase abstracta como type[T], por si
         # se instancia, pero _lista_tipada() solo la usa en isinstance().
         self._acciones = _lista_tipada(acciones, Accion, "acciones")  # type: ignore[type-abstract]
+        self._exigir_acciones_no_repetidas()
         for accion in self._acciones:
             self._exigir_objetos_declarados(accion)
             self._exigir_accion_sin_empezar(accion)
@@ -270,6 +271,27 @@ class Simulacion:
         for objeto in objetos:
             if not isinstance(objeto, Brazo):
                 self._exigir_dentro(objeto, self._lista_declarada(objeto))
+
+    def _exigir_acciones_no_repetidas(self) -> None:
+        """Lanza ``ValueError`` si una misma acción aparece dos veces en el plan.
+
+        Cada acción guarda su propio estado (si ha empezado y si ha terminado), y
+        la simulación la sigue por su identidad: repetida, las dos entradas
+        compartirían ese estado, y la segunda chocaría siempre con la primera al
+        empezar. Dos acciones distintas con los mismos argumentos sí se aceptan:
+        son dos pasos del plan, y si chocan se juzga al ejecutarlo, como cualquier
+        otro solapamiento.
+        """
+        # Las acciones no definen __eq__, así que el conjunto compara instancias.
+        vistas: set[Accion] = set()
+        for accion in self._acciones:
+            if accion in vistas:
+                msg_accion_repetida = (
+                    f"la acción {accion.desc!r} aparece más de una vez en la lista "
+                    "de acciones dada"
+                )
+                raise ValueError(msg_accion_repetida)
+            vistas.add(accion)
 
     @staticmethod
     def _exigir_accion_sin_empezar(accion: Accion) -> None:

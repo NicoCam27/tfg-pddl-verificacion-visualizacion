@@ -875,6 +875,26 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                     "cada mundo necesita acciones nuevas",
                 )
 
+    def test_accion_repetida_en_el_plan(self) -> None:
+        """Comprueba que una misma acción no puede aparecer dos veces en el plan.
+
+        Dos acciones distintas con los mismos argumentos sí se aceptan: son dos
+        pasos del plan, y es al ejecutarlo cuando la segunda choca con la primera.
+        """
+        with self.assertRaises(ValueError) as contexto:
+            Mundo([self.coger_caja, self.coger_caja], **self._objetos())
+        self.assertEqual(
+            str(contexto.exception),
+            f"la acción {self.coger_caja.desc!r} aparece más de una vez en la "
+            "lista de acciones dada",
+        )
+
+        otra_igual = CogerCaja(self.dron, self.brazo, self.caja, inicio_sim=0)
+        mundo = Mundo([self.coger_caja, otra_igual], **self._objetos())
+        informe = mundo.avanzar_hasta(0)
+        self.assertEqual(informe.veredicto, InformeVerificacion.NO_EJECUTABLE)
+        self.assertIs(informe.accion_fallida, otra_igual)
+
     def test_nombre_repetido(self) -> None:
         """Comprueba que dos objetos del problema no pueden llamarse igual.
 

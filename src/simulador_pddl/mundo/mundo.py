@@ -30,8 +30,9 @@ class Mundo:
     cajas, las personas y los transportadores estén en localizaciones declaradas,
     que las cajas y las personas usen contenidos declarados, que ningún brazo
     pertenezca a dos drones, que no haya dos objetos con el mismo nombre, que
-    ninguna acción haya empezado ya en otro mundo y que ningún objetivo sea
-    imposible de lograr. Si algo falla, se lanza una excepción.
+    ninguna acción aparezca dos veces en el plan, que ninguna acción haya
+    empezado ya en otro mundo y que ningún objetivo sea imposible de lograr. Si
+    algo falla, se lanza una excepción.
 
     Lo demás se comprueba al ejecutar el plan con ``simulacion_texto()``,
     ``simulacion_visual()`` o ``avanzar_hasta()``: si cada acción se puede
@@ -82,8 +83,9 @@ class Mundo:
             una persona usa un contenido que no está en ``contenidos``, si un dron,
             una caja, una persona o un transportador está en una localización que no
             está en ``localizaciones``, si un brazo pertenece a dos drones, si dos
-            objetos tienen el mismo nombre, si una acción ya empezó en otro mundo
-            o si ningún plan puede lograr un objetivo.
+            objetos tienen el mismo nombre, si una acción aparece dos veces en el
+            plan, si una acción ya empezó en otro mundo o si ningún plan puede
+            lograr un objetivo.
 
     Example:
         mundo = Mundo(
