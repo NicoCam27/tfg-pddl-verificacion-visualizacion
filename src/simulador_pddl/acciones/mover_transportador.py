@@ -88,13 +88,11 @@ class MoverTransportador(Accion):
     def _iniciar_ejecucion(self) -> str | None:
         """Comprueba el origen y coge el transportador por completo (``at start``).
 
-        La localización del dron debe corresponderse con el origen proporcionado y
-        es una condición ``at start``, así que se comprueba antes de coger: si
-        el dron no está en ``origen``, la acción falla aquí y el transportador no
-        llega a reclamarse. El inicio y el final de coger transportador se juntan
-        en la fase inicial de esta acción. Esto es lo que establece la exclusividad,
-        para que ningún otro dron pueda coger el mismo transportador mientras dura
-        este movimiento.
+        Que el dron esté en ``origen`` es una condición ``at start``, así que se
+        comprueba antes de coger: si no está, la acción falla aquí y el transportador
+        no llega a reclamarse. Esta fase aplica a la vez el inicio y el final de
+        ``CogerTransportador``, así que ningún otro dron puede coger el mismo
+        transportador mientras dura el movimiento.
         """
         try:
             self._dron._exigir_en(self._origen)
@@ -111,8 +109,8 @@ class MoverTransportador(Accion):
         """Mueve el dron y el transportador, y después lo suelta (``at end``).
 
         El dron y el transportador llegan al destino y después el dron suelta el
-        transportador. El inicio y el final de soltar transportador se juntan en
-        la fase final de esta acción.
+        transportador. Esta fase aplica a la vez el inicio y el final de
+        ``SoltarTransportador``.
         """
         try:
             self._dron._mover(self._destino)

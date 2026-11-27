@@ -112,7 +112,7 @@ def validar_objeto_contenido(contenido: object) -> None:
 def validar_necesidades(necesidades: object) -> None:
     """Lanza un error si ``necesidades`` no tiene un tipo válido o repite un contenido.
 
-    Los valores válidos son ``None``, un ``Contenido``, y una lista o una tupla de
+    Los valores válidos son ``None``, un ``Contenido`` y una lista o una tupla de
     objetos ``Contenido`` distintos. Dos contenidos con el mismo nombre son el
     mismo contenido.
 
@@ -239,7 +239,7 @@ def tipo_con_articulo_indefinido(objeto: ObjetoDominio) -> str:
 def describir_cantidad(numero: int, tipo: type[ObjetoDominio]) -> str:
     """Devuelve ``numero`` con el nombre del tipo, en singular o en plural.
 
-    P. ej. ``"1 caja"`` o ``"2 cajas"``.
+    Por ejemplo, devuelve ``"1 caja"`` o ``"2 cajas"``.
     """
     _, singular, plural = _GRAMATICA_TIPOS[tipo.__name__]
     return f"{numero} {singular if numero == 1 else plural}"
@@ -265,7 +265,7 @@ def con_preposicion_a(texto: str) -> str:
 def describir_necesidades(necesidades: list[Contenido]) -> str:
     """Devuelve lo que necesita una persona, p. ej. ``"necesita 'comida' y 'agua'"``.
 
-    ``"no necesita nada"`` si la lista está vacía.
+    Si la lista está vacía, devuelve ``"no necesita nada"``.
     """
     if not necesidades:
         return "no necesita nada"

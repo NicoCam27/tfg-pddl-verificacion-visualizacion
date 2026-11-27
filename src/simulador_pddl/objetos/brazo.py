@@ -13,8 +13,8 @@ if TYPE_CHECKING:
 class Brazo:
     """Brazo representa un brazo en el dominio de logística con drones.
 
-    Un brazo se crea con su nombre y se le da a un ``Dron`` al construirlo. Puede
-    estar libre, sujetar una caja (``caja``) o estar reservado por un
+    Un brazo se crea con su nombre y se le da a un ``Dron`` al construir el dron.
+    Puede estar libre, sujetar una caja (``caja``) o estar reservado por un
     transportador que lleva (``transportador``), pero solo una de estas cosas a la
     vez. Cada brazo tiene que pertenecer a un solo dron. Se compara por
     identidad, así que las acciones tienen que usar este mismo objeto, no otro

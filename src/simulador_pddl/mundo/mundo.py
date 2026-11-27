@@ -36,7 +36,7 @@ class Mundo:
 
     Lo demás se comprueba al ejecutar el plan con ``simulacion_texto()``,
     ``simulacion_visual()`` o ``avanzar_hasta()``: si cada acción se puede
-    aplicar en el estado de ese momento (por ejemplo, si dos drones intentan coger
+    aplicar en el estado de ese momento (p. ej. si dos drones intentan coger
     la misma caja a la vez, uno de los dos falla), si ningún dron se mueve mientras
     hace otra cosa, si ningún brazo hace dos cosas a la vez y si se logran los
     objetivos. Un fallo en ese momento no lanza ninguna excepción: la ejecución se
@@ -49,11 +49,11 @@ class Mundo:
     para ver cómo ha quedado el problema. Por eso un mundo parte del estado en que
     estén sus objetos al construirlo: si otro mundo ya los usó, parte del estado
     en que ese otro los dejó. Las acciones también guardan si han empezado y
-    terminado, y un mundo rechaza una acción que ya empezó en otro. Para
-    comprobar varios planes sobre el mismo problema, hay que
-    crear los objetos y las acciones de nuevo para cada plan, p. ej. con una
-    función que construya el problema. ``reiniciar()`` devuelve los objetos al
-    estado en que estaban al construir este mundo.
+    terminado, y un mundo rechaza una acción que ya empezó en otro. Para comprobar
+    varios planes sobre el mismo problema, hay que crear los objetos y las
+    acciones de nuevo para cada plan, p. ej. con una función que construya el
+    problema. ``reiniciar()`` devuelve los objetos al estado en que estaban al
+    construir este mundo.
 
     Todos los argumentos menos ``acciones`` se pasan por nombre, para que cada
     lista diga lo que contiene. Cada lista puede ser una lista o una tupla.
@@ -180,7 +180,7 @@ class Mundo:
         plan no haya terminado, el veredicto es ``"INCOMPLETO"``, o
         ``"NO EJECUTABLE"`` si ya ha fallado una acción. Por eso un mundo recién
         construido da ``"INCOMPLETO"``: para comprobar un plan, primero hay que
-        ejecutarlo. La única excepción es un plan vacío, que ya está terminado
+        ejecutarlo. El único caso distinto es un plan vacío, que ya está terminado
         desde el principio y se juzga sobre el estado inicial.
 
         Returns:

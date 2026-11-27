@@ -6,7 +6,7 @@ Un problema se compone de estos objetos:
     Dron: se mueve entre localizaciones, llevando lo que sujetan sus brazos.
     Brazo: pertenece a un dron. Sujeta una caja o lleva un transportador.
     Caja: tiene un contenido que una persona puede necesitar.
-    Contenido: lo que lleva una caja (p. ej. comida). Dos contenidos con el mismo
+    Contenido: lo que contiene una caja (p. ej. comida). Dos contenidos con el mismo
         nombre son iguales.
     Persona: está en una localización y necesita el contenido de algunas cajas.
     Transportador: guarda cajas y puede ir sujeto por el brazo de un dron.

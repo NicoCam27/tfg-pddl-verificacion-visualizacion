@@ -1,11 +1,10 @@
 """simulador_pddl: Simula, verifica y visualiza planes de logística con drones.
 
-La biblioteca ejecuta sobre los objetos de un problema un plan generado por un
-planificador PDDL, clásico (una secuencia de pasos) o temporal (acciones con
-inicio y duración), escrito como una lista de acciones de esta biblioteca
-(véase ``simulador_pddl.acciones``). Informa de si el plan se puede ejecutar y
-de si logra los objetivos del problema, en la terminal o en una ventana de
-pygame.
+La biblioteca ejecuta un plan generado por un planificador PDDL, clásico (una
+secuencia de pasos) o temporal (acciones con inicio y duración), sobre los objetos
+de un problema. El plan se escribe como una lista de acciones de esta biblioteca
+(véase ``simulador_pddl.acciones``). Informa de si el plan se puede ejecutar y de
+si logra los objetivos del problema, en la terminal o en una ventana de pygame.
 
 Todo lo que necesita un usuario se puede importar desde aquí:
     Objetos: Localizacion, Dron, Brazo, Caja, Contenido, Persona, Transportador.

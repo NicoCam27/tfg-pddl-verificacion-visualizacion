@@ -4,7 +4,7 @@ Usan el controlador de vídeo ``"dummy"`` de SDL, que no necesita ventana. Dibuj
 todos los fotogramas de un plan pequeño, comprueban cómo se reparten la ventana y
 el panel, manejan la ventana con clics programados y validan los argumentos de
 ``Mundo.simulacion_visual()``. Son las únicas pruebas que llegan al código de
-dibujo, así que un error que solo aparece al dibujar un fotograma (por ejemplo,
+dibujo, así que un error que solo aparece al dibujar un fotograma (p. ej.
 llamar a ``Font.render()`` con argumentos por nombre, que pygame no acepta) se
 encuentra aquí. No comprueban la imagen dibujada, solo posiciones y tamaños.
 """

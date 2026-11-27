@@ -83,7 +83,7 @@ class CogerTransportador(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
-        """Reserva formalmente el brazo para el transportador (``at end``)."""
+        """Reserva el brazo para el transportador (``at end``)."""
         try:
             self._dron._terminar_coger_transportador(self._brazo, self._transportador)
             self._terminada = True

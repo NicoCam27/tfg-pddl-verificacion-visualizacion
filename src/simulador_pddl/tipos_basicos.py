@@ -1,10 +1,11 @@
 """Validadores de los tipos básicos de Python, comunes a todo el paquete.
 
-Comprueban solo el tipo: que un valor sea un int, un float o un str. No
-saben nada del dominio, así que los usan los objetos, las acciones y ``Mundo``,
-y no importan nada del paquete. Cada uno recibe el nombre del argumento para
-escribir el mensaje, lanza ``TypeError`` si el tipo no es el esperado y, si no,
-devuelve el valor, para que el comprobador de tipos sepa después de qué tipo es.
+Comprueban solo el tipo: que un valor sea un int, un float o una cadena. No saben
+nada del dominio, así que no importan nada del paquete y los pueden usar los
+objetos, las acciones y ``Mundo``. Cada uno recibe el nombre del argumento para
+escribir el mensaje, lanza ``TypeError`` si el tipo no es el esperado y, si es
+correcto, devuelve el mismo valor, para que el comprobador de tipos sepa después
+de qué tipo es.
 El rango de cada argumento (``>= 0``, ``> 0``, finito...) lo comprueba quien
 llama, porque cambia de un argumento a otro.
 """
@@ -32,7 +33,8 @@ def validar_numero(valor: object, nombre: str) -> float:
 
 
 # Las dos firmas le dicen al comprobador de tipos que sin admite_none el
-# resultado nunca es None, así que quien llama puede compararlo sin más.
+# resultado nunca es None, así que quien llama puede usarlo sin comprobar antes
+# si es None.
 @overload
 def validar_entero(valor: object, nombre: str) -> int: ...
 @overload
@@ -42,7 +44,7 @@ def validar_entero(
 def validar_entero(
     valor: object, nombre: str, *, admite_none: bool = False
 ) -> int | None:
-    """Devuelve ``valor`` si es un entero, o ``None`` si se admite.
+    """Devuelve ``valor`` si es un entero, o si es ``None`` y se admite.
 
     Args:
         valor: El valor que se comprueba.

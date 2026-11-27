@@ -21,8 +21,8 @@ class PersonaTieneContenido(Objetivo):
     persona empieza sin cajas y solo posee las que se le entregan, así que el
     objetivo se logra cuando termina un ``EntregarCaja`` (``at end``) con una caja
     de ese contenido. ``EntregarCaja`` solo entrega cajas con algo que la persona
-    necesita, así que ``Mundo`` rechaza el objetivo si ``contenido`` no es una de
-    sus necesidades: ningún plan podría lograrlo.
+    necesita. Por eso ``Mundo`` rechaza el objetivo si ``contenido`` no es una de
+    las necesidades de la persona: ningún plan podría lograrlo.
 
     Args:
         persona: La persona que tiene que poseer la caja.
@@ -87,8 +87,8 @@ class PersonaTieneContenido(Objetivo):
         Una persona solo recibe cajas con algo que necesita, y sus necesidades
         nunca aumentan, así que sin esa necesidad el objetivo solo se puede
         cumplir si ya se cumple (la persona posee ya una caja con ``contenido``).
-        En un problema recién creado eso no pasa, porque una persona empieza sin
-        cajas. Solo pasa si el mundo se construye sobre objetos que otro mundo ya
+        En un problema recién creado eso no ocurre, porque una persona empieza sin
+        cajas. Solo ocurre si el mundo se construye sobre objetos que otro mundo ya
         usó. En ese caso el objetivo está logrado, así que no se rechaza como
         inalcanzable.
         """

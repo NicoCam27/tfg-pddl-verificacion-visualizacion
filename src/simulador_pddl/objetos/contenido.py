@@ -4,7 +4,7 @@ from simulador_pddl.tipos_basicos import validar_cadena
 class Contenido:
     """Contenido representa un contenido en el dominio de logística con drones.
 
-    Un contenido es lo que lleva una caja y lo que necesita una persona, p. ej.
+    Un contenido es lo que contiene una caja y lo que necesita una persona, p. ej.
     comida o medicina. Solo tiene un nombre, y dos contenidos con el mismo
     nombre son el mismo contenido.
 

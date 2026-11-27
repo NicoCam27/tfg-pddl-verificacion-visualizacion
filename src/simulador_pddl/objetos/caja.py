@@ -109,8 +109,8 @@ class Caja:
     def _describir_propietario(self) -> str:
         """Devuelve el propietario actual con su tipo, p. ej. ``"el dron dron1"``.
 
-        ``"nadie"`` si la caja no tiene propietario. Lo usan los mensajes de
-        error, porque nombran cada objeto con su tipo. ``__str__()`` usa
+        Devuelve ``"nadie"`` si la caja no tiene propietario. Lo usan los mensajes
+        de error, porque nombran cada objeto con su tipo. ``__str__()`` usa
         ``_nombre_propietario()``.
         """
         if self._propietario_actual is None:

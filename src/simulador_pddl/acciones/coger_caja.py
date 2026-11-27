@@ -80,7 +80,7 @@ class CogerCaja(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
-        """Hace que el brazo sujete formalmente la caja (``at end``)."""
+        """Pone la caja en el brazo (``at end``)."""
         try:
             self._dron._terminar_coger_caja(self._brazo, self._caja)
             self._terminada = True

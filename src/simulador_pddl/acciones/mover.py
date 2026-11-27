@@ -67,11 +67,10 @@ class Mover(Accion):
     def _iniciar_ejecucion(self) -> str | None:
         """Comprueba el origen del dron: ``Mover`` no tiene efectos ``at start``.
 
-        La localización del dron debe corresponderse con el origen proporcionado y
-        es una condición ``at start``, así que un origen incorrecto falla aquí
-        en ``inicio_sim``. El dron entero está protegido frente a solapamientos en
-        ``Simulacion._error_de_solapamiento()``, así que todo el efecto se aplica
-        en ``_terminar_ejecucion()``.
+        Que el dron esté en el origen es una condición ``at start``, así que un
+        origen incorrecto falla aquí, en ``inicio_sim``. Todo el efecto se aplica en
+        ``_terminar_ejecucion()``: mientras dura el movimiento, ``Simulacion`` no deja
+        empezar ninguna otra acción del dron (``_error_de_solapamiento()``).
         """
         try:
             self._dron._exigir_en(self._origen)

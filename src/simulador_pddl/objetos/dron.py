@@ -72,7 +72,7 @@ class Dron:
         validar_lista_brazos(brazos)
 
         # El dron guarda su propia lista, para que los cambios posteriores en la
-        # lista de quien llama no le afecten.
+        # lista de quien llama no lo afecten.
         self._brazos = list(brazos)
         self._nombre = nombre
         self._localizacion = localizacion
@@ -104,9 +104,9 @@ class Dron:
         ``Mover`` y ``MoverTransportador`` rechazan un origen igual al destino al
         construirse y comprueban que el dron está en el origen cuando empiezan
         (``_exigir_en()``), y ``Simulacion`` no deja empezar ninguna otra acción
-        del dron mientras dura el movimiento. Así, todo lo que se
-        comprobó al construir y en ``_iniciar_ejecucion()`` sigue siendo cierto
-        cuando ``_terminar_ejecucion()`` llama a este método.
+        del dron mientras dura el movimiento. Así, todo lo que se comprobó al
+        construir y en ``_iniciar_ejecucion()`` sigue siendo cierto cuando
+        ``_terminar_ejecucion()`` llama a este método.
         """
         origen = self._localizacion
 
@@ -121,7 +121,7 @@ class Dron:
                 numero_de_cajas_sujetas += 1
 
             if brazo.transportador is not None:
-                # El transportador mueve las cajas que lleva dentro, el mensaje
+                # El transportador mueve las cajas que lleva dentro. El mensaje
                 # solo cuenta lo que llevan los brazos.
                 brazo.transportador._mover(destino)
                 numero_de_transportadores_sujetos += 1
@@ -184,7 +184,7 @@ class Dron:
         """
         if self._localizacion != objeto.localizacion:
             msg_localizacion = (
-                f"el dron {self._nombre} está en la localización {self._localizacion} "
+                f"el dron {self._nombre} está en la localización {self._localizacion}, "
                 f"pero {con_articulo(objeto)} está en la localización "
                 f"{objeto.localizacion}"
             )
@@ -220,7 +220,7 @@ class Dron:
     def _iniciar_coger_transportador(
         self, brazo: Brazo, transportador: Transportador
     ) -> None:
-        """Reclama el transportador para este dron, para que ningún otro lo coja.
+        """Reclama el transportador para este dron: así ningún otro lo puede coger.
 
         El brazo tiene que estar libre, ningún dron puede sujetar ya el
         transportador, no se puede estar metiendo ni sacando ninguna caja de él,
@@ -317,7 +317,7 @@ class Dron:
     # ------------------------------------------------------------------
 
     def _iniciar_coger_caja(self, brazo: Brazo, caja: Caja) -> None:
-        """Reclama la caja para este dron, para que nadie más la pueda coger.
+        """Reclama la caja para este dron: así nadie más la puede coger.
 
         La caja tiene que estar disponible y en la localización del dron, y el
         brazo tiene que estar libre. Todavía no pone la caja en el brazo: eso se
@@ -554,7 +554,7 @@ class Dron:
         self._exigir_junto_a(transportador)
 
         # Una carga no mete la caja en cajas_dentro hasta que termina, y una
-        # descarga la quita en cuanto empieza. Así que si hay una carga o otra
+        # descarga la quita en cuanto empieza. Así que, si hay una carga o otra
         # descarga de esta caja en curso, la comprobación de abajo solo diría
         # "no está en el transportador". Estas comprobaciones indican por qué.
         # El dron de esa otra acción es el propietario de la caja, así que el mensaje

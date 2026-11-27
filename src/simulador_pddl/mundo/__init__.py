@@ -5,7 +5,7 @@ construirlo comprueba que el plan y el problema están bien formados (ver
 ``Mundo``), y lanza una excepción si no lo están, antes de ejecutar nada.
 Después ejecuta el plan en la terminal (``simulacion_texto()``) o en una ventana
 de pygame (``simulacion_visual()``). Los dos métodos devuelven el informe del
-plan (``InformeVerificacion``), con su veredicto; un fallo durante la ejecución
+plan (``InformeVerificacion``), con su veredicto. Un fallo durante la ejecución
 no lanza ninguna excepción, sino que queda en el informe. ``avanzar_hasta()``
 ejecuta el plan solo hasta un instante dado y devuelve el informe de ese punto,
 ``verificar()`` devuelve el informe del punto al que haya llegado la ejecución,

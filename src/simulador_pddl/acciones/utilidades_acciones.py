@@ -1,9 +1,9 @@
 """Validadores, al construir, de los argumentos de las acciones.
 
 Lanzan ``TypeError`` para un valor de tipo incorrecto y ``ValueError`` para un
-valor del tipo correcto que no es válido: fuera de rango (por ejemplo, un
-``inicio_sim`` negativo) o igual a otro argumento del que debe ser distinto (por
-ejemplo, un ``origen`` igual al ``destino``). Los errores de ejecución se tratan
+valor del tipo correcto que no es válido: fuera de rango (p. ej. un ``inicio_sim``
+negativo) o igual a otro argumento del que debe ser distinto (p. ej. un ``origen``
+igual al ``destino``). Los errores de ejecución se tratan
 de otra forma: las acciones los devuelven como un mensaje (ver
 ``Accion._iniciar_ejecucion()`` y ``Accion._terminar_ejecucion()``).
 """

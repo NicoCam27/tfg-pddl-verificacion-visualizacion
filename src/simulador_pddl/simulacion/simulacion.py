@@ -221,7 +221,7 @@ class Simulacion:
         self._al_terminar_accion: Callable[[Accion], None] | None = None
 
         # Estado inicial de los objetivos: alguno puede cumplirse ya al inicio
-        # (un dron que empieza en el depósito, por ejemplo).
+        # (p. ej. un dron que empieza en el depósito).
         self._evaluar_objetivos()
 
     def __repr__(self) -> str:

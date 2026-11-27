@@ -47,7 +47,7 @@ class Persona:
         self._posee: list[Caja] = []
 
         # Las necesidades se guardan en una lista propia de la persona, para que
-        # los cambios posteriores en la lista de quien llama no le afecten.
+        # los cambios posteriores en la lista de quien llama no la afecten.
         if necesidades is None:
             self._necesidades: list[Contenido] = []
         elif isinstance(necesidades, Contenido):

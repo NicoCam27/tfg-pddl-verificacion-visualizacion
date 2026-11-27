@@ -89,7 +89,7 @@ class SacarCajaDeTransportador(Accion):
 
     @override
     def _terminar_ejecucion(self) -> str | None:
-        """Hace que el brazo sujete formalmente la caja (``at end``).
+        """Pone la caja en el brazo (``at end``).
 
         Desde este momento, el transportador se puede volver a coger.
         """

@@ -18,7 +18,7 @@ class Accion(ABC):
 
     Las acciones son operaciones que realizan los drones, cada una con un inicio
     y una duración concretos. Pueden afectar al propio dron, a sus brazos, a las
-    cajas y a los transportadores (por ejemplo: mover, coger, entregar, soltar...).
+    cajas y a los transportadores (p. ej. mover, coger, entregar, soltar...).
 
     Una subclase debe asignar el objeto ``_dron`` y sus demás objetos (como
     atributos privados, cada uno con una propiedad de solo lectura) antes de
@@ -171,12 +171,12 @@ class Accion(ABC):
 
     @property
     def iniciada(self) -> bool:
-        """Indica si se han aplicado los efectos ``at start``."""
+        """Si se han aplicado los efectos ``at start``."""
         return self._iniciada
 
     @property
     def terminada(self) -> bool:
-        """Indica si se han aplicado los efectos ``at end``."""
+        """Si se han aplicado los efectos ``at end``."""
         return self._terminada
 
     @property
@@ -184,10 +184,10 @@ class Accion(ABC):
     def objetos(self) -> dict[str, ObjetoDominio]:
         """Los objetos del dominio asociados a la acción, indexados por su rol.
 
-        De solo lectura. Se construye a partir de los atributos de la subclase.
+        Es de solo lectura y se construye a partir de los atributos de la subclase.
         """
 
     @property
     def _en_curso(self) -> bool:
-        """Indica si la acción ha empezado y todavía no ha terminado."""
+        """Si la acción ha empezado y todavía no ha terminado."""
         return self._iniciada and not self._terminada

@@ -911,7 +911,7 @@ class TestPanelLateral(unittest.TestCase):
         """Comprueba que el arrastre no falla si la lista encoge hasta caber.
 
         Mientras se arrastra, el plan sigue avanzando, y la lista puede encoger:
-        por ejemplo, un objetivo que se cumple pierde su línea de explicación. Aquí
+        p. ej. un objetivo que se cumple pierde su línea de explicación. Aquí
         se simula poniendo su alto a mano.
         """
         lateral = self.panel_con_lista_larga()
