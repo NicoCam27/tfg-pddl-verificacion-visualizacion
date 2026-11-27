@@ -12,7 +12,6 @@ from simulador_pddl.simulacion.verificacion import InformeVerificacion
 from simulador_pddl.visualizacion.panel_control import (
     Boton,
     PanelControl,
-    _fuente,
     _truncar,
 )
 from simulador_pddl.visualizacion.renderizador import (
@@ -316,10 +315,9 @@ class PanelLateral:
         alto_panel_control: El alto del panel de control, en píxeles.
     """
 
-    # El panel mide esta parte del ancho de la ventana, entre un mínimo y un
-    # máximo, en píxeles.
+    # El panel mide esta parte del ancho de la ventana, hasta un máximo en
+    # píxeles.
     _PROPORCION_ANCHO = 0.3
-    _ANCHO_MINIMO = 240
     _ANCHO_MAXIMO = 480
 
     def __init__(
@@ -374,13 +372,10 @@ class PanelLateral:
         )
         self._margen = int(12 * escala)
         self._paso_desplazamiento = int(40 * escala)
-        self._ancho_barra = max(6, int(10 * escala))
+        self._ancho_barra = int(10 * escala)
 
         ancho_panel = int(
-            max(
-                self._ANCHO_MINIMO,
-                min(self._ANCHO_MAXIMO, ancho_ventana * self._PROPORCION_ANCHO),
-            )
+            min(self._ANCHO_MAXIMO, ancho_ventana * self._PROPORCION_ANCHO)
         )
         self._rectangulo = pygame.Rect(
             ancho_ventana - ancho_panel,
@@ -404,9 +399,9 @@ class PanelLateral:
             tamano_fuente_boton,
         )
 
-        self._fuente_texto = _fuente(tamano_fuente_texto)
-        self._fuente_detalle = _fuente(tamano_fuente_detalle)
-        self._fuente_estado = _fuente(tamano_fuente_estado)
+        self._fuente_texto = pygame.font.SysFont(None, tamano_fuente_texto)
+        self._fuente_detalle = pygame.font.SysFont(None, tamano_fuente_detalle)
+        self._fuente_estado = pygame.font.SysFont(None, tamano_fuente_estado)
 
     @property
     def _ancho_ocupado(self) -> int:

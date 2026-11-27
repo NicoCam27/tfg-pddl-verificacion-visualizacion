@@ -750,7 +750,7 @@ class Simulacion:
     # Uso en terminal, sin pygame
     # ------------------------------------------------------------------
 
-    def _simulacion_texto(self, paso_tiempo: float = 0.1) -> InformeVerificacion:
+    def _simulacion_texto(self, paso_tiempo: float) -> InformeVerificacion:
         """Ejecuta el plan en la terminal, imprimiendo cada inicio y final.
 
         Si una acción falla, imprime también una línea ``NO INICIA`` o ``NO
@@ -758,8 +758,7 @@ class Simulacion:
 
         Args:
             paso_tiempo: Los segundos simulados que avanza la simulación en cada
-                actualización, mayor que 0. Opcional: 0.1 por defecto. El
-                veredicto no depende de él.
+                actualización, mayor que 0. El veredicto no depende de él.
 
         Returns:
             El ``InformeVerificacion`` de la ejecución. La ejecución siempre llega

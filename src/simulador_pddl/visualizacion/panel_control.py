@@ -35,11 +35,6 @@ _SEPARACION_ETIQUETA_DESLIZADOR = 6
 _INTERLINEADO_PANEL = 4
 
 
-def _fuente(tamano: int) -> pygame.font.Font:
-    """Devuelve la fuente por defecto a ``tamano``, que nunca es menor que 11."""
-    return pygame.font.SysFont(None, max(11, tamano))
-
-
 def _truncar(fuente: pygame.font.Font, texto: str, ancho_maximo: int) -> str:
     """Devuelve ``texto`` ajustado a ``ancho_maximo`` píxeles de ancho.
 
@@ -85,7 +80,7 @@ class Boton:
         ``x`` e ``y`` son su esquina superior izquierda, en coordenadas de la ventana.
         """
         self._rectangulo = pygame.Rect(x, y, ancho, alto)
-        self._fuente = _fuente(tamano_fuente)
+        self._fuente = pygame.font.SysFont(None, tamano_fuente)
 
     def _dibujar(self, pantalla: pygame.Surface) -> None:
         """Dibuja el botón en ``pantalla``, más oscuro si está desactivado."""
@@ -164,7 +159,7 @@ class Deslizador:
         self._x = x
         self._y = y
         self._ancho = ancho
-        self._fuente = _fuente(tamano_fuente)
+        self._fuente = pygame.font.SysFont(None, tamano_fuente)
         self._radio = radio
 
     def _dibujar(self, pantalla: pygame.Surface) -> None:
@@ -273,11 +268,6 @@ class PanelControl:
         alto_ventana: El alto de la ventana, en píxeles.
     """
 
-    # Cada botón mide esta parte del ancho de la ventana sin los márgenes, sin pasar
-    # de su ancho de diseño (a escala 1), para no crecer sin límite en ventanas anchas.
-    _PROPORCION_BOTON = 0.14
-    _ANCHO_DISENO_BOTON = 140
-
     # El ancho de la ventana por defecto: con él, el panel se dibuja a su tamaño de
     # diseño (escala 1). Debe coincidir con Renderizador.ANCHO_POR_DEFECTO.
     _ANCHO_REFERENCIA = 1400
@@ -312,9 +302,8 @@ class PanelControl:
 
         Lo llama ``__init__()`` y, después, ``_ejecutar_ventana()`` cada vez que
         cambia el tamaño de la ventana. Las medidas se escalan con el ancho de la
-        ventana. Cada botón mide una proporción del ancho de la ventana sin los
-        márgenes (``_PROPORCION_BOTON``), sin pasar de ``_ANCHO_DISENO_BOTON``
-        escalado, y el deslizador ocupa el resto del ancho.
+        ventana. Los botones miden su ancho de diseño escalado, y el deslizador
+        ocupa el resto del ancho.
 
         La ventana mide al menos ``Renderizador.ANCHO_MINIMO`` de ancho, así que
         los controles no necesitan un ancho mínimo propio: incluso con ese ancho,
@@ -337,6 +326,7 @@ class PanelControl:
         # bajo, y su alto real lo da get_height() (por eso se usa en _alto_linea_info).
         margen_lateral = int(20 * escala)
         separacion_botones = int(12 * escala)
+        ancho_boton = int(140 * escala)
         alto_boton = int(40 * escala)
         tamano_fuente_botones = int(23 * escala)
         # Del borde superior de los botones al borde inferior de la ventana.
@@ -348,13 +338,6 @@ class PanelControl:
 
         # Botones: los tres seguidos, desde el margen izquierdo, a la misma altura.
         y_botones = self._alto - alto_franja_botones
-
-        ancho_boton = int(
-            min(
-                self._ANCHO_DISENO_BOTON * escala,
-                (self._ancho - 2 * margen_lateral) * self._PROPORCION_BOTON,
-            )
-        )
 
         x_reproducir = margen_lateral
         x_pausa = x_reproducir + ancho_boton + separacion_botones
@@ -385,7 +368,7 @@ class PanelControl:
 
         # Líneas de texto: _dibujar() las pone justo encima de los botones, con el
         # mismo margen izquierdo.
-        self._fuente_info = _fuente(tamano_fuente_info)
+        self._fuente_info = pygame.font.SysFont(None, tamano_fuente_info)
         self._margen_info = margen_lateral
         self._alto_linea_info = self._fuente_info.get_height() + _INTERLINEADO_PANEL
 

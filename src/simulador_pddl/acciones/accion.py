@@ -123,6 +123,8 @@ class Accion(ABC):
 
     def _progreso(self, tiempo_sim: float) -> float:
         """Devuelve el progreso de la acción en ``tiempo_sim``, de 0.0 a 1.0."""
+        # Una acción que falla al terminar sigue sin terminar en su instante final,
+        # y ahí el cociente puede pasar un poco de 1 por el redondeo de los float.
         return (
             0.0
             if not self._iniciada

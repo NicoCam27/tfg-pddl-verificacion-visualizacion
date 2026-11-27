@@ -83,6 +83,10 @@ class Renderizador:
     # escala es 1, y todo lo que se dibuja crece o encoge en proporción a él.
     ANCHO_POR_DEFECTO = 1400
     ALTO_POR_DEFECTO = 850
+    # Límites de la escala: por debajo el texto ya no se leería, y por encima todo
+    # crecería sin necesidad.
+    _ESCALA_MINIMA = 0.6
+    _ESCALA_MAXIMA = 1.8
 
     ANCHO_MINIMO = 800
     ALTO_MINIMO = 600
@@ -95,12 +99,31 @@ class Renderizador:
     # mundo, a escala 1, en píxeles.
     _MARGEN_MUNDO = 60
 
-    # El radio mínimo de una localización, en píxeles, para que su nombre se lea.
+    # El tamaño mínimo de cada figura, en píxeles, para que se vea y quepa su
+    # nombre o su número aunque la ventana sea pequeña. Por encima del mínimo, la
+    # localización crece con su celda, y las demás figuras, con el radio de la
+    # localización.
     _RADIO_MINIMO_LOCALIZACION = 22
+    _LADO_MINIMO_CAJA = 22
+    _ANCHO_MINIMO_TRANSPORTADOR = 30
+    _ALTO_MINIMO_TRANSPORTADOR = 18
+    _RADIO_MINIMO_PERSONAS = 14
+    _RADIO_MINIMO_DRON = 12
+    _LADO_MINIMO_CAJA_SUJETA = 9
 
     # Distancia mínima, en píxeles, entre una ayuda emergente y el borde de la
     # zona del mundo.
     _MARGEN_AYUDA = 4
+    # Mínimos, en píxeles, del relleno de una ayuda emergente, del espacio entre
+    # sus líneas y del espacio entre sus dos columnas, para que el texto no quede
+    # pegado al borde ni entre sí.
+    _RELLENO_MINIMO_AYUDA = 6
+    _ESPACIADO_MINIMO_AYUDA = 2
+    _SEPARACION_MINIMA_COLUMNAS_AYUDA = 6
+
+    # Tamaño mínimo, en puntos, de la fuente pequeña, para que se lea con la
+    # ventana al mínimo.
+    _TAMANO_MINIMO_FUENTE_PEQUENA = 18
 
     def __init__(
         self,
@@ -158,19 +181,22 @@ class Renderizador:
         """Crea las tres fuentes al tamaño que encaja con la ventana actual.
 
         Cada tamaño, en puntos, es el de la ventana por defecto multiplicado por
-        la escala, que va de 0,6 a 1,8. Así, el tamaño mínimo de cada fuente es:
+        la escala, que va de ``_ESCALA_MINIMA`` a ``_ESCALA_MAXIMA``. Con los
+        valores actuales, el tamaño mínimo de cada fuente es:
 
         * ``_fuente``, para los nombres de las localizaciones: 24 a escala 1, y 14
           como mínimo.
         * ``_fuente_pequena``, para el resto de etiquetas y la ayuda emergente: 20
-          a escala 1, y nunca baja de 18, para que se lea con la ventana al mínimo
-          (800 x 600), donde la cuenta daría 12.
+          a escala 1, y nunca baja de ``_TAMANO_MINIMO_FUENTE_PEQUENA`` (18), para
+          que se lea con la ventana al mínimo (800 x 600), donde la cuenta daría 12.
         * ``_fuente_error``, para el mensaje de error: 26 a escala 1, y 15 como
           mínimo.
         """
         escala = self._escala
         self._fuente = pygame.font.SysFont(None, int(24 * escala))
-        self._fuente_pequena = pygame.font.SysFont(None, max(18, int(20 * escala)))
+        self._fuente_pequena = pygame.font.SysFont(
+            None, max(self._TAMANO_MINIMO_FUENTE_PEQUENA, int(20 * escala))
+        )
         self._fuente_error = pygame.font.SysFont(None, int(26 * escala))
 
     def _poner_localizaciones(self, localizaciones: list[Localizacion]) -> None:
@@ -419,9 +445,11 @@ class Renderizador:
 
         # En píxeles: el tamaño a escala 1 multiplicado por la escala, con un
         # mínimo para que el texto no quede pegado al borde ni entre sí.
-        relleno = max(6, int(8 * self._escala))
-        espaciado = max(2, int(3 * self._escala))
-        separacion_columnas = max(6, int(8 * self._escala))
+        relleno = max(self._RELLENO_MINIMO_AYUDA, int(8 * self._escala))
+        espaciado = max(self._ESPACIADO_MINIMO_AYUDA, int(3 * self._escala))
+        separacion_columnas = max(
+            self._SEPARACION_MINIMA_COLUMNAS_AYUDA, int(8 * self._escala)
+        )
 
         # Cada línea es un solo texto o un par (izquierda, derecha). Un par se
         # dibuja en dos columnas alineadas: rellenar con espacios no funcionaría,
@@ -611,9 +639,9 @@ class Renderizador:
         localización están entregadas, se dibuja con el color de entregada y sin
         número: esas cajas aparecen en la ayuda de la persona que las tiene.
         """
-        # El lado del cuadrado: casi la mitad del radio de la localización, y nunca
-        # menos de 22 píxeles, para que quepa el número.
-        tamano = max(22, int(self._radio_localizacion * 0.45))
+        # El lado del cuadrado: casi la mitad del radio de la localización, con un
+        # mínimo para que quepa el número.
+        tamano = max(self._LADO_MINIMO_CAJA, int(self._radio_localizacion * 0.45))
 
         cajas_por_localizacion: dict[Localizacion, list[Caja]] = {}
         for caja in cajas:
@@ -661,8 +689,10 @@ class Renderizador:
         """
         # Casi tan ancho como el radio y la mitad de alto, con un mínimo para que
         # quepa la etiqueta.
-        ancho = max(30, int(self._radio_localizacion * 0.9))
-        alto = max(18, int(self._radio_localizacion * 0.5))
+        ancho = max(
+            self._ANCHO_MINIMO_TRANSPORTADOR, int(self._radio_localizacion * 0.9)
+        )
+        alto = max(self._ALTO_MINIMO_TRANSPORTADOR, int(self._radio_localizacion * 0.5))
 
         for transportador in transportadores:
             x, y = posiciones[transportador]
@@ -728,7 +758,13 @@ class Renderizador:
         """
         # Algo más de un cuarto del radio de la localización, con un mínimo para
         # que quepa el número.
-        radio_personas = max(14, int(self._radio_localizacion * 0.28))
+        radio_personas = max(
+            self._RADIO_MINIMO_PERSONAS, int(self._radio_localizacion * 0.28)
+        )
+        # El centro del círculo queda un poco por encima del borde superior de la
+        # localización, así que el círculo de las personas pisa el de la
+        # localización.
+        separacion_sobre_localizacion = int(5 * self._escala)
 
         personas_por_localizacion: dict[Localizacion, list[Persona]] = {}
         for persona in personas:
@@ -738,8 +774,10 @@ class Renderizador:
 
         for localizacion, personas_aqui in personas_por_localizacion.items():
             x, y = self._posiciones_localizaciones[localizacion]
-            # Justo encima del círculo de la localización.
-            centro_personas = (x, y - self._radio_localizacion - int(5 * self._escala))
+            centro_personas = (
+                x,
+                y - self._radio_localizacion - separacion_sobre_localizacion,
+            )
 
             necesidades_cubiertas = all(
                 not persona.necesidades for persona in personas_aqui
@@ -795,8 +833,10 @@ class Renderizador:
         """Dibuja cada dron como un círculo con su nombre y las cajas que lleva."""
         # Algo menos de un tercio del radio de la localización, con un mínimo para
         # garantizar su visibilidad. Cada caja que lleva mide algo menos que ese radio.
-        radio_dron = max(12, int(self._radio_localizacion * 0.3))
-        tamano_caja = max(9, int(radio_dron * 0.7))
+        radio_dron = max(self._RADIO_MINIMO_DRON, int(self._radio_localizacion * 0.3))
+        tamano_caja = max(self._LADO_MINIMO_CAJA_SUJETA, int(radio_dron * 0.7))
+        # Lo que el centro del nombre queda por encima del borde superior del dron.
+        separacion_nombre_dron = int(9 * self._escala)
 
         for dron in drones:
             x, y = posiciones[dron]
@@ -817,7 +857,7 @@ class Renderizador:
                 nombre.get_rect(
                     center=(
                         centro_dron[0],
-                        centro_dron[1] - radio_dron - int(9 * self._escala),
+                        centro_dron[1] - radio_dron - separacion_nombre_dron,
                     )
                 ),
             )
@@ -891,10 +931,10 @@ class Renderizador:
         """Cuánto escalar los tamaños, respecto al tamaño de ventana por defecto.
 
         Es el menor de los dos cocientes, el del ancho y el del alto, para que todo
-        quepa en las dos direcciones, y se limita entre 0,6 y 1,8: por debajo el
-        texto ya no se leería, y por encima todo crecería sin necesidad.
+        quepa en las dos direcciones, y se limita entre ``_ESCALA_MINIMA`` y
+        ``_ESCALA_MAXIMA``.
         """
         escala_sin_limitar = min(
             self._ancho / self.ANCHO_POR_DEFECTO, self._alto / self.ALTO_POR_DEFECTO
         )
-        return max(0.6, min(1.8, escala_sin_limitar))
+        return max(self._ESCALA_MINIMA, min(self._ESCALA_MAXIMA, escala_sin_limitar))
