@@ -34,10 +34,11 @@ class EntregarCaja(Accion):
         caja: La caja que se entrega (la tiene que sujetar el brazo).
         persona: La persona que recibe la caja (tiene que necesitar su contenido).
         inicio_sim: El instante de la simulación en el que empieza la acción.
-            Tiene que ser >= 0. En un plan clásico, el índice del paso.
+            Tiene que ser un número finito, 0 o mayor. En un plan clásico, el
+            índice del paso.
         duracion_sim: Opcional. La duración de la acción en la simulación.
-            Tiene que ser > 0. Por defecto es 1, la duración de un paso en un
-            plan clásico.
+            Tiene que ser un número finito mayor que 0. Por defecto es 1, la
+            duración de un paso en un plan clásico.
         desc: Opcional. Una descripción de la acción que se muestra al usuario.
             Si es ``None`` (por defecto), se genera automáticamente.
     """

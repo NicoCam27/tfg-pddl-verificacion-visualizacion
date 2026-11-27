@@ -27,16 +27,15 @@ class Accion(ABC):
 
     ``dron``, ``inicio_sim``, ``duracion_sim``, ``tiempo_fin``, ``desc``,
     ``iniciada``, ``terminada`` y los objetos de cada subclase son propiedades
-    de solo lectura y no pueden modificarse una vez creada la instancia de la acción.
-    Esta restricción garantiza la integridad de la acción, ``Mundo`` valida dicho plan
-    durante su construcción. Permitir modificaciones posteriores podría invalidar
-    las comprobaciones realizadas sin que estas se ejecutasen nuevamente.
+    de solo lectura: ``Mundo`` comprueba el plan una sola vez, al construirse, y
+    cambiarlos después dejaría sin efecto esas comprobaciones.
 
     Args:
         inicio_sim: El instante de la simulación en el que empieza la acción.
-            Tiene que ser >= 0. En un plan clásico, el índice del paso.
+            Tiene que ser un número finito, 0 o mayor. En un plan clásico, el
+            índice del paso.
         duracion_sim: La duración de la acción en la simulación. Tiene que
-            ser > 0. En un plan clásico, 1.
+            ser un número finito mayor que 0. En un plan clásico, 1.
         desc: Opcional. Una descripción de la acción que se muestra al usuario. Si
             es ``None`` (por defecto), se genera una a partir de los objetos y los
             tiempos de la acción.
@@ -52,8 +51,8 @@ class Accion(ABC):
         duracion_sim: float,
         desc: str | None = None,
     ) -> None:
-        # Se validan los argumentos aquí para no repetir en cada subclase la
-        # validación de estos argumentos, cada subclase valida sus demás argumentos.
+        # Los argumentos comunes se validan aquí, para no repetirlo en cada
+        # subclase, que solo valida los suyos.
         validar_inicio_sim(inicio_sim)
         validar_duracion_sim(duracion_sim)
         if desc is not None:
@@ -103,6 +102,10 @@ class Accion(ABC):
         durativas de PDDL. Si los efectos se pueden aplicar, se activa
         ``iniciada``.
 
+        Un ``ValueError`` es una regla del dominio que el plan incumple, y se
+        devuelve como mensaje. Cualquier otra excepción es un error de la
+        biblioteca y no se captura.
+
         Returns:
             ``None`` si se aplicaron los efectos, o el mensaje de error si la
             acción no puede empezar en el estado actual.
@@ -115,6 +118,10 @@ class Accion(ABC):
         Es la segunda fase de la acción, que sigue el modelo de las acciones
         durativas de PDDL. Si los efectos se pueden aplicar, se activa
         ``terminada``.
+
+        Un ``ValueError`` es una regla del dominio que el plan incumple, y se
+        devuelve como mensaje. Cualquier otra excepción es un error de la
+        biblioteca y no se captura.
 
         Returns:
             ``None`` si se aplicaron los efectos, o el mensaje de error si la

@@ -32,12 +32,14 @@ class CogerTransportador(Accion):
         brazo: El brazo con el que se coge el transportador (tiene que pertenecer
             al dron y estar libre).
         transportador: El transportador que va a sujetar el dron (ningún dron
-            puede estar sujetándolo en este momento).
+            puede estar sujetándolo, ni se puede estar metiendo o sacando ninguna
+            caja de él).
         inicio_sim: El instante de la simulación en el que empieza la acción.
-            Tiene que ser >= 0. En un plan clásico, el índice del paso.
+            Tiene que ser un número finito, 0 o mayor. En un plan clásico, el
+            índice del paso.
         duracion_sim: Opcional. La duración de la acción en la simulación.
-            Tiene que ser > 0. Por defecto es 1, la duración de un paso en un
-            plan clásico.
+            Tiene que ser un número finito mayor que 0. Por defecto es 1, la
+            duración de un paso en un plan clásico.
         desc: Opcional. Una descripción de la acción que se muestra al usuario.
             Si es ``None`` (por defecto), se genera automáticamente.
     """
