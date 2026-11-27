@@ -42,16 +42,16 @@ _COLOR_BORDE_AYUDA = (90, 90, 90)
 _COLOR_TEXTO_AYUDA = (20, 20, 20)
 
 # Medidas fijas del dibujo, en píxeles
-# Grosor del borde de las cajas, las personas y la ayuda emergente
+# Grosor del borde de las cajas, las personas y la ayuda emergente.
 _GROSOR_BORDE_FINO = 1
 # Grosor del borde de los drones, los transportadores y el mensaje de error, y del
-# contorno de un transportador sujeto
+# contorno de un transportador sujeto.
 _GROSOR_BORDE_GRUESO = 2
 _RADIO_ESQUINA_AYUDA = 5
 _RADIO_ESQUINA_TRANSPORTADOR = 4
 # Contorno que rodea a un transportador mientras un dron lo tiene sujeto: cuántos
 # píxeles más ancho y más alto que el transportador es (sobresale la mitad por
-# cada lado) y el radio de sus esquinas
+# cada lado) y el radio de sus esquinas.
 _AUMENTO_CONTORNO_SUJETO = 6
 _RADIO_ESQUINA_CONTORNO_SUJETO = 6
 

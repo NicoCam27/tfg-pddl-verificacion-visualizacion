@@ -22,16 +22,16 @@ _COLOR_MANDO_DESLIZADOR = (70, 130, 255)
 # Medidas del botón, en píxeles
 _RADIO_ESQUINA_BOTON = 8
 _GROSOR_BORDE_BOTON = 2
-# Espacio entre la etiqueta y cada lado del botón
+# Espacio entre la etiqueta y cada lado del botón.
 _MARGEN_ETIQUETA_BOTON = 4
 
 # Medidas del deslizador, en píxeles
 _GROSOR_BARRA_DESLIZADOR = 4
 _GROSOR_MARCA_DESLIZADOR = 1
-# Espacio entre el mando y la etiqueta de velocidad
+# Espacio entre el mando y la etiqueta de velocidad.
 _SEPARACION_ETIQUETA_DESLIZADOR = 6
 
-# Espacio entre las dos líneas de texto del panel, en píxeles
+# Espacio entre las dos líneas de texto del panel, en píxeles.
 _INTERLINEADO_PANEL = 4
 
 
@@ -86,11 +86,11 @@ class Boton:
         """Dibuja el botón en ``pantalla``, más oscuro si está desactivado."""
         color = _COLOR_BOTON if self._activado else _COLOR_BOTON_DESACTIVADO
 
-        # Se dibuja el relleno interior del botón
+        # Relleno
         pygame.draw.rect(
             pantalla, color, self._rectangulo, border_radius=_RADIO_ESQUINA_BOTON
         )
-        # Se dibuja el borde exterior del botón
+        # Borde
         pygame.draw.rect(
             pantalla,
             _COLOR_BORDE_BOTON,
@@ -103,7 +103,7 @@ class Boton:
         etiqueta = _truncar(self._fuente, self._texto, ancho_etiqueta)
         texto = self._fuente.render(etiqueta, True, _COLOR_TEXTO)
 
-        # Se dibuja la etiqueta, centrada en el botón
+        # Etiqueta, centrada en el botón
         pantalla.blit(texto, texto.get_rect(center=self._rectangulo.center))
 
     def _pulsado(self, evento: pygame.event.Event) -> bool:
@@ -195,7 +195,7 @@ class Deslizador:
 
         texto = self._fuente.render(f"Velocidad: {self._valor}x", True, _COLOR_TEXTO)
 
-        # Se dibuja la etiqueta con la velocidad actual
+        # Etiqueta con la velocidad
         pantalla.blit(
             texto, (self._x, self._y + self._radio + _SEPARACION_ETIQUETA_DESLIZADOR)
         )

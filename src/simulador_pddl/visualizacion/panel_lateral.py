@@ -95,16 +95,16 @@ _PESTANA_OBJETIVOS = "Objetivos"
 _PESTANA_OBJETOS = "Objetos"
 _PESTANAS = (_PESTANA_PLAN, _PESTANA_OBJETIVOS, _PESTANA_OBJETOS)
 
-# Espacio entre las líneas de texto del panel, en píxeles
+# Espacio entre las líneas de texto del panel, en píxeles.
 _INTERLINEADO = 6
 
 # Medidas fijas del dibujo, en píxeles
-# Grosor de las líneas del panel: su borde izquierdo y la línea bajo las pestañas
+# Grosor de las líneas del panel: su borde izquierdo y la línea bajo las pestañas.
 _GROSOR_LINEA_PANEL = 2
 _RADIO_ESQUINA_PESTANA = 6
 _RADIO_ESQUINA_ESTADO = 6
 # Radio de las esquinas del fondo de una fila bajo el ratón y del cuadrado de
-# color con que empieza cada fila
+# color con que empieza cada fila.
 _RADIO_ESQUINA_FILA = 4
 _RADIO_ESQUINA_CUADRADO_FILA = 3
 
@@ -588,13 +588,13 @@ class PanelLateral:
         # hasta debajo de sí mismo.
         y = self._boton._rectangulo.bottom + self._margen
 
-        # El tiempo simulado.
+        # El tiempo simulado
         y = self._dibujar_linea(pantalla, simulacion._texto_tiempo(), x, y, ancho_texto)
-        # El estado del plan.
+        # El estado del plan
         y = self._dibujar_estado(pantalla, _estado_del_plan(informe), x, y, ancho_texto)
-        # Cuántos objetivos se cumplen.
+        # Cuántos objetivos se cumplen
         y = self._dibujar_linea(pantalla, _texto_objetivos(informe), x, y, ancho_texto)
-        # Las pestañas.
+        # Las pestañas
         y = self._dibujar_pestanas(pantalla, x, y, ancho_texto)
 
         # La lista de la pestaña elegida ocupa el resto del panel, salvo una franja a la
