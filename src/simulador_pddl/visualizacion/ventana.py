@@ -26,10 +26,10 @@ def _ejecutar_ventana(
     ``PanelLateral``. En cada fotograma, envía cada evento de pygame al
     renderizador (un cambio de tamaño), al panel lateral (su botón, sus pestañas,
     su lista y las acciones del plan) o al panel de control (los botones y el
-    deslizador), avanza la simulación el tiempo real
-    transcurrido multiplicado por la velocidad del deslizador, y dibuja el mundo,
-    los dos paneles y, encima de todo, la ayuda emergente. Al terminar, cierra la
-    ventana aunque haya habido una excepción.
+    deslizador), avanza la simulación el tiempo real transcurrido multiplicado
+    por la velocidad del deslizador, y dibuja el mundo, los dos paneles y, encima
+    de todo, la ayuda emergente. Al terminar, cierra la ventana aunque haya habido
+    una excepción.
     """
     renderizador = Renderizador(ancho=ancho, alto=alto, titulo=titulo)
     renderizador._poner_localizaciones(simulacion._localizaciones)

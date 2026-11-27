@@ -79,8 +79,9 @@ class Renderizador:
             defecto.
     """
 
-    # El tamaño inicial de la ventana, y también el de diseño: a este tamaño la
-    # escala es 1, y todo lo que se dibuja crece o encoge en proporción a él.
+    # El tamaño inicial de la ventana, en píxeles, y también el de diseño: a este
+    # tamaño la escala es 1, y todo lo que se dibuja crece o encoge en proporción
+    # a él.
     ANCHO_POR_DEFECTO = 1400
     ALTO_POR_DEFECTO = 850
     # Límites de la escala: por debajo el texto ya no se leería, y por encima todo
@@ -88,10 +89,13 @@ class Renderizador:
     _ESCALA_MINIMA = 0.6
     _ESCALA_MAXIMA = 1.8
 
+    # El tamaño mínimo de la ventana, en píxeles: uno menor se sube a este. Con
+    # ANCHO_MINIMO, los controles del panel aún caben y se pueden pulsar (ver
+    # PanelControl._redimensionar()).
     ANCHO_MINIMO = 800
     ALTO_MINIMO = 600
 
-    # Espacio inferior reservado para el panel de control hasta que
+    # Espacio inferior reservado para el panel de control, en píxeles, hasta que
     # _reservar_panel() da el que ocupa de verdad.
     _ALTO_PANEL_INICIAL = 110
 

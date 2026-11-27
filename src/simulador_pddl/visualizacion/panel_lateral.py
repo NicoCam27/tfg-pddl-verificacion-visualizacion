@@ -360,8 +360,9 @@ class PanelLateral:
     ) -> None:
         """Coloca el panel y su botón para una ventana de ese tamaño.
 
-        Las medidas se escalan con el ancho de la ventana, como las del panel de
-        control.
+        Lo llama ``__init__()`` y, después, ``_ejecutar_ventana()`` cada vez que
+        cambia el tamaño de la ventana. Las medidas se escalan con el ancho de la
+        ventana, como las del panel de control.
         """
         escala = max(
             PanelControl._ESCALA_MINIMA,
