@@ -5,24 +5,27 @@ del problema y, si los hay, sus objetivos. Al construirse comprueba que cada
 acción y cada objetivo solo se refieren a objetos declarados, que los drones,
 las cajas, las personas y los transportadores están en localizaciones
 declaradas, que las cajas y las personas solo usan contenidos declarados, que
-ningún brazo pertenece a dos drones, que no hay dos objetos con el mismo nombre
-y que ningún objetivo es imposible de lograr desde el estado inicial. Que ningún
-dron se mueva mientras hace otra cosa, ni un brazo haga dos cosas a la vez, se
-comprueba al ejecutar, cuando empieza cada acción.
+ningún brazo pertenece a dos drones, que no hay dos objetos con el mismo nombre,
+que ninguna acción ha empezado ya en otra simulación y que ningún objetivo es
+imposible de lograr desde el estado inicial. Que ningún dron se mueva mientras
+hace otra cosa, ni un brazo haga dos cosas a la vez, se comprueba al ejecutar,
+cuando empieza cada acción.
 
-Después, ``_actualizar()`` avanza el tiempo simulado y aplica en orden temporal
-los efectos ``at start`` y ``at end`` de cada acción, y ``_crear_informe()`` devuelve
-el informe con el veredicto (ver ``InformeVerificacion``). Un plan clásico, sin
-tiempos, se simula igual: sus pasos se numeran desde 0, y el paso ``i`` es una
-acción con ``inicio_sim=i`` y ``duracion_sim=1``. ``_reiniciar()`` vuelve al
-estado capturado cuando se construyó la simulación.
+Después, ``_avanzar_hasta()`` aplica en orden temporal los efectos ``at start`` y
+``at end`` de cada acción hasta un instante dado (``_actualizar()`` lo usa para
+avanzar paso a paso), y ``_crear_informe()`` devuelve el informe con el veredicto
+(ver ``InformeVerificacion``). Un plan clásico, sin tiempos, se simula igual: sus
+pasos se numeran desde 0, y el paso ``i`` es una acción con ``inicio_sim=i`` y
+``duracion_sim=1``. ``_reiniciar()`` vuelve al estado capturado cuando se
+construyó la simulación.
 
 ``Mundo`` es el punto de entrada público y la única clase que crea una
-``Simulacion``: ``Mundo.simulacion_texto()`` ejecuta el plan en una terminal, y
+``Simulacion``: ``Mundo.simulacion_texto()`` ejecuta el plan en una terminal,
 ``Mundo.simulacion_visual()`` lo ejecuta en una ventana de pygame, donde el
-``Renderizador`` lo dibuja y el ``PanelControl`` muestra sus controles. Como el
-usuario solo utiliza ``Mundo``, nunca una ``Simulacion``, todos los miembros de
-``Simulacion`` salvo el constructor son privados.
+``Renderizador`` lo dibuja y el ``PanelControl`` muestra sus controles, y
+``Mundo.avanzar_hasta()`` lo ejecuta solo hasta un instante, sin imprimir nada.
+Como el usuario solo utiliza ``Mundo``, nunca una ``Simulacion``, todos los
+miembros de ``Simulacion`` salvo el constructor son privados.
 """
 
 from __future__ import annotations
@@ -124,8 +127,9 @@ class Simulacion:
         transportadores: Los transportadores del problema. Opcional: ``None``
             (por defecto) significa que el problema no tiene transportadores, así
             que se rechaza un plan que use alguno.
-        objetivos: Los objetivos que tiene que lograr el plan. Opcional: sin
-            objetivos, el plan puede resultar ejecutable, pero nunca válido.
+        objetivos: Los objetivos que tiene que lograr el plan. Opcional: ``None``
+            (por defecto) o una lista vacía significan que no hay objetivos, así que
+            el plan puede resultar ejecutable, pero nunca válido.
     """
 
     # Acciones que ocupan el dron entero: mientras se mueve no puede hacer nada
@@ -175,6 +179,7 @@ class Simulacion:
         self._acciones = _lista_tipada(acciones, Accion, "acciones")  # type: ignore[type-abstract]
         for accion in self._acciones:
             self._exigir_objetos_declarados(accion)
+            self._exigir_accion_sin_empezar(accion)
 
         # Una lista vacía si no se dieron objetivos.
         self._objetivos = self._validar_objetivos(objetivos)
@@ -265,6 +270,25 @@ class Simulacion:
         for objeto in objetos:
             if not isinstance(objeto, Brazo):
                 self._exigir_dentro(objeto, self._lista_declarada(objeto))
+
+    @staticmethod
+    def _exigir_accion_sin_empezar(accion: Accion) -> None:
+        """Lanza ``ValueError`` si ``accion`` ya empezó en otro mundo.
+
+        Una acción guarda si ha empezado y si ha terminado. Si otro mundo la dejó
+        empezada, en este no estaría ni en curso ni pendiente, así que nunca
+        terminaría y el plan no llegaría a acabar. Si la dejó terminada, contaría
+        como terminada sin haberse ejecutado aquí. Una acción que falló al empezar
+        se acepta: ``iniciada`` solo se activa cuando sus efectos ``at start``
+        se aplican sin error, así que sigue como una acción nueva y en este mundo
+        empieza con normalidad.
+        """
+        if accion.iniciada:
+            msg_accion_ya_empezada = (
+                f"la acción {accion.desc!r} ya empezó en otro mundo: cada mundo "
+                "necesita acciones nuevas"
+            )
+            raise ValueError(msg_accion_ya_empezada)
 
     def _exigir_referencias_declaradas(self) -> None:
         """Lanza ``ValueError`` si un objeto del problema usa algo que no se declaró.
@@ -478,8 +502,8 @@ class Simulacion:
         después de que una acción haya fallado.
 
         Lo llaman ``_actualizar()``, que antes comprueba que la simulación no está
-        en pausa, y ``Mundo.avanzar_hasta()``, que avanza aunque lo esté. Por eso
-        este método no mira la pausa.
+        en pausa, y ``Mundo.avanzar_hasta()`` y ``_saltar_a_accion()`` de la
+        ventana, que avanzan aunque lo esté. Por eso este método no mira la pausa.
         """
         if self._tiene_error:
             return

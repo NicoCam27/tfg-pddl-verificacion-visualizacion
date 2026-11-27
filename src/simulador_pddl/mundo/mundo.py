@@ -29,9 +29,9 @@ class Mundo:
     que cada acción y cada objetivo usen objetos declarados, que los drones, las
     cajas, las personas y los transportadores estén en localizaciones declaradas,
     que las cajas y las personas usen contenidos declarados, que ningún brazo
-    pertenezca a dos drones, que no haya dos objetos con el mismo nombre y que
-    ningún objetivo sea imposible de lograr. Si algo falla, se lanza una
-    excepción.
+    pertenezca a dos drones, que no haya dos objetos con el mismo nombre, que
+    ninguna acción haya empezado ya en otro mundo y que ningún objetivo sea
+    imposible de lograr. Si algo falla, se lanza una excepción.
 
     Lo demás se comprueba al ejecutar el plan con ``simulacion_texto()``,
     ``simulacion_visual()`` o ``avanzar_hasta()``: si cada acción se puede
@@ -45,10 +45,11 @@ class Mundo:
     El plan se ejecuta sobre los objetos que recibe el mundo, no sobre copias: al
     ejecutarlo, los objetos cambian (los drones se mueven, las cajas se entregan,
     las personas dejan de necesitar lo que reciben) y después se pueden consultar
-    para ver cómo ha quedado el problema. Las acciones también guardan si han
-    empezado y terminado. Por eso un mundo parte del estado en que estén sus
-    objetos al construirlo: si otro mundo ya los usó, parte del estado en que ese
-    otro los dejó. Para comprobar varios planes sobre el mismo problema, hay que
+    para ver cómo ha quedado el problema. Por eso un mundo parte del estado en que
+    estén sus objetos al construirlo: si otro mundo ya los usó, parte del estado
+    en que ese otro los dejó. Las acciones también guardan si han empezado y
+    terminado, y un mundo rechaza una acción que ya empezó en otro. Para
+    comprobar varios planes sobre el mismo problema, hay que
     crear los objetos y las acciones de nuevo para cada plan, p. ej. con una
     función que construya el problema. ``reiniciar()`` devuelve los objetos al
     estado en que estaban al construir este mundo.
@@ -81,8 +82,8 @@ class Mundo:
             una persona usa un contenido que no está en ``contenidos``, si un dron,
             una caja, una persona o un transportador está en una localización que no
             está en ``localizaciones``, si un brazo pertenece a dos drones, si dos
-            objetos tienen el mismo nombre o si ningún plan puede lograr un
-            objetivo.
+            objetos tienen el mismo nombre, si una acción ya empezó en otro mundo
+            o si ningún plan puede lograr un objetivo.
 
     Example:
         mundo = Mundo(

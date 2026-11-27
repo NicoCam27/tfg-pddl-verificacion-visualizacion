@@ -287,6 +287,8 @@ Además, el informe ofrece:
 
 `Mundo` ejecuta el plan sobre los objetos que recibe, no sobre copias: al terminar, los objetos quedan como los ha dejado el plan (la caja entregada, el dron en su destino), y se pueden consultar. Por eso un `Mundo` parte del estado en que estén sus objetos al construirlo, y un segundo `Mundo` con los mismos objetos partiría del estado final del primero.
 
+Lo mismo vale para las acciones: guardan si han empezado y terminado, y `Mundo` rechaza una acción que ya empezó en otro mundo, así que el plan también se crea de nuevo para cada `Mundo`.
+
 Para comprobar los planes de varios planificadores sobre el mismo problema, el problema se escribe una sola vez en funciones que crean los objetos y los objetivos, y esas funciones se llaman una vez por plan:
 
 ```python

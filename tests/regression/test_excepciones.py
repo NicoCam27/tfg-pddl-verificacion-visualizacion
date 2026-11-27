@@ -856,6 +856,25 @@ class TestExcepcionesSimulacion(unittest.TestCase):
             "dron dron1 y al dron dron2",
         )
 
+    def test_accion_ya_empezada_en_otro_mundo(self) -> None:
+        """Comprueba que se rechaza una acción que otro mundo ya empezó o terminó.
+
+        En el mundo nuevo no estaría ni en curso ni pendiente, así que nunca
+        terminaría y el plan no llegaría a acabar.
+        """
+        primer_mundo = Mundo([self.coger_caja], **self._objetos())
+
+        for instante, caso in ((0, "empezada"), (1, "terminada")):
+            with self.subTest(caso=caso):
+                primer_mundo.avanzar_hasta(instante)
+                with self.assertRaises(ValueError) as contexto:
+                    Mundo([self.coger_caja], **self._objetos())
+                self.assertEqual(
+                    str(contexto.exception),
+                    f"la acción {self.coger_caja.desc!r} ya empezó en otro mundo: "
+                    "cada mundo necesita acciones nuevas",
+                )
+
     def test_nombre_repetido(self) -> None:
         """Comprueba que dos objetos del problema no pueden llamarse igual.
 

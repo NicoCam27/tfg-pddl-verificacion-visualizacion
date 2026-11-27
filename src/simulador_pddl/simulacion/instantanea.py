@@ -40,6 +40,11 @@ class InstantaneaMundo:
     (no con el constructor), y la restaura en ``_reiniciar()``. El estado se
     restaura en las mismas instancias.
 
+    No guarda el estado de las acciones ni el de la propia simulación (el reloj,
+    el error): ``Simulacion._reiniciar()`` los devuelve siempre al principio de
+    una ejecución, con todas las acciones sin empezar (``Accion._reiniciar()``),
+    que es como están siempre al construirla.
+
     Args:
         registros: Para cada objeto, el valor de cada uno de sus atributos
             privados que una simulación puede cambiar, indexado por el nombre
