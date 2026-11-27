@@ -31,8 +31,10 @@ class Mundo:
     que las cajas y las personas usen contenidos declarados, que ningún brazo
     pertenezca a dos drones, que no haya dos objetos con el mismo nombre y que
     ningún objetivo sea imposible de lograr. Si algo falla, se lanza una
-    excepción. Lo demás se comprueba al ejecutarlo con
-    ``simulacion_texto()`` o ``simulacion_visual()``: si cada acción se puede
+    excepción.
+
+    Lo demás se comprueba al ejecutar el plan con ``simulacion_texto()``,
+    ``simulacion_visual()`` o ``avanzar_hasta()``: si cada acción se puede
     aplicar en el estado de ese momento (por ejemplo, si dos drones intentan coger
     la misma caja a la vez, uno de los dos falla), si ningún dron se mueve mientras
     hace otra cosa, si ningún brazo hace dos cosas a la vez y si se logran los
@@ -138,6 +140,10 @@ class Mundo:
         terminar, el resumen del informe. Si falla una acción, la nombra antes del
         error. La ejecución llega al final del plan o se detiene en la primera
         acción que falla, así que el veredicto nunca es ``"INCOMPLETO"``.
+
+        Los drones narran con ``logging``: si quien llama ya ha configurado
+        ``logging``, la narración sale donde diga esa configuración, o no sale si
+        su nivel está por encima de ``INFO``.
 
         La ejecución sigue desde donde esté la simulación: una segunda llamada no
         vuelve a ejecutar el plan, solo da otra vez su informe. Para ejecutarlo de
@@ -265,11 +271,11 @@ class Mundo:
 
         Args:
             ancho: El ancho de la ventana, en píxeles. Opcional: ``None`` (por
-                defecto) usa el ancho por defecto de ``Renderizador``. Un ancho
-                menor que ``Renderizador.ANCHO_MINIMO`` se sube a ese mínimo.
+                defecto) usa ``Renderizador.ANCHO_POR_DEFECTO``. Un ancho menor
+                que ``Renderizador.ANCHO_MINIMO`` se sube a ese mínimo.
             alto: El alto de la ventana, en píxeles. Opcional: ``None`` (por
-                defecto) usa el alto por defecto de ``Renderizador``. Un alto
-                menor que ``Renderizador.ALTO_MINIMO`` se sube a ese mínimo.
+                defecto) usa ``Renderizador.ALTO_POR_DEFECTO``. Un alto menor
+                que ``Renderizador.ALTO_MINIMO`` se sube a ese mínimo.
             titulo: El título de la ventana. Opcional: ``"Simulación PDDL"`` por
                 defecto.
             fps: Los fotogramas que se dibujan por segundo. Opcional: 60 por
