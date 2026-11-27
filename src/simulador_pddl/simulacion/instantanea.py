@@ -3,7 +3,7 @@
 Una ``InstantaneaMundo`` captura, de cada objeto que participa en una simulación
 (drones, brazos, cajas, personas y, si los hay, transportadores), el estado que
 la simulación puede cambiar, y más tarde puede devolver todos los objetos a ese
-mismo estado, que es lo que necesita reiniciar una simulación.
+mismo estado, que es lo que hace falta para reiniciar una simulación.
 """
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ class InstantaneaMundo:
         # son de solo lectura y ningún método de la biblioteca los modifica), así
         # que un reinicio nunca necesita restaurarlos. Lo que al capturar suele
         # estar vacío (las reservas de los brazos y las cargas y descargas en
-        # curso) también se captura, para que un reinicio en mitad de una acción
+        # curso) también se captura, para que un reinicio a mitad de una acción
         # lo vacíe.
         for caja in cajas:
             registros[caja] = {

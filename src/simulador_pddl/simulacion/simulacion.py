@@ -133,7 +133,7 @@ class Simulacion:
     """
 
     # Acciones que ocupan el dron entero: mientras se mueve no puede hacer nada
-    # más. El resto (coger o soltar una caja o un transportador, entregar una caja,
+    # más. Las demás (coger o soltar una caja o un transportador, entregar una caja
     # y meter o sacar una caja de un transportador) solo ocupan un brazo, así que
     # dos brazos distintos pueden trabajar a la vez.
     _TIPOS_ACCION_DRON_ENTERO = (Mover, MoverTransportador)
@@ -159,7 +159,7 @@ class Simulacion:
         self._contenidos = _lista_tipada(contenidos, Contenido, "contenidos")
 
         # Los transportadores son opcionales: un problema sin ellos es válido, no
-        # un error. Sin una lista de transportadores esto es None.
+        # un error. Sin una lista de transportadores, el atributo vale None, y
         # _todos_los_transportadores da [] para recorrerlos.
         self._transportadores = (
             _lista_tipada(
@@ -318,7 +318,7 @@ class Simulacion:
         Cada dron, caja, persona y transportador tiene que estar en una
         localización declarada, y cada caja y cada necesidad tienen que usar un
         contenido declarado. Una localización o un contenido mal escritos (p. ej.
-        ``"deposto"`` por ``"deposito"``) harían que el plan pareciera incorrecto,
+        ``"deposto"`` por ``"deposito"``) harían que el plan pareciera no válido,
         o dejarían un objeto que la ventana no puede dibujar, así que se rechazan
         al construir.
         """
@@ -360,9 +360,9 @@ class Simulacion:
         """Lanza ``ValueError`` si un brazo pertenece a más de un dron.
 
         En el dominio, cada brazo es de un solo dron. Dos drones con el mismo
-        objeto ``Brazo`` verían el mismo contenido, y la comprobación de
-        solapamientos, que agrupa las acciones por dron, no los detendría: un
-        plan incorrecto podría resultar ejecutable sin ningún error.
+        objeto ``Brazo`` compartirían lo que sujeta el brazo, y la comprobación
+        de solapamientos, que agrupa las acciones por dron, no los detendría: un
+        plan imposible podría resultar ejecutable sin ningún error.
         """
         duenos: dict[Brazo, Dron] = {}
         for dron in self._drones:
@@ -422,7 +422,7 @@ class Simulacion:
         self,
         objeto: Caja | Contenido | Dron | Localizacion | Persona | Transportador,
     ) -> Sequence[object]:
-        """Devuelve la lista de objetos del tipo de ``objeto`` que se dio."""
+        """Devuelve la lista que se dio para el tipo de ``objeto``."""
         if isinstance(objeto, Caja):
             return self._cajas
         if isinstance(objeto, Contenido):
@@ -532,7 +532,7 @@ class Simulacion:
 
         # Un tic puede abarcar varios sucesos del plan (el inicio o el final de
         # una acción): con un paso_tiempo grande, con el multiplicador de
-        # velocidad, o con planes cuyos instantes están a milisegundos (sgplan40
+        # velocidad o con planes cuyos instantes están a milisegundos (sgplan40
         # deja 0.01 entre acciones, optic-clp encadena acciones a 0.001). Si el
         # tic se aplicara de una vez, una acción que empieza y termina dentro de
         # él no terminaría hasta el tic siguiente, y otra que empezara más tarde
@@ -717,8 +717,8 @@ class Simulacion:
         """Detiene la simulación con el mensaje de error de ``accion``.
 
         Las acciones en curso ya no van a terminar, así que se quitan de
-        ``_acciones_activas``: así el ``Renderizador`` deja de dibujar a mitad de
-        camino un dron cuyo movimiento no terminó.
+        ``_acciones_activas``. De este modo, el ``Renderizador`` deja de dibujar a
+        mitad de camino un dron cuyo movimiento no terminó.
         """
         self._error = mensaje
         self._accion_fallida = accion
@@ -799,8 +799,8 @@ class Simulacion:
     def _simulacion_texto(self, paso_tiempo: float) -> InformeVerificacion:
         """Ejecuta el plan en la terminal, imprimiendo cada inicio y final.
 
-        Si una acción falla, imprime también una línea ``NO INICIA`` o ``NO
-        TERMINA`` con ella, en el instante en que falló, antes del error.
+        Si una acción falla, imprime también una línea ``NO INICIA`` o
+        ``NO TERMINA`` con ella, en el instante en que falló, antes del error.
 
         Args:
             paso_tiempo: Los segundos simulados que avanza la simulación en cada

@@ -1,4 +1,4 @@
-"""Resultado de verificar un plan: si se pudo ejecutar, y si resolvió el problema.
+"""Resultado de verificar un plan: si se pudo ejecutar y si resolvió el problema.
 
 Son dos preguntas distintas, y este módulo las mantiene separadas. Un plan es
 ejecutable si ninguna de sus acciones falla, y eso solo se sabe al llegar a su
@@ -10,7 +10,7 @@ Las dos respuestas dan uno de cinco veredictos: ``"NO EJECUTABLE"`` si falla
 una acción, ``"INCOMPLETO"`` si la ejecución se detiene antes del final sin que
 falle ninguna (p. ej. porque se cierra la ventana de una simulación visual),
 ``"EJECUTABLE"`` si termina sin objetivos que comprobar, ``"NO RESUELVE"`` si
-termina sin cumplirlos todos, y ``"VÁLIDO"`` si los cumple.
+termina sin cumplirlos todos y ``"VÁLIDO"`` si los cumple.
 
 ``InformeVerificacion`` es el informe de una ejecución, con su veredicto, y
 ``EstadoObjetivo`` anota cómo le fue a cada objetivo.

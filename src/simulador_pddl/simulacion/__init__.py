@@ -1,8 +1,8 @@
 """simulacion: El motor que ejecuta y verifica un plan.
 
-``Mundo`` es el punto de entrada público de la biblioteca. Cada ejecución
-devuelve un ``InformeVerificacion``, y los dos tipos que se exportan aquí son
-los que el usuario puede leer, pero no cambiar:
+``Mundo`` es el punto de entrada público de la biblioteca. Sus métodos que
+ejecutan el plan devuelven un ``InformeVerificacion``, y los dos tipos que se
+exportan aquí son los que el usuario puede leer, pero no cambiar:
 
     InformeVerificacion: el informe de una ejecución, con su veredicto
         (``informe.veredicto``).
