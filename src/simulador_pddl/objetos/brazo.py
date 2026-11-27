@@ -16,7 +16,9 @@ class Brazo:
     Un brazo se crea con su nombre y se le da a un ``Dron`` al construirlo. Puede
     estar libre, sujetar una caja (``caja``) o estar reservado por un
     transportador que lleva (``transportador``), pero solo una de estas cosas a la
-    vez. Cada brazo tiene que pertenecer a un solo dron.
+    vez. Cada brazo tiene que pertenecer a un solo dron. Se compara por
+    identidad, así que las acciones tienen que usar este mismo objeto, no otro
+    creado con el mismo nombre.
 
     Args:
         nombre: El nombre del brazo en el dominio.

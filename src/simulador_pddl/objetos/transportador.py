@@ -21,6 +21,8 @@ class Transportador:
     Un transportador puede estar suelto en una localización o sujeto por el brazo
     de un dron (``propietario_actual`` es el dron y ``brazo_actual``, el brazo).
     Se mueve con el dron que lo lleva, así que siempre tiene una localización.
+    Se compara por identidad, así que las acciones y los objetivos tienen que
+    usar este mismo objeto, no otro creado con el mismo nombre.
 
     Args:
         nombre: El nombre del transportador en el dominio.
@@ -69,7 +71,12 @@ class Transportador:
     # ------------------------------------------------------------------
 
     def _reservar_hueco(self, caja: Caja) -> None:
-        """Guarda un hueco para una caja cuya carga ha empezado."""
+        """Guarda un hueco para una caja cuya carga ha empezado.
+
+        Tiene que quedar un hueco libre:
+        ``Dron._iniciar_poner_caja_en_transportador()`` lo comprueba antes de
+        llamarlo.
+        """
         self._cajas_entrantes.append(caja)
 
     def _anadir_caja(self, caja: Caja) -> None:
@@ -86,7 +93,8 @@ class Transportador:
         """Saca una caja del transportador, que no puede estar sujeto por un dron.
 
         La caja tiene que estar dentro y ningún dron puede estar sujetando el
-        transportador: el único que llama comprueba las dos cosas antes.
+        transportador: ``Dron._iniciar_sacar_caja_de_transportador()``, el único
+        que lo llama, comprueba las dos cosas antes.
         """
         self._cajas_dentro.remove(caja)
 
@@ -233,7 +241,11 @@ class Transportador:
 
     @property
     def cajas_dentro(self) -> list[Caja]:
-        """Las cajas dentro del transportador, como copia de la lista interna."""
+        """Las cajas dentro del transportador, como copia de la lista interna.
+
+        Una caja que se está sacando ya no está en la lista, aunque sigue ocupando
+        su hueco hasta que termina la descarga.
+        """
         return list(self._cajas_dentro)
 
     @property

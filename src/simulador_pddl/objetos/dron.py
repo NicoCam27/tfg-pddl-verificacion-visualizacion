@@ -29,7 +29,9 @@ class Dron:
 
     Un dron se mueve entre localizaciones y, con sus brazos, coge y suelta cajas
     y transportadores, mete cajas en un transportador y las saca, y entrega cajas
-    a personas. Al moverse se lleva todo lo que sujetan sus brazos.
+    a personas. Al moverse se lleva todo lo que sujetan sus brazos. Se compara por
+    identidad, así que las acciones y los objetivos tienen que usar este mismo
+    objeto, no otro creado con el mismo nombre.
 
     Los métodos privados del dron aplican los efectos de las acciones, y solo
     los llaman las acciones durante la simulación. Siguiendo el modelo de las
@@ -342,7 +344,7 @@ class Dron:
             )
             raise ValueError(msg_caja_ya_del_dron)
 
-        # El dron reclama la caja si está disponible, en el caso contrario fallo.
+        # Si la caja no está disponible, _asignar_a() lanza el error.
         caja._asignar_a(self)
 
         registrador.info(
@@ -523,6 +525,8 @@ class Dron:
         no se puede mover mientras tanto.
         """
         transportador._anadir_caja(caja)
+        # _asignar_a() solo acepta una caja disponible, así que primero se libera
+        # del dron.
         caja._liberar()
         brazo._quitar_caja()
         caja._asignar_a(transportador)
@@ -585,6 +589,8 @@ class Dron:
 
         brazo._exigir_libre()
 
+        # _asignar_a() solo acepta una caja disponible, así que primero se libera
+        # del transportador.
         caja._liberar()
         caja._asignar_a(self)
         transportador._quitar_caja(caja)

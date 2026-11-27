@@ -19,6 +19,8 @@ class Persona:
 
     Una persona no se mueve de su localización y tiene necesidades, que se
     cubren entregándole cajas. Las cajas que se le entregan quedan en ``posee``.
+    Se compara por identidad, así que las acciones y los objetivos tienen que
+    usar este mismo objeto, no otro creado con el mismo nombre.
 
     Args:
         nombre: El nombre de la persona en el dominio.

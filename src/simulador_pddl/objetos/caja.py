@@ -25,7 +25,9 @@ class Caja:
     un dron, dentro de un transportador o entregada a una persona. Su ``estado``
     es ``DISPONIBLE``, ``TRANSPORTADA`` (en un brazo o en un transportador) o
     ``ENTREGADA``, y ``propietario_actual`` dice quién la tiene. Se mueve con
-    quien la lleva, así que siempre tiene una localización.
+    quien la lleva, así que siempre tiene una localización. Se compara por
+    identidad, así que las acciones tienen que usar este mismo objeto, no otro
+    creado con el mismo nombre.
 
     Args:
         nombre: El nombre de la caja en el dominio.
