@@ -74,4 +74,4 @@ nuevo_mundo = Mundo(
 # Simula el plan en la ventana de pygame y devuelve el informe con el veredicto
 informe = nuevo_mundo.simulacion_visual()
 
-print(informe.resumen())  # Una vez se cierra la ventana se imprime el veredicto
+print(informe.resumen())  # Al cerrar la ventana, se imprime el resumen del informe

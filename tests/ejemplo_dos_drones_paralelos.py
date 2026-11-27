@@ -174,4 +174,4 @@ nuevo_mundo = Mundo(
 # ventana ("INCOMPLETO" si se cierra antes del final).
 #informe = nuevo_mundo.simulacion_texto()
 informe = nuevo_mundo.simulacion_visual()
-print(informe.resumen()) # Una vez se cierra la ventana se imprime el veredicto
+print(informe.resumen())  # Al cerrar la ventana, se imprime el resumen del informe

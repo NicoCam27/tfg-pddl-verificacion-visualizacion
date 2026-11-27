@@ -3,11 +3,11 @@
 Un dron tiene que llevar una caja de comida del depósito a ``persona1``, en
 ``loc1``. Ir directamente del depósito a ``loc1`` dura 4, pero pasar por ``loc2``
 dura 1 + 1. El planificador A minimiza el número de acciones y va directo (3
-acciones, termina en t=6); el planificador B minimiza la duración del plan y
+acciones, termina en t=6). El planificador B minimiza la duración del plan y
 pasa por ``loc2`` (4 acciones, termina en t=4). Los dos planes son válidos.
 
-El problema se escribe una vez, en ``crear_problema()``, y se llama una vez por
-plan: ``Mundo`` cambia los objetos que recibe al ejecutar el plan, así que cada
+El problema se escribe una vez, en ``crear_problema()``, y esa función se llama
+una vez por plan: ``Mundo`` cambia los objetos que recibe al ejecutar el plan, así que cada
 plan necesita objetos nuevos.
 """
 

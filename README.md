@@ -42,7 +42,7 @@ Una vez instalada, la biblioteca se importa con:
 from simulador_pddl import *
 ```
 
-Un problema se describe con tres cosas: los **objetos** del dominio, un **plan** (una lista de acciones, cada una con su instante de inicio y su duración, o, en un plan clásico, con el número de paso correspondiente y 1) y los **objetivos** que el plan debe cumplir. `Mundo` comprueba el plan, lo simula y devuelve un veredicto.
+Un problema se describe con tres cosas: los **objetos** del dominio, un **plan** (una lista de acciones, cada una con su instante de inicio y su duración, que en un plan clásico son su número de paso y 1) y los **objetivos** que el plan debe cumplir. `Mundo` comprueba el plan, lo simula y devuelve un veredicto.
 
 Ejemplo básico:
 
@@ -129,9 +129,9 @@ Este ejemplo y otros tres están en el directorio `tests/` (`ejemplo_basico.py`,
 | `Brazo` | `Brazo(nombre)` | Un brazo de un dron. Sujeta como máximo una caja, o queda reservado por el transportador que lleva. |
 | `Dron` | `Dron(nombre, localizacion, brazos)` | Un dron, con su localización y su lista de brazos. |
 | `Caja` | `Caja(nombre, localizacion, contenido)` | Una caja, con su contenido. |
-| `Contenido` | `Contenido(nombre)` | Lo que lleva una caja y lo que necesita una persona (por ejemplo `Contenido("comida")`). Dos contenidos con el mismo nombre son el mismo. |
+| `Contenido` | `Contenido(nombre)` | Lo que contiene una caja y lo que necesita una persona (por ejemplo `Contenido("comida")`). Dos contenidos con el mismo nombre son el mismo. |
 | `Persona` | `Persona(nombre, localizacion, necesidades)` | Una persona, con lo que necesita: un contenido o una lista de contenidos distintos. |
-| `Transportador` | `Transportador(nombre, localizacion, capacidad)` | Un transportador en el que caben `capacidad` cajas. Es opcional. |
+| `Transportador` | `Transportador(nombre, localizacion, capacidad)` | Un transportador en el que caben `capacidad` cajas. Un problema puede no tener ninguno. |
 
 ### Acciones
 
@@ -149,9 +149,9 @@ Cada acción tiene un instante de inicio y una duración, y sus efectos se aplic
 | `SoltarTransportador` | `dron, brazo, transportador` | El dron suelta el transportador que lleva. |
 | `MoverTransportador` | `dron, brazo, transportador, origen, destino` | El dron coge el transportador, lo lleva a otra localización y lo suelta. |
 
-Mientras un dron hace un `Mover` o un `MoverTransportador`, no puede hacer ninguna otra acción. El resto de acciones ocupan únicamente su brazo, así que un dron con dos brazos puede, por ejemplo, coger dos cajas al mismo tiempo. Un plan que incumple estas reglas es `NO EJECUTABLE`.
+Mientras un dron hace un `Mover` o un `MoverTransportador`, no puede hacer ninguna otra acción. Las demás acciones solo ocupan su brazo, así que un dron con dos brazos puede, por ejemplo, coger dos cajas al mismo tiempo. Un plan que incumple estas reglas es `NO EJECUTABLE`.
 
-**Planes clásicos.** Un planificador clásico (LAMA, Metric-FF...) devuelve una secuencia de pasos sin tiempos. Se escribe numerando sus pasos desde 0: la acción del paso `i` tiene `inicio_sim=i` y `duracion_sim=1`, el valor por defecto, así que basta con indicar el inicio (por ejemplo, `CogerCaja(dron, brazo, caja, 0)`). Como sus acciones no se solapan, aplicar los efectos en dos fases produce el mismo estado que aplicarlos a la vez, y el veredicto es el mismo que daría el plan clásico.
+**Planes clásicos.** Un planificador clásico (LAMA, Metric-FF...) devuelve una secuencia de pasos sin tiempos. Se escribe numerando sus pasos desde 0: la acción del paso `i` tiene `inicio_sim=i` y `duracion_sim=1`, el valor por defecto, así que basta con indicar el inicio (por ejemplo, `CogerCaja(dron, brazo, caja, 0)`). Como sus acciones no se solapan, aplicar los efectos en dos fases produce el mismo estado que aplicarlos a la vez, y el veredicto es el mismo que tendría el plan en PDDL clásico.
 
 ### Objetivos
 
@@ -243,7 +243,7 @@ nuevo_mundo = Mundo(
 # Simula el plan en la ventana de pygame y devuelve el informe con el veredicto
 informe = nuevo_mundo.simulacion_visual()
 
-print(informe.resumen())  # Una vez se cierra la ventana se imprime el veredicto
+print(informe.resumen())  # Al cerrar la ventana, se imprime el resumen del informe
 ```
 
 ### Simulación y veredicto
@@ -251,7 +251,10 @@ print(informe.resumen())  # Una vez se cierra la ventana se imprime el veredicto
 `Mundo` ofrece dos formas de simular el plan. Las dos devuelven un informe (`InformeVerificacion`):
 
 - `simulacion_texto()`: muestra en la terminal el inicio y el final de cada acción y, al terminar, el veredicto.
-- `simulacion_visual()`: abre una ventana de Pygame con botones para reproducir, pausar y reiniciar el plan, y un control de velocidad. Un botón en la esquina superior derecha abre un panel lateral con el tiempo simulado, el estado del plan y tres pestañas: la del plan, con cada acción, un color que indica si está sin empezar, en ejecución, terminada, interrumpida o fallida, y una barra de progreso mientras se ejecuta (al pulsar una acción, la simulación salta a su inicio, en pausa), la de objetivos, cada uno con un color que indica si está pendiente, cumplido, roto o no logrado, y la de objetos, con dónde está cada dron, transportador, caja y persona y lo que lleva, tiene o necesita. Devuelve el informe cuando se cierra la ventana.
+- `simulacion_visual()`: abre una ventana de Pygame y devuelve el informe cuando se cierra. La ventana tiene botones para reproducir, pausar y reiniciar el plan, y un control de velocidad. Un botón en la esquina superior derecha abre un panel lateral con el tiempo simulado, el estado del plan y tres pestañas:
+  - **Plan:** cada acción, con un color que indica si está sin empezar, en ejecución, terminada, interrumpida o fallida, y una barra de progreso mientras se ejecuta. Al pulsar una acción, la simulación salta a su inicio, en pausa.
+  - **Objetivos:** cada objetivo, con un color que indica si está pendiente, cumplido, roto o no logrado.
+  - **Objetos:** dónde está cada dron, transportador, caja y persona, y lo que lleva, tiene o necesita.
 
 ```python
 informe = nuevo_mundo.simulacion_visual()
@@ -270,13 +273,21 @@ El informe indica el veredicto en `informe.veredicto`:
 | `INCOMPLETO` | La simulación se detuvo antes de terminar el plan (por ejemplo, al cerrar la ventana). |
 | `NO EJECUTABLE` | Una acción no se pudo aplicar: el plan no es ejecutable. |
 
-Además, `informe.es_valido` es `True` solo si el veredicto es `VÁLIDO`, `informe.error` contiene el mensaje de la acción que falló, `informe.accion_fallida` la propia acción (la misma que se dio en el plan) e `informe.fallo_en` el instante en que falló (los tres son `None` si no falló ninguna), y `informe.resumen()` devuelve el texto completo, con el estado de cada objetivo. Para usar esos datos desde el código (por ejemplo, para comparar planes o en pruebas), el informe también los ofrece como objetos `EstadoObjetivo`, uno por objetivo, en `informe.estados_objetivos`, `informe.objetivos_cumplidos` e `informe.objetivos_no_cumplidos`, con las propiedades `objetivo`, `cumplido`, `logrado_en`, `roto_en` y `explicacion_fallo`.
+Además, el informe ofrece:
+
+- `informe.es_valido`: `True` solo si el veredicto es `VÁLIDO`.
+- `informe.error`: el mensaje de la acción que falló.
+- `informe.accion_fallida`: la acción que falló, la misma instancia que está en el plan.
+- `informe.fallo_en`: el instante en que falló.
+- `informe.resumen()`: el texto completo del informe, con el estado de cada objetivo.
+
+`error`, `accion_fallida` y `fallo_en` son `None` si no falló ninguna acción. Para usar el estado de los objetivos desde el código (por ejemplo, para comparar planes o en pruebas), el informe lo ofrece como objetos `EstadoObjetivo`, uno por objetivo, en `informe.estados_objetivos`, `informe.objetivos_cumplidos` e `informe.objetivos_no_cumplidos`, con las propiedades `objetivo`, `cumplido`, `logrado_en`, `roto_en` y `explicacion_fallo`.
 
 ### Varios planes para el mismo problema
 
 `Mundo` ejecuta el plan sobre los objetos que recibe, no sobre copias: al terminar, los objetos quedan como los ha dejado el plan (la caja entregada, el dron en su destino), y se pueden consultar. Por eso un `Mundo` parte del estado en que estén sus objetos al construirlo, y un segundo `Mundo` con los mismos objetos partiría del estado final del primero.
 
-Para comprobar los planes de varios planificadores sobre el mismo problema, el problema se escribe una sola vez en funciones que crean los objetos y los objetivos, y se llaman una vez por plan:
+Para comprobar los planes de varios planificadores sobre el mismo problema, el problema se escribe una sola vez en funciones que crean los objetos y los objetivos, y esas funciones se llaman una vez por plan:
 
 ```python
 def crear_problema():         # Crea los objetos: nuevos en cada llamada
@@ -297,7 +308,7 @@ for crear_plan in (plan_planificador_a, plan_planificador_b):
     informe = mundo.simulacion_texto()
 ```
 
-El ejemplo completo está en `tests/ejemplo_varios_planificadores.py`: dos planificadores que, para el mismo problema, dan dos planes válidos distintos, uno con menos acciones y otro que termina antes.
+El ejemplo completo está en `tests/ejemplo_varios_planificadores.py`: dos planificadores que, para el mismo problema, devuelven dos planes válidos distintos, uno con menos acciones y otro que termina antes.
 
 ## Ejecución
 
