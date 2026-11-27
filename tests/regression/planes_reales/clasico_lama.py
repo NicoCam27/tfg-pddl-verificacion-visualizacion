@@ -11,7 +11,7 @@ Plan tal cual lo devuelve LAMA:
     (entregar-caja dron1 izquierdo caja2 persona2 loc2 medicina)
     (mover dron1 loc2 deposito)
 
-LAMA no tiene modelo temporal: da una secuencia de acciones. La acción i empieza
+LAMA no tiene modelo temporal: devuelve una secuencia de acciones. La acción i empieza
 en i y dura 1.
 """
 

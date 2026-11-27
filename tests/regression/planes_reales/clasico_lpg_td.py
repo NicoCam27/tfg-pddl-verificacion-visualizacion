@@ -11,7 +11,7 @@ Plan tal cual lo devuelve LPG-td (instante, acción y duración):
     6:   (ENTREGAR-CAJA DRON1 DERECHO CAJA1 PERSONA1 LOC1 COMIDA) [1]
     7:   (MOVER DRON1 LOC1 DEPOSITO) [1]
 
-En un dominio clásico, LPG-td da a cada acción duración 1 y las pone una detrás de
+En un dominio clásico, LPG-td asigna a cada acción duración 1 y las coloca una detrás de
 otra. Se usan sus instantes y duraciones.
 """
 

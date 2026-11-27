@@ -83,7 +83,7 @@ class TestExcepcionesObjetos(unittest.TestCase):
     """Cada objeto del dominio rechaza argumentos incorrectos al construirse."""
 
     def setUp(self) -> None:
-        """Crea una localización y un brazo, que los necesitan el resto de objetos."""
+        """Crea una localización y un brazo, que necesitan los demás objetos."""
         self.deposito = Localizacion("deposito")
         self.brazo = Brazo("brazo")
 
@@ -106,7 +106,7 @@ class TestExcepcionesObjetos(unittest.TestCase):
                 Contenido(nombre)  # type: ignore[arg-type]
 
     def test_nombre_de_localizacion_y_contenido_es_de_solo_lectura(self) -> None:
-        """Comprueba que el nombre de una localización o un contenido no se cambia.
+        """Comprueba que una localización o un contenido no puede cambiar de nombre.
 
         Los dos se comparan por nombre, y su hash depende de él.
         """
@@ -217,7 +217,7 @@ class TestExcepcionesObjetos(unittest.TestCase):
                 Dron("dron1", self.deposito, brazos)  # type: ignore[arg-type]
 
     def test_brazos_del_dron_tienen_que_ser_distintos(self) -> None:
-        """Comprueba que el mismo brazo dos veces en un dron lanza ``ValueError``."""
+        """Comprueba que repetir un brazo en un dron lanza ``ValueError``."""
         with self.assertRaises(ValueError):
             Dron("dron1", self.deposito, [self.brazo, self.brazo])
 
@@ -282,7 +282,7 @@ class TestExcepcionesAcciones(unittest.TestCase):
         self.transportador = Transportador("transportador1", self.deposito, 4)
 
     def _argumentos_objeto(self) -> dict[type[Accion], dict[str, Any]]:
-        """Devuelve valores válidos de sus argumentos objeto para clase de acción."""
+        """Devuelve valores válidos de los argumentos objeto de cada clase de acción."""
         dron, brazo, caja = self.dron, self.brazo, self.caja
         transportador = self.transportador
         return {
@@ -334,14 +334,14 @@ class TestExcepcionesAcciones(unittest.TestCase):
         """Comprueba que los argumentos de los que parten las otras pruebas son válidos.
 
         Sin esto, una prueba de abajo podría pasar por un error en
-        ``_argumentos_objeto()`` y no por el valor incorrecto que pasa.
+        ``_argumentos_objeto()`` y no por el valor incorrecto que prueba.
         """
         for cls, argumentos in self._argumentos_objeto().items():
             with self.subTest(cls=cls.__name__):
                 cls(**argumentos, inicio_sim=0, duracion_sim=1)
 
     def test_tipo_de_objeto_incorrecto_en_cualquier_argumento(self) -> None:
-        """Comprueba que cada argumento objeto de cada acción comprueba su tipo."""
+        """Comprueba que cada acción rechaza un argumento objeto de otro tipo."""
         for cls, argumentos in self._argumentos_objeto().items():
             for argumento in argumentos:
                 incorrecto = {**argumentos, argumento: "no es un objeto"}
@@ -361,7 +361,7 @@ class TestExcepcionesAcciones(unittest.TestCase):
                 cls(**incorrecto, inicio_sim=0, duracion_sim=1)
 
     def test_tipo_de_inicio_sim_incorrecto(self) -> None:
-        """Comprueba que un ``inicio_sim`` que no es un número lanza ``TypeError``."""
+        """Comprueba que un ``inicio_sim`` no numérico lanza ``TypeError``."""
         for inicio_sim in NO_NUMEROS:
             with self.subTest(inicio_sim=inicio_sim), self.assertRaises(TypeError):
                 CogerCaja(self.dron, self.brazo, self.caja, inicio_sim)  # type: ignore[arg-type]
@@ -373,7 +373,7 @@ class TestExcepcionesAcciones(unittest.TestCase):
                 CogerCaja(self.dron, self.brazo, self.caja, inicio_sim)
 
     def test_tipo_de_duracion_sim_incorrecto(self) -> None:
-        """Comprueba que una ``duracion_sim`` que no es número lanza ``TypeError``."""
+        """Comprueba que una ``duracion_sim`` no numérica lanza ``TypeError``."""
         for duracion_sim in NO_NUMEROS:
             with (
                 self.subTest(duracion_sim=duracion_sim),
@@ -382,7 +382,10 @@ class TestExcepcionesAcciones(unittest.TestCase):
                 CogerCaja(self.dron, self.brazo, self.caja, 0, duracion_sim)  # type: ignore[arg-type]
 
     def test_duracion_sim_tiene_que_ser_mayor_que_cero_y_finita(self) -> None:
-        """Comprueba que se rechaza una ``duracion_sim`` <= 0, infinita o NaN."""
+        """Comprueba que se rechaza una ``duracion_sim`` fuera de rango.
+
+        Una de 0 o menos, infinita o NaN lanza ``ValueError``.
+        """
         for duracion_sim in (0, -1, float("inf"), float("nan")):
             with (
                 self.subTest(duracion_sim=duracion_sim),
@@ -425,10 +428,11 @@ class TestExcepcionesAcciones(unittest.TestCase):
                 cls(**mismo, inicio_sim=0, duracion_sim=1)
 
     def test_atributos_validados_son_de_solo_lectura(self) -> None:
-        """Comprueba que tiempos, ``desc``, indicadores y objetos no se escriben.
+        """Comprueba que los valores validados de una acción no se escriben.
 
-        ``Mundo`` los valida una vez, al construirse, así que escribirlos después
-        se saltaría sus comprobaciones.
+        Son los tiempos, la ``desc``, los indicadores y los objetos. ``Mundo`` los
+        valida una vez, al construirse, así que escribirlos después se saltaría sus
+        comprobaciones.
         """
         solo_lectura = (
             "inicio_sim",
@@ -560,7 +564,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
     def test_acciones_objetos_y_objetivos_pueden_ser_tuplas(self) -> None:
         """Comprueba que cada lista que recibe ``Mundo`` se puede dar como una tupla.
 
-        La simulación guarda sus propias listas, le den lo que le den.
+        La simulación guarda siempre listas propias, aunque reciba tuplas.
         """
         mundo = Mundo(
             (self.coger_caja,),
@@ -625,7 +629,7 @@ class TestExcepcionesSimulacion(unittest.TestCase):
                 Mundo([self.coger_caja], **objetos)
 
     def test_acciones_none(self) -> None:
-        """Comprueba que ``acciones`` igual a ``None`` lanza ``TypeError``."""
+        """Comprueba que dar ``None`` como ``acciones`` lanza ``TypeError``."""
         with self.assertRaises(TypeError):
             Mundo(None, **self._objetos())  # type: ignore[arg-type]
 
@@ -835,8 +839,8 @@ class TestExcepcionesSimulacion(unittest.TestCase):
     def test_brazo_de_dos_drones(self) -> None:
         """Comprueba que un brazo no puede pertenecer a dos drones.
 
-        Los dos drones verían el mismo contenido, y un plan incorrecto podría
-        resultar ejecutable sin ningún error.
+        Los dos drones compartirían lo que sujeta el brazo, y un plan imposible
+        podría ejecutarse sin ningún error.
         """
         otro_dron = Dron("dron2", self.deposito, [self.brazo])
 
@@ -1075,7 +1079,7 @@ class TestExcepcionesSimulacionTexto(unittest.TestCase):
                 self.mundo.simulacion_texto(paso_tiempo)  # type: ignore[arg-type]
 
     def test_paso_tiempo_tiene_que_ser_mayor_que_cero(self) -> None:
-        """Comprueba que un ``paso_tiempo`` no mayor que 0 lanza ``ValueError``."""
+        """Comprueba que un ``paso_tiempo`` de 0 o menos lanza ``ValueError``."""
         for paso_tiempo in (0, -1, float("nan")):
             with self.subTest(paso_tiempo=paso_tiempo), self.assertRaises(ValueError):
                 self.mundo.simulacion_texto(paso_tiempo)

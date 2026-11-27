@@ -54,7 +54,7 @@ def ejecutar_plan(mundo: Mundo, paso_tiempo: float) -> InformeVerificacion:
 def crear_cadena_corta() -> Mundo:
     """Crea un plan de acciones cortas, cada una justo después de la anterior.
 
-    Algunos planificadores reales dan planes con esta forma: cada acción dura
+    Algunos planificadores reales producen planes con esta forma: cada acción dura
     0.005 y la siguiente empieza 0.01 después, así que un paso de 0.1 abarca
     varias.
     """
@@ -187,8 +187,8 @@ class TestVeredictoNoDependeDelPaso(unittest.TestCase):
     def test_acciones_cortas_encadenadas_son_validas_con_cualquier_paso(self) -> None:
         """Comprueba que una cadena de acciones cortas es válida con cada paso.
 
-        Cada acción necesita aplicado el final de la anterior, aunque las dos
-        caigan en el mismo tic.
+        Cada acción necesita que se haya aplicado el final de la anterior, aunque
+        las dos caigan en el mismo tic.
         """
         for paso_tiempo in PASOS_TIEMPO:
             with self.subTest(paso_tiempo=paso_tiempo):

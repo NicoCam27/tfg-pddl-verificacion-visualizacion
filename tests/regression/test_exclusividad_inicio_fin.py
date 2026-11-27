@@ -4,7 +4,7 @@ Una acción reclama su caja o su transportador cuando empieza y aplica sus
 efectos finales cuando termina. Estas pruebas comprueban lo que se sigue de
 ello: dos drones no pueden manejar la misma caja o el mismo transportador en
 ventanas de tiempo solapadas, una acción puede empezar en el instante en que
-termina la anterior, y ``reiniciar()`` deshace una acción que ha empezado y no
+termina la anterior y ``reiniciar()`` deshace una acción que ha empezado y no
 ha terminado.
 
 También comprueban la regla de solapamiento, que se aplica al ejecutar, cuando
@@ -209,13 +209,13 @@ class TestExclusividadDeTransportadorEntreDrones(unittest.TestCase):
             "transportadores": [self.transportador],
         }
 
-    def test_dos_drones_compitiendo_por_el_mismo_transportador_se_rechaza(self) -> None:
+    def test_coger_un_transportador_que_mueve_otro_dron_se_rechaza(self) -> None:
         """Comprueba que un transportador no se puede coger mientras otro dron lo mueve.
 
         Las acciones de dos drones distintos no se comparan al construir el plan,
         así que el conflicto aparece mientras se ejecuta: ``dron1`` reclama el
-        transportador al inicio de su ``MoverTransportador``, y se rechaza el
-        coger de ``dron2``.
+        transportador al inicio de su ``MoverTransportador``, y el
+        ``CogerTransportador`` de ``dron2`` se rechaza.
         """
         acciones = [
             MoverTransportador(
@@ -243,7 +243,7 @@ class TestExclusividadDeTransportadorEntreDrones(unittest.TestCase):
 
 
 class TestSolapamientoDentroDeUnDron(unittest.TestCase):
-    """Un movimiento ocupa el dron entero, cualquier otra acción solo ocupa su brazo."""
+    """Un movimiento ocupa el dron entero, y cualquier otra acción solo su brazo."""
 
     def setUp(self) -> None:
         """Crea un dron con dos brazos, dos cajas y un transportador."""
@@ -283,7 +283,7 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
     def test_coger_durante_un_mover_del_mismo_dron_se_rechaza(self) -> None:
         """Comprueba que un dron no puede coger una caja mientras se mueve.
 
-        La carga usa un brazo que el movimiento no nombra, así que solo la regla
+        ``CogerCaja`` usa un brazo que el movimiento no nombra, así que solo la regla
         de que un movimiento ocupa el dron entero puede rechazarla.
         """
         acciones = [
@@ -331,7 +331,7 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
     ) -> None:
         """Comprueba que ``MoverTransportador`` ocupa el dron entero, como ``Mover``.
 
-        La carga usa el brazo que no lleva el transportador.
+        ``CogerCaja`` usa el brazo que no sujeta el transportador.
         """
         acciones = [
             MoverTransportador(
@@ -355,7 +355,7 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
         )
 
     def test_dos_brazos_de_un_dron_pueden_coger_a_la_vez(self) -> None:
-        """Comprueba que dos cargas solapadas se aceptan en brazos distintos."""
+        """Comprueba que se aceptan dos ``CogerCaja`` solapados con brazos distintos."""
         acciones = [
             CogerCaja(
                 self.dron, self.izquierda, self.caja_a, inicio_sim=0, duracion_sim=1
@@ -372,7 +372,7 @@ class TestSolapamientoDentroDeUnDron(unittest.TestCase):
         self.assertIs(self.derecha.caja, self.caja_b)
 
     def test_un_brazo_no_puede_coger_dos_cajas_a_la_vez(self) -> None:
-        """Comprueba que dos cargas solapadas se rechazan en el mismo brazo."""
+        """Comprueba que se rechazan dos ``CogerCaja`` solapados con el mismo brazo."""
         acciones = [
             CogerCaja(
                 self.dron, self.izquierda, self.caja_a, inicio_sim=0, duracion_sim=2
@@ -393,7 +393,7 @@ class TestReiniciarRestauraEstadoAMitadDeAccion(unittest.TestCase):
     """``reiniciar()`` deshace los efectos de una acción que solo ha empezado."""
 
     def test_reiniciar_deshace_una_accion_que_empezo_y_no_termino(self) -> None:
-        """Comprueba que ``reiniciar()`` restaura una caja de una carga sin terminar.
+        """Comprueba que ``reiniciar()`` restaura la caja que se coge a medias.
 
         ``_iniciar_coger_caja()`` ya cambia el estado de la caja (de ``DISPONIBLE`` a
         ``TRANSPORTADA``) antes de que termine la acción. ``reiniciar()`` tiene que

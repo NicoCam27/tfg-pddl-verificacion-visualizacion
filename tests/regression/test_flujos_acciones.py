@@ -1,8 +1,8 @@
 """Pruebas de principio a fin de cada tipo de acción.
 
-Cada prueba ejecuta un plan corto y comprueba el estado que dejan
-las fases ``at start`` y ``at end``, incluido un movimiento cuyo origen no es
-donde está el dron, que falla cuando empieza.
+Cada prueba ejecuta un plan corto y comprueba el estado que dejan las fases
+``at start`` y ``at end``. También se prueba un movimiento cuyo origen no es donde
+está el dron, que falla al empezar.
 """
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
     """``CogerCaja`` y ``EntregarCaja``: una caja se entrega a una persona."""
 
     def test_coger_y_entregar_entrega_la_caja(self) -> None:
-        """Comprueba que coger y entregar una caja la entrega y libera el brazo."""
+        """Comprueba que coger y entregar la caja da ``"VÁLIDO"`` y libera el brazo."""
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
@@ -172,7 +172,7 @@ class TestEntregarCajaAPersona(unittest.TestCase):
     def test_entregar_una_caja_que_el_brazo_no_sujeta_falla_al_empezar(
         self,
     ) -> None:
-        """Comprueba que el error culpa al brazo por no sujetar la caja al entregar."""
+        """Comprueba que el error dice que el brazo no sujeta la caja que se entrega."""
         localizacion1 = Localizacion("localizacion1")
         localizacion2 = Localizacion("localizacion2")
         brazo = Brazo("brazo")
@@ -281,7 +281,7 @@ class TestSoltar(unittest.TestCase):
         """Comprueba que una caja no se puede coger mientras se está soltando.
 
         El dron conserva la caja hasta el final de ``Soltar``. Si otro dron
-        intenta cogerla entre medias, el plan no es ejecutable.
+        intenta cogerla mientras tanto, el plan no es ejecutable.
         """
         deposito = Localizacion("deposito")
         brazo1 = Brazo("brazo1")
@@ -479,8 +479,8 @@ class TestBrazoOcupado(unittest.TestCase):
     def test_un_brazo_con_una_caja_no_puede_coger_otra(self) -> None:
         """Comprueba que un brazo no coge una segunda caja sin soltar la primera.
 
-        Las dos cargas no se solapan, así que no las rechaza la regla de
-        solapamiento: lo hace la comprobación de que el brazo está libre.
+        Las dos acciones ``CogerCaja`` no se solapan, así que no las rechaza la regla
+        de solapamiento: lo hace la comprobación de que el brazo está libre.
         """
         acciones = [
             CogerCaja(
@@ -526,7 +526,7 @@ class TestBrazoOcupado(unittest.TestCase):
 
 
 class TestIdaYVueltaTransportador(unittest.TestCase):
-    """Poner y sacar una caja de un transportador: la caja entra y sale."""
+    """Meter una caja en un transportador y sacarla: la caja entra y sale."""
 
     def test_la_caja_va_del_dron_al_transportador_y_vuelve(self) -> None:
         """Comprueba que una caja que entra y sale acaba en el brazo."""
@@ -660,7 +660,7 @@ class TestCajaQueNoEstaEnElBrazoNiEnElTransportador(unittest.TestCase):
         return ejecutar_plan(mundo, paso_tiempo=0.1)
 
     def test_meterla_falla_porque_el_brazo_no_la_sujeta(self) -> None:
-        """Comprueba que ``PonerCajaEnTransportador`` culpa al brazo vacío."""
+        """Comprueba que ``PonerCajaEnTransportador`` dice que el brazo está vacío."""
         acciones = [
             PonerCajaEnTransportador(
                 self.dron,
@@ -700,10 +700,13 @@ class TestCajaQueNoEstaEnElBrazoNiEnElTransportador(unittest.TestCase):
 
 
 class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
-    """``CogerTransportador`` y ``SoltarTransportador`` sin moverse entre medias."""
+    """``CogerTransportador`` y ``SoltarTransportador``, sin moverse entre las dos."""
 
     def test_coger_y_soltar_sin_moverse(self) -> None:
-        """Comprueba que un transportador cogido y soltado y su brazo acaban libres."""
+        """Comprueba que coger y soltar un transportador lo deja libre.
+
+        Su brazo también queda libre.
+        """
         deposito = Localizacion("deposito")
         brazo = Brazo("brazo")
         dron = Dron("dron1", deposito, [brazo])
@@ -788,7 +791,7 @@ class TestCogerYSoltarTransportadorSueltos(unittest.TestCase):
     def test_no_se_puede_meter_una_caja_en_un_transportador_que_se_esta_soltando(
         self,
     ) -> None:
-        """Comprueba que un transportador solo acepta cajas cuando acaba de soltarse.
+        """Comprueba que un transportador solo acepta cajas cuando ya se ha soltado.
 
         El segundo dron empieza a meter su caja en el transportador en t=2,
         mientras el primero todavía lo está soltando (de t=1 a t=3).
@@ -1151,7 +1154,7 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
         )
 
     def test_mensaje_con_transportadores_y_sin_cajas(self) -> None:
-        """Comprueba el plural de los transportadores cuando no lleva cajas."""
+        """Comprueba el plural de los transportadores cuando el dron no lleva cajas."""
         deposito = Localizacion("deposito")
         localizacion1 = Localizacion("localizacion1")
         brazos = [Brazo("brazo1"), Brazo("brazo2")]
@@ -1191,7 +1194,10 @@ class TestMensajeDeRegistroDeMover(unittest.TestCase):
 
 
 class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
-    """Poner una caja reserva un hueco al empezar y mete la caja al final."""
+    """``PonerCajaEnTransportador`` reserva un hueco del transportador al empezar.
+
+    La caja pasa del brazo al transportador al final.
+    """
 
     def setUp(self) -> None:
         """Crea dos drones, dos cajas y un transportador con sitio para una caja."""
@@ -1217,7 +1223,7 @@ class TestTiemposDePonerCajaEnTransportador(unittest.TestCase):
         }
 
     def test_la_caja_sigue_en_el_brazo_hasta_que_termina_la_carga(self) -> None:
-        """Comprueba que durante la carga la caja nunca se queda sin quien la sujete."""
+        """Comprueba que, durante la carga, la caja nunca queda sin quien la sujete."""
         acciones = [
             CogerCaja(
                 self.dron1, self.brazo1, self.caja1, inicio_sim=0, duracion_sim=1

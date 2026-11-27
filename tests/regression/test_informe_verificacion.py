@@ -2,11 +2,12 @@
 
 Comprueban cuatro cosas. Un informe refleja la simulación en el momento en que se
 obtiene: no cambia cuando su simulación se reinicia o se vuelve a ejecutar. El
-veredicto es el correcto en cada situación: una ejecución sin terminar es
+veredicto es el que corresponde a cada situación: un plan que termina sin errores
+y logra todos sus objetivos es ``"VÁLIDO"``, una ejecución sin terminar es
 ``"INCOMPLETO"``, un plan terminado sin objetivos es ``"EJECUTABLE"``, uno que no
-logra sus objetivos es ``"NO RESUELVE"``, y un error es ``"NO EJECUTABLE"``. Los
-instantes en que un objetivo se logró y se rompió describen el último periodo en el
-que se cumplió. Y si falla una acción, el informe la devuelve, y
+logra todos sus objetivos es ``"NO RESUELVE"`` y un error es ``"NO EJECUTABLE"``.
+Los instantes en que un objetivo se logró y se rompió describen el último periodo
+en el que se cumplió. Y si falla una acción, el informe la devuelve, y
 ``simulacion_texto()`` la imprime.
 """
 
@@ -214,7 +215,7 @@ class TestInformeNoSigueALaSimulacion(unittest.TestCase):
         self.assertEqual(informe_antes.veredicto, informe_antes.INCOMPLETO)
         self.assertIsNone(informe_antes.estados_objetivos[0].logrado_en)
 
-    def test_nueva_ejecucion_tras_reiniciar_da_un_nuevo_informe_correcto(self) -> None:
+    def test_nueva_ejecucion_tras_reiniciar_da_un_nuevo_informe_valido(self) -> None:
         """Comprueba que una segunda ejecución da otro informe, también ``"VÁLIDO"``."""
         primero = self.ejecutar_plan()
         self.mundo.reiniciar()
@@ -247,7 +248,7 @@ class TestExplicacionFalloNoSigueALaSimulacion(unittest.TestCase):
         )
 
     def test_explicacion_no_cambia_tras_reiniciar(self) -> None:
-        """Comprueba que la explicación de un fallo sobrevive a ``reiniciar()``."""
+        """Comprueba que ``reiniciar()`` no cambia la explicación de un fallo."""
         with contextlib.redirect_stdout(io.StringIO()):
             informe = self.mundo.simulacion_texto()
         esperado = (
@@ -313,8 +314,8 @@ class TestEjecucionSinTerminar(unittest.TestCase):
         self.assertEqual(informe.veredicto, informe.VALIDO)
         self.assertTrue(informe.es_valido)
 
-    def test_un_error_gana_a_incompleto(self) -> None:
-        """Comprueba que un error gana a ``"INCOMPLETO"``.
+    def test_un_error_prevalece_sobre_incompleto(self) -> None:
+        """Comprueba que un error prevalece sobre ``"INCOMPLETO"``.
 
         Una ejecución sin terminar en la que hay un error es ``"NO EJECUTABLE"``.
         """
@@ -462,7 +463,7 @@ class TestPeriodosDeObjetivos(unittest.TestCase):
     def test_objetivo_roto_definitivamente_tras_cumplirse_dos_veces(self) -> None:
         """Comprueba que ``logrado_en`` y ``roto_en`` son los del último periodo.
 
-        Se cumple de t=0 a t=1 y de t=2 a t=3; después queda roto.
+        Se cumple de t=0 a t=1 y de t=2 a t=3. Después queda roto.
         """
         informe = self.ejecutar_plan(
             [
@@ -517,7 +518,7 @@ class TestInstanteObjetivoDeEntrega(unittest.TestCase):
         self.assertEqual(informe.estados_objetivos[0].logrado_en, 5)
 
     def test_la_caja_sigue_en_el_brazo_mientras_dura_la_entrega(self) -> None:
-        """Comprueba el estado en mitad de ``EntregarCaja`` y al final.
+        """Comprueba el estado a mitad de ``EntregarCaja`` y al final.
 
         En t=2.5 el dron todavía sujeta la caja, la persona todavía necesita su
         contenido y el objetivo no se cumple. Pedir un informe en ese momento no

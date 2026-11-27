@@ -3,7 +3,7 @@
 ``Accion`` es abstracta: una subclase a la que le falta ``objetos``,
 ``_iniciar_ejecucion()`` o ``_terminar_ejecucion()`` no se puede construir, y el
 error solo aparece cuando un plan la usa. La primera prueba lo comprueba para las
-nueve acciones; las demás construyen los seis objetos y los tres objetivos y
+nueve acciones. Las demás construyen los siete objetos y los tres objetivos y
 comprueban que conservan sus argumentos y empiezan en su estado inicial.
 """
 
@@ -70,7 +70,7 @@ class TestObjetosInstanciables(unittest.TestCase):
     """Cada objeto del dominio se puede construir y conserva sus argumentos."""
 
     def setUp(self) -> None:
-        """Crea una localización, que necesitan todos los objetos salvo el brazo."""
+        """Crea una localización para los objetos que están en una."""
         self.deposito = Localizacion("deposito")
 
     def test_localizacion_instanciable(self) -> None:
@@ -98,7 +98,7 @@ class TestObjetosInstanciables(unittest.TestCase):
         self.assertNotEqual(COMIDA, "comida")
 
     def test_localizacion_y_contenido_con_el_mismo_nombre_son_distintos(self) -> None:
-        """Comprueba que la igualdad por nombre solo vale entre objetos de un tipo.
+        """Comprueba que la igualdad por nombre solo vale entre objetos del mismo tipo.
 
         Una localización y un contenido que se llaman igual no son el mismo objeto,
         aunque los dos se comparen por su nombre.

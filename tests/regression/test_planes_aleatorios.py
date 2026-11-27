@@ -2,13 +2,13 @@
 
 Cada prueba comprueba algo que tiene que cumplirse con cualquier plan, no con
 uno concreto: que un plan válido por construcción da ``"VÁLIDO"``, que el
-informe no depende de ``paso_tiempo`` ni de en cuántas veces se avanza, y que
+informe no depende de ``paso_tiempo`` ni de cuántas veces se avance, y que
 ``reiniciar()`` no cambia el resultado. Hypothesis prueba cada propiedad con
 muchos planes distintos.
 
 El generador de este módulo no decide nada por sí mismo: cada decisión
 (cuántos drones hay, qué acción se añade, cuánto dura...) la saca del ``data``
-que Hypothesis da a la prueba. Así, Hypothesis conoce todas las decisiones, y si
+que Hypothesis pasa a la prueba. Así, Hypothesis conoce todas las decisiones, y si
 un plan hace fallar una prueba, lo reduce: la repite con decisiones más
 sencillas (menos drones, menos acciones...) mientras siga fallando, y muestra el
 caso más pequeño que encuentra. Con ``derandomize=True`` cada ejecución prueba
@@ -16,8 +16,8 @@ los mismos planes, como cualquier otra prueba de la batería.
 
 ``generar_problema`` devuelve una descripción del problema hecha solo de
 nombres y números, y ``construir_mundo`` crea con ella un ``Mundo`` con objetos
-nuevos. Una misma descripción se construye tantas veces como haga falta, y cada
-ejecución empieza desde cero.
+nuevos. Así, una prueba que compara varias ejecuciones del mismo plan puede
+construir un mundo para cada una, y todas parten del mismo estado inicial.
 """
 
 from __future__ import annotations
@@ -77,7 +77,7 @@ CONTENIDOS = ("comida", "medicina", "agua")
 # planes enteros.
 PASOS_TIEMPO = (0.1, 0.7, 5.0)
 
-# Cuántos planes prueba cada prueba. ``derandomize=True`` hace que sean siempre
+# Cuántos planes ejecuta cada prueba. ``derandomize=True`` hace que sean siempre
 # los mismos, y ``deadline=None`` quita el límite de tiempo por plan, porque una
 # simulación larga no es un error.
 AJUSTES = settings(max_examples=200, deadline=None, derandomize=True)
@@ -302,8 +302,8 @@ def acciones_posibles(
 ) -> list[Opcion]:
     """Devuelve las acciones que el dron puede empezar en el estado del modelo.
 
-    Solo se cogen, se sueltan, se meten o se sacan cajas de un transportador que
-    está en el suelo, en la localización del dron.
+    Un transportador solo se coge, y solo se meten o se sacan cajas de él, si está
+    en el suelo, en la localización del dron.
     """
     aqui = modelo.localizacion_dron[dron]
     otras = [destino for destino in localizaciones if destino != aqui]

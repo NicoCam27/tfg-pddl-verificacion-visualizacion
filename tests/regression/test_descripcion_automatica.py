@@ -1,8 +1,8 @@
-"""Pruebas que comprueban la descripción automática de cada acción.
+"""Pruebas de la descripción automática de cada acción.
 
 ``Accion.__init__()`` construye la descripción a partir del nombre de la clase y
 del diccionario ``objetos`` de cada subclase, en el orden de sus claves. Los
-textos esperados se escriben a mano a de forma deliberada: si se reordenan o se
+textos esperados se escriben a mano a propósito: si se reordenan o se
 renombran las claves de ``objetos``, la descripción cambia y estas pruebas fallan.
 """
 

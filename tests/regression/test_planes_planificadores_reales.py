@@ -42,7 +42,7 @@ class TestPlanesPlanificadoresReales(unittest.TestCase):
 
     def setUp(self) -> None:
         """Silencia la narración de los drones."""
-        # La narración de los drones (logging) serían miles de líneas: aquí solo
+        # La narración de los drones (logging) ocuparía miles de líneas: aquí solo
         # importa el veredicto.
         logging.disable(logging.CRITICAL)
         self.addCleanup(logging.disable, logging.NOTSET)

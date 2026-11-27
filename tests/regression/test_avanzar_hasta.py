@@ -108,7 +108,7 @@ class TestAvanzarHasta(unittest.TestCase):
         self.assertFalse(self.mover.terminada)
 
     def test_por_partes_da_lo_mismo_que_de_una_vez(self) -> None:
-        """Comprueba que el resultado no depende de en cuántas veces se avanza.
+        """Comprueba que el resultado no depende de cuántas veces se avance.
 
         Avanzar dos veces hasta el mismo instante tampoco cambia nada.
         """

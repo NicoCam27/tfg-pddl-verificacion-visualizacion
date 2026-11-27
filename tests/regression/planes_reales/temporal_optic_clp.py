@@ -1,6 +1,6 @@
 """Plan de OPTIC-CLP para el problema temporal, con dos drones a la vez.
 
-Plan tal cual lo devuelve OPTIC-CLP con la opción ``-N``, que da el primer plan
+Plan tal cual lo devuelve OPTIC-CLP con la opción ``-N``, que devuelve el primer plan
 que encuentra sin optimizar su calidad (instante, acción y duración):
 
     0.000: (coger-caja dron1 derecho1 caja3 deposito)  [1.000]

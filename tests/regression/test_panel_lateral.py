@@ -4,7 +4,7 @@ Comprueban el estado del plan que muestra el panel (``"EN CURSO"`` mientras el
 plan no ha terminado ni ha fallado ninguna acción, y el veredicto después), su
 línea de objetivos, cómo va cada acción del plan y cada objetivo, lo que se dice
 de cada objeto, que pulsar una acción salta a su inicio, que el botón abre y
-cierra el panel, que abierto deja al mundo solo el ancho que queda, que las
+cierra el panel, que, abierto, deja al mundo solo el ancho que le sobra, que las
 pestañas cambian la lista, que la rueda del ratón y la barra la desplazan y que se
 dibuja, abierto y cerrado, en la ventana más pequeña. Como las de
 ``test_simulacion_visual.py``, no comprueban la imagen dibujada, solo posiciones y
@@ -355,9 +355,9 @@ class TestAccionesDelPlan(unittest.TestCase):
     def test_el_recuento_del_panel_de_control_cuadra_con_la_lista(self) -> None:
         """Comprueba que el recuento de acciones dice lo mismo que la lista del plan.
 
-        Mientras el plan se ejecuta, cuenta las acciones pendientes, en curso y
-        terminadas. Si falla una acción, ya no hay ninguna en curso: cuenta las
-        interrumpidas y la que falló.
+        Mientras el plan se ejecuta, el recuento muestra las acciones pendientes, en
+        curso y terminadas. Si falla una acción, ya no hay ninguna en curso: muestra
+        las interrumpidas y la que falló.
         """
         mundo = crear_mundo()
         mundo.avanzar_hasta(1.5)
@@ -421,7 +421,7 @@ class TestSaltarAUnaAccion(unittest.TestCase):
         self.assertFalse(entregar.iniciada)
 
     def test_salta_a_una_accion_posterior_y_queda_en_pausa(self) -> None:
-        """Comprueba que se salta también hacia delante, y que se pausa."""
+        """Comprueba que se salta también hacia delante y que queda en pausa."""
         mundo = crear_mundo()
         simulacion = mundo._simulacion
         entregar = simulacion._acciones[2]
@@ -434,7 +434,7 @@ class TestSaltarAUnaAccion(unittest.TestCase):
         self.assertFalse(simulacion._reproduciendo)
 
     def test_si_falla_una_accion_anterior_se_detiene_en_ella(self) -> None:
-        """Comprueba que el salto se para en el error, y que otro salto lo deshace."""
+        """Comprueba que el salto se para en el error y que otro salto lo deshace."""
         mundo = crear_mundo_con_dos_brazos()
         simulacion = mundo._simulacion
         coger, entregar, mover = simulacion._acciones
@@ -572,7 +572,7 @@ class TestPanelLateral(unittest.TestCase):
         return raton(pygame.MOUSEBUTTONDOWN, lateral._boton._rectangulo.center)
 
     def test_el_boton_abre_y_cierra_el_panel(self) -> None:
-        """Comprueba que el panel empieza cerrado y que cada clic lo alterna."""
+        """Comprueba que el panel empieza cerrado y que cada clic lo abre o cierra."""
         self.assertFalse(self.lateral._abierto)
         self.assertEqual(self.lateral._ancho_ocupado, 0)
         self.assertGreater(self.lateral._ancho_esquina, 0)
@@ -852,8 +852,8 @@ class TestPanelLateral(unittest.TestCase):
     def test_un_clic_en_la_barra_salta_a_ese_punto(self) -> None:
         """Comprueba que un clic en la barra centra su mando en el punto pulsado.
 
-        Arriba del todo, la lista vuelve a su principio, abajo del todo llega a su
-        final, y en medio queda a la mitad.
+        Un clic arriba del todo devuelve la lista a su principio, uno abajo del todo
+        la lleva a su final y uno en medio la deja a la mitad.
         """
         lateral = self.panel_con_lista_larga()
         barra = lateral._barra_lista

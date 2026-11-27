@@ -71,7 +71,7 @@ def crear_mundo() -> Mundo:
 
     Llega a todos los tipos de dibujo: cajas en una localización, en un brazo, en
     un transportador y entregadas, un transportador en una localización y
-    llevado, y un dron moviéndose entre localizaciones.
+    llevado, y un dron que se mueve entre localizaciones.
     """
     deposito = Localizacion("deposito")
     loc1 = Localizacion("loc1")
@@ -186,7 +186,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
 
         La ayuda de un elemento solo se dibuja mientras el ratón está sobre él, así
         que el ratón se mueve por una cuadrícula de puntos que cubre la ventana. Al
-        menos un punto tiene que caer sobre un elemento, si no, la prueba no llegaría
+        menos un punto tiene que caer sobre un elemento: si no, la prueba no llegaría
         al código de las ayudas.
         """
         ayudas = 0
@@ -201,9 +201,10 @@ class TestDibujoSinPantalla(unittest.TestCase):
     def test_la_ayuda_de_un_transportador_lleva_su_nombre(self) -> None:
         """Comprueba que la ayuda de un transportador empieza por su nombre.
 
-        Vacío, la ayuda es solo su nombre. Con cajas, el nombre va en la primera
-        línea y cada caja en la columna de al lado, como en la ayuda de las
-        personas. El PonerCajaEnTransportador de caja1 va de t=1 a t=2.
+        Si el transportador está vacío, la ayuda es solo su nombre. Con cajas, el
+        nombre va en la primera línea y cada caja en la columna de al lado, como en
+        la ayuda de las personas. El ``PonerCajaEnTransportador`` de caja1 va de
+        t=1 a t=2.
         """
 
         def lineas_del_transportador() -> list[_LineaAyuda]:
@@ -225,7 +226,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
         )
 
     def test_la_ayuda_es_la_del_elemento_de_encima(self) -> None:
-        """Comprueba que, si dos elementos se solapan, gana la ayuda del de encima.
+        """Comprueba que, si dos elementos se solapan, se ve la ayuda del de encima.
 
         Dos transportadores sueltos en la misma localización se dibujan en el mismo
         sitio, y el segundo queda encima del primero. Con el ratón sobre ellos, la
@@ -343,7 +344,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
     def test_una_ayuda_mas_alta_que_el_mundo_se_recorta(self) -> None:
         """Comprueba que una ayuda que no cabe en el mundo se recorta.
 
-        Sesenta personas dan una ayuda de sesenta líneas, más alta que todo el
+        Sesenta personas dan una ayuda de sesenta líneas, más alta que la zona del
         mundo de la ventana más pequeña. Tiene que caber entera en el mundo, con
         las primeras personas y una última línea que dice cuántas faltan.
         """
@@ -465,7 +466,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
     def test_el_mundo_deja_al_panel_el_espacio_que_ocupa(self) -> None:
         """Comprueba que el mundo termina justo donde empieza el panel.
 
-        El panel escala con la ventana, así que el espacio que ocupa cambia: el
+        El panel cambia de tamaño con la ventana, y con él el espacio que ocupa: el
         renderizador tiene que reservar exactamente ese espacio, y todas las
         localizaciones tienen que quedar por encima de él.
         """
@@ -574,8 +575,8 @@ class TestDibujoSinPantalla(unittest.TestCase):
         """Comprueba que otros botones del ratón no pulsan ni cambian la velocidad.
 
         La rueda del ratón también produce eventos ``MOUSEBUTTONDOWN``, con los
-        botones 4 y 5, así que sin filtrar el botón del ratón cambiaría la velocidad
-        al girarla sobre el deslizador.
+        botones 4 y 5, así que, si no se mirara qué botón es, girar la rueda sobre el
+        deslizador cambiaría la velocidad.
         """
         deslizador = self.control._deslizador
         y = self.control._boton_pausa._rectangulo.centery
@@ -641,8 +642,8 @@ class TestSimulacionVisualSinPantalla(unittest.TestCase):
 
         Se sustituyen los eventos y el reloj de pygame: cada fotograma recibe los
         eventos que se le dan, un evento ``QUIT`` cierra la ventana tras el último
-        fotograma, y cada fotograma cuenta como 0.25 segundos simulados, tarde lo
-        que tarde de verdad. Así la ejecución es rápida y da el mismo resultado en
+        fotograma y cada fotograma cuenta como 0.25 segundos simulados, sin importar
+        lo que tarde de verdad. Así la ejecución es rápida y da el mismo resultado en
         todas las máquinas.
 
         Args:
@@ -748,11 +749,13 @@ class TestSimulacionVisualSinPantalla(unittest.TestCase):
         abierto = (lateral._rectangulo.width, 0)
         self.assertEqual(llamadas, [cerrado, abierto, abierto])
 
-    def test_la_ayuda_se_dibuja_encima_de_los_paneles(self) -> None:
+    def test_la_ayuda_se_dibuja_encima_del_boton_del_panel(self) -> None:
         """Comprueba que la ayuda emergente es lo último que se dibuja.
 
-        Así ningún panel la tapa, tampoco el botón del panel lateral, que con el
-        panel cerrado queda encima del mundo, en la esquina superior derecha.
+        La ayuda nunca sale de la zona del mundo, así que no puede quedar encima
+        del panel de control ni del panel lateral abierto. Con el panel cerrado,
+        en cambio, su botón está dentro de esa zona, en la esquina superior
+        derecha, y taparía la ayuda si esta se dibujara antes.
         """
         orden: list[str] = []
 
@@ -786,8 +789,9 @@ class TestSimulacionVisualSinPantalla(unittest.TestCase):
     def clic(self, nombre_boton: str) -> pygame.event.Event:
         """Devuelve un clic izquierdo en el centro del botón ``nombre_boton``.
 
-        El panel lo crea la ventana por dentro; se construye otro del mismo tamaño
-        solo para saber dónde estará el botón.
+        La ventana crea su propio panel de control, al que la prueba no tiene
+        acceso. Como los botones se colocan solo según el tamaño de la ventana,
+        se construye otro panel del mismo tamaño para saber dónde estará el botón.
         """
         pygame.init()
         boton = getattr(PanelControl(*TAMANO_VENTANA), nombre_boton)
