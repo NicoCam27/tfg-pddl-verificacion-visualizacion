@@ -99,6 +99,16 @@ _PESTANAS = (_PESTANA_PLAN, _PESTANA_OBJETIVOS, _PESTANA_OBJETOS)
 # Espacio entre las líneas de texto del panel, en píxeles
 _INTERLINEADO = 6
 
+# Medidas fijas del dibujo, en píxeles
+# Grosor de las líneas del panel: su borde izquierdo y la línea bajo las pestañas
+_GROSOR_LINEA_PANEL = 2
+_RADIO_ESQUINA_PESTANA = 6
+_RADIO_ESQUINA_ESTADO = 6
+# Radio de las esquinas del fondo de una fila bajo el ratón y del cuadrado de
+# color con que empieza cada fila
+_RADIO_ESQUINA_FILA = 4
+_RADIO_ESQUINA_CUADRADO_FILA = 3
+
 
 def _estado_del_plan(informe: InformeVerificacion) -> str:
     """Devuelve el estado del plan que muestra el panel.
@@ -572,7 +582,7 @@ class PanelLateral:
             _COLOR_BORDE_PANEL,
             self._rectangulo.topleft,
             self._rectangulo.bottomleft,
-            2,
+            _GROSOR_LINEA_PANEL,
         )
 
         informe = simulacion._crear_informe()
@@ -651,8 +661,8 @@ class PanelLateral:
                 pantalla,
                 color,
                 rectangulo,
-                border_top_left_radius=6,
-                border_top_right_radius=6,
+                border_top_left_radius=_RADIO_ESQUINA_PESTANA,
+                border_top_right_radius=_RADIO_ESQUINA_PESTANA,
             )
             texto = self._fuente_texto.render(
                 _truncar(self._fuente_texto, pestana, rectangulo.width),
@@ -663,7 +673,11 @@ class PanelLateral:
 
         fondo = y + alto
         pygame.draw.line(
-            pantalla, _COLOR_BORDE_PANEL, (x, fondo), (x + ancho, fondo), 2
+            pantalla,
+            _COLOR_BORDE_PANEL,
+            (x, fondo),
+            (x + ancho, fondo),
+            _GROSOR_LINEA_PANEL,
         )
         return fondo + self._margen
 
@@ -831,10 +845,15 @@ class PanelLateral:
                 pantalla,
                 _COLOR_FILA_BAJO_RATON,
                 fila.inflate(0, self._margen // 2),
-                border_radius=4,
+                border_radius=_RADIO_ESQUINA_FILA,
             )
 
-        pygame.draw.rect(pantalla, color, (x, y, lado, lado), border_radius=3)
+        pygame.draw.rect(
+            pantalla,
+            color,
+            (x, y, lado, lado),
+            border_radius=_RADIO_ESQUINA_CUADRADO_FILA,
+        )
         for superficie in superficies:
             pantalla.blit(superficie, (x_texto, y))
             y += superficie.get_height()
@@ -862,7 +881,12 @@ class PanelLateral:
             _COLOR_TEXTO_ESTADO,
         )
         fondo = pygame.Rect(x, y, ancho, texto.get_height() + self._margen)
-        pygame.draw.rect(pantalla, _COLORES_ESTADO[estado], fondo, border_radius=6)
+        pygame.draw.rect(
+            pantalla,
+            _COLORES_ESTADO[estado],
+            fondo,
+            border_radius=_RADIO_ESQUINA_ESTADO,
+        )
         pantalla.blit(texto, texto.get_rect(center=fondo.center))
         return fondo.bottom + _INTERLINEADO
 

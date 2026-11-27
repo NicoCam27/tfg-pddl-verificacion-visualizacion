@@ -41,6 +41,20 @@ _COLOR_FONDO_AYUDA = (255, 255, 225)
 _COLOR_BORDE_AYUDA = (90, 90, 90)
 _COLOR_TEXTO_AYUDA = (20, 20, 20)
 
+# Medidas fijas del dibujo, en píxeles
+# Grosor del borde de las cajas, las personas y la ayuda emergente
+_GROSOR_BORDE_FINO = 1
+# Grosor del borde de los drones, los transportadores y el mensaje de error, y del
+# contorno de un transportador sujeto
+_GROSOR_BORDE_GRUESO = 2
+_RADIO_ESQUINA_AYUDA = 5
+_RADIO_ESQUINA_TRANSPORTADOR = 4
+# Contorno que rodea a un transportador mientras un dron lo tiene sujeto: cuántos
+# píxeles más ancho y más alto que el transportador es (sobresale la mitad por
+# cada lado) y el radio de sus esquinas
+_AUMENTO_CONTORNO_SUJETO = 6
+_RADIO_ESQUINA_CONTORNO_SUJETO = 6
+
 
 class Renderizador:
     """Renderizador dibuja el estado de una ``Simulacion`` en una ventana de pygame.
@@ -487,8 +501,19 @@ class Renderizador:
 
         fondo = pygame.Rect(x, y, ancho, alto)
 
-        pygame.draw.rect(self._pantalla, _COLOR_FONDO_AYUDA, fondo, border_radius=5)
-        pygame.draw.rect(self._pantalla, _COLOR_BORDE_AYUDA, fondo, 1, border_radius=5)
+        pygame.draw.rect(
+            self._pantalla,
+            _COLOR_FONDO_AYUDA,
+            fondo,
+            border_radius=_RADIO_ESQUINA_AYUDA,
+        )
+        pygame.draw.rect(
+            self._pantalla,
+            _COLOR_BORDE_AYUDA,
+            fondo,
+            _GROSOR_BORDE_FINO,
+            border_radius=_RADIO_ESQUINA_AYUDA,
+        )
 
         # Las dos columnas empiezan siempre en la misma x, solo y baja en cada línea.
         x_izquierda = x + relleno
@@ -616,7 +641,9 @@ class Renderizador:
 
             color = _COLOR_CAJA if por_entregar else _COLOR_CAJA_ENTREGADA
             pygame.draw.rect(self._pantalla, color, rectangulo)
-            pygame.draw.rect(self._pantalla, _COLOR_BORDE, rectangulo, 1)
+            pygame.draw.rect(
+                self._pantalla, _COLOR_BORDE, rectangulo, _GROSOR_BORDE_FINO
+            )
 
             if por_entregar:
                 self._dibujar_cuenta(len(por_entregar), rectangulo)
@@ -644,10 +671,17 @@ class Renderizador:
             )
 
             pygame.draw.rect(
-                self._pantalla, _COLOR_TRANSPORTADOR, rectangulo, border_radius=4
+                self._pantalla,
+                _COLOR_TRANSPORTADOR,
+                rectangulo,
+                border_radius=_RADIO_ESQUINA_TRANSPORTADOR,
             )
             pygame.draw.rect(
-                self._pantalla, _COLOR_BORDE, rectangulo, 2, border_radius=4
+                self._pantalla,
+                _COLOR_BORDE,
+                rectangulo,
+                _GROSOR_BORDE_GRUESO,
+                border_radius=_RADIO_ESQUINA_TRANSPORTADOR,
             )
 
             cajas_dibujadas_dentro = self._cajas_dibujadas_en(transportador)
@@ -665,9 +699,11 @@ class Renderizador:
                 pygame.draw.rect(
                     self._pantalla,
                     _COLOR_DRON,
-                    rectangulo.inflate(6, 6),
-                    2,
-                    border_radius=6,
+                    rectangulo.inflate(
+                        _AUMENTO_CONTORNO_SUJETO, _AUMENTO_CONTORNO_SUJETO
+                    ),
+                    _GROSOR_BORDE_GRUESO,
+                    border_radius=_RADIO_ESQUINA_CONTORNO_SUJETO,
                 )
 
             # El nombre en la primera línea y, al lado, una caja por línea, como en
@@ -718,7 +754,11 @@ class Renderizador:
                 radio_personas,
             )
             pygame.draw.circle(
-                self._pantalla, _COLOR_BORDE, centro_personas, radio_personas, 1
+                self._pantalla,
+                _COLOR_BORDE,
+                centro_personas,
+                radio_personas,
+                _GROSOR_BORDE_FINO,
             )
 
             rectangulo = pygame.Rect(
@@ -764,7 +804,11 @@ class Renderizador:
 
             pygame.draw.circle(self._pantalla, _COLOR_DRON, centro_dron, radio_dron)
             pygame.draw.circle(
-                self._pantalla, _COLOR_BORDE_DRON, centro_dron, radio_dron, 2
+                self._pantalla,
+                _COLOR_BORDE_DRON,
+                centro_dron,
+                radio_dron,
+                _GROSOR_BORDE_GRUESO,
             )
 
             nombre = self._fuente_pequena.render(dron.nombre, True, _COLOR_TEXTO)
@@ -800,7 +844,9 @@ class Renderizador:
                     tamano_caja,
                 )
                 pygame.draw.rect(self._pantalla, _COLOR_CAJA, rectangulo)
-                pygame.draw.rect(self._pantalla, _COLOR_BORDE, rectangulo, 1)
+                pygame.draw.rect(
+                    self._pantalla, _COLOR_BORDE, rectangulo, _GROSOR_BORDE_FINO
+                )
 
     def _dibujar_cuenta(self, cuenta: int, rectangulo: pygame.Rect) -> None:
         """Dibuja un número centrado en ``rectangulo``."""
@@ -823,7 +869,7 @@ class Renderizador:
         fondo = rectangulo.inflate(relleno * 2, relleno * 2)
 
         pygame.draw.rect(self._pantalla, _COLOR_FONDO_ERROR, fondo)
-        pygame.draw.rect(self._pantalla, _COLOR_ERROR, fondo, 2)
+        pygame.draw.rect(self._pantalla, _COLOR_ERROR, fondo, _GROSOR_BORDE_GRUESO)
         self._pantalla.blit(texto, rectangulo)
 
     # ------------------------------------------------------------------
