@@ -57,10 +57,15 @@ class Caja:
         return f"Caja({self._nombre!r})"
 
     def __str__(self) -> str:
+        propietario_actual = (
+            self._propietario_actual.nombre
+            if self._propietario_actual is not None
+            else None
+        )
         return (
             f"Caja(nombre={self._nombre}, localizacion={self._localizacion}, "
             f"contenido={self._contenido}, estado={self._estado}, "
-            f"propietario_actual={self._nombre_propietario()})"
+            f"propietario_actual={propietario_actual})"
         )
 
     def _asignar_a(self, propietario: Dron | Transportador) -> None:
@@ -98,20 +103,12 @@ class Caja:
         self._estado = self.DISPONIBLE
         self._propietario_actual = None
 
-    def _nombre_propietario(self) -> str:
-        """Devuelve el nombre del propietario actual, o ``"nadie"`` si no lo hay."""
-        return (
-            self._propietario_actual.nombre
-            if self._propietario_actual is not None
-            else "nadie"
-        )
-
     def _describir_propietario(self) -> str:
         """Devuelve el propietario actual con su tipo, p. ej. ``"el dron dron1"``.
 
-        Devuelve ``"nadie"`` si la caja no tiene propietario. Lo usan los mensajes
-        de error, porque nombran cada objeto con su tipo. ``__str__()`` usa
-        ``_nombre_propietario()``.
+        Lo usan los mensajes de error, porque nombran cada objeto con su tipo, y
+        siempre con una caja que no está disponible, así que tiene propietario.
+        Si no lo tuviera, devolvería ``"nadie"``.
         """
         if self._propietario_actual is None:
             return "nadie"

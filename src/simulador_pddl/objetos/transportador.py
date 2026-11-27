@@ -198,12 +198,12 @@ class Transportador:
         self._propietario_actual = None
         self._brazo_actual = None
 
-    def _nombre_propietario(self) -> str:
-        """Devuelve el nombre del propietario actual, o ``"nadie"`` si no lo hay."""
+    def _nombre_propietario(self) -> str | None:
+        """Devuelve el nombre del propietario actual, o ``None`` si no lo hay."""
         return (
             self._propietario_actual.nombre
             if self._propietario_actual is not None
-            else "nadie"
+            else None
         )
 
     # ------------------------------------------------------------------
