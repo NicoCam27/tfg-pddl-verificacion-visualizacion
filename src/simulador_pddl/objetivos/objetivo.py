@@ -38,21 +38,31 @@ class Objetivo(ABC):
 
     @abstractmethod
     def _se_cumple(self) -> bool:
-        """Devuelve si el objetivo se cumple en este momento."""
+        """Devuelve si el objetivo se cumple en este momento.
+
+        ``Simulacion`` lo llama al construirse, al reiniciarse y después de cada
+        suceso, no solo al final del plan. Así el informe puede decir cuándo se
+        logró el objetivo y cuándo dejó de cumplirse (``logrado_en`` y
+        ``roto_en`` de ``EstadoObjetivo``).
+        """
 
     @abstractmethod
     def _describir(self) -> str:
         """Devuelve lo que exige el objetivo, como una afirmación.
 
-        En minúscula y sin punto final, porque se inserta en otros textos, p. ej.
-        ``"el dron dron1 está en la localización deposito"``.
+        Es el texto con el que aparece el objetivo en el resumen del informe, en
+        el panel lateral de la ventana y en los errores que lanza ``Mundo`` al
+        construirse. En minúscula y sin punto final, porque se inserta en otros
+        textos, p. ej. ``"el dron dron1 está en la localización deposito"``.
         """
 
     @abstractmethod
     def _explicar_fallo(self) -> str:
         """Devuelve por qué el objetivo no se cumple en este momento.
 
-        Solo se llama cuando el objetivo no se cumple. Como ``_describir()``, en
+        ``EstadoObjetivo`` lo llama cada vez que observa el objetivo y no se
+        cumple, y guarda el texto en ``explicacion_fallo``, que el informe y el
+        panel lateral muestran debajo del objetivo. Como ``_describir()``, en
         minúscula y sin punto final.
         """
 

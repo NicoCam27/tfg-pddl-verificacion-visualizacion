@@ -104,9 +104,9 @@ class TransportadorEnLocalizacion(_EnLocalizacion[Transportador]):
     """Objetivo transportador en localización del dominio de logística con drones.
 
     Se cumple cuando el transportador está en ``localizacion``. Un transportador
-    que lleva un dron sigue en su origen hasta que termina el movimiento, porque
-    ``Mover`` y ``MoverTransportador`` cambian su localización al final
-    (``at end``).
+    que un dron lleva consigo sigue en su origen hasta que termina el
+    movimiento, porque ``Mover`` y ``MoverTransportador`` cambian su
+    localización al final (``at end``).
 
     Args:
         transportador: El transportador cuya localización se comprueba.
