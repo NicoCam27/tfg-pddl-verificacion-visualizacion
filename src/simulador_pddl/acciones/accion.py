@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
 from simulador_pddl.acciones.utilidades_acciones import (
-    validar_desc_es_cadena,
     validar_duracion_sim,
     validar_inicio_sim,
 )
+from simulador_pddl.tipos_basicos import validar_cadena
 
 if TYPE_CHECKING:
     from simulador_pddl.objetos import Dron, ObjetoDominio
@@ -57,7 +57,7 @@ class Accion(ABC):
         validar_inicio_sim(inicio_sim)
         validar_duracion_sim(duracion_sim)
         if desc is not None:
-            validar_desc_es_cadena(desc)
+            validar_cadena(desc, "desc")
 
         # Descripción automática (si no se proporciona ninguna)
         if desc is None:

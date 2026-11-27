@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 from simulador_pddl.objetos.contenido import Contenido
 from simulador_pddl.objetos.utilidades_objetos import (
     validar_necesidades,
-    validar_nombre,
     validar_objeto_localizacion,
 )
+from simulador_pddl.tipos_basicos import validar_cadena
 
 if TYPE_CHECKING:
     from simulador_pddl.objetos.caja import Caja
@@ -35,7 +35,7 @@ class Persona:
         localizacion: Localizacion,
         necesidades: Contenido | list[Contenido] | tuple[Contenido, ...] | None = None,
     ) -> None:
-        validar_nombre(nombre)
+        validar_cadena(nombre, "nombre")
         validar_objeto_localizacion(localizacion)
         validar_necesidades(necesidades)
 

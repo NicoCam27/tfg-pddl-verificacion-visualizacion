@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from simulador_pddl.simulacion.simulacion import Simulacion
+from simulador_pddl.tipos_basicos import validar_cadena, validar_entero, validar_numero
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -154,13 +155,7 @@ class Mundo:
             TypeError: Si ``paso_tiempo`` no es un int o un float.
             ValueError: Si ``paso_tiempo`` no es mayor que 0.
         """
-        # bool es una subclase de int, así que True y False se rechazan expresamente.
-        if isinstance(paso_tiempo, bool) or not isinstance(paso_tiempo, (int, float)):
-            msg_tipo_paso_tiempo = (
-                f"'paso_tiempo' debe ser un int o un float, se recibió {paso_tiempo!r}"
-            )
-            raise TypeError(msg_tipo_paso_tiempo)
-        if not paso_tiempo > 0:
+        if not validar_numero(paso_tiempo, "paso_tiempo") > 0:
             msg_rango_paso_tiempo = (
                 f"'paso_tiempo' debe ser mayor que 0, se recibió {paso_tiempo!r}"
             )
@@ -214,14 +209,8 @@ class Mundo:
                 actual de la simulación (para volver atrás, hay que llamar antes a
                 ``reiniciar()``).
         """
-        # bool es una subclase de int, así que True y False se rechazan expresamente.
-        if isinstance(instante, bool) or not isinstance(instante, (int, float)):
-            msg_tipo_instante = (
-                f"'instante' debe ser un int o un float, se recibió {instante!r}"
-            )
-            raise TypeError(msg_tipo_instante)
         # La comparación es falsa con NaN, así que también lo rechaza.
-        if not instante >= 0:
+        if not validar_numero(instante, "instante") >= 0:
             msg_rango_instante = (
                 f"'instante' debe ser mayor o igual que 0, se recibió {instante!r}"
             )
@@ -318,26 +307,11 @@ class Mundo:
                 ``titulo`` no es una cadena o ``fps`` no es un entero.
             ValueError: Si ``fps`` no es mayor que 0.
         """
-        # bool es una subclase de int, así que True y False se rechazan expresamente.
         # Un tamaño menor que el mínimo no es un error: Renderizador lo sube al
         # mínimo.
-        for nombre_tamano, tamano in (("ancho", ancho), ("alto", alto)):
-            if tamano is not None and (
-                isinstance(tamano, bool) or not isinstance(tamano, int)
-            ):
-                msg_tipo_tamano = (
-                    f"'{nombre_tamano}' debe ser un entero o None, "
-                    f"se recibió {tamano!r}"
-                )
-                raise TypeError(msg_tipo_tamano)
-
-        if not isinstance(titulo, str):
-            msg_tipo_titulo = f"'titulo' debe ser una cadena, se recibió {titulo!r}"
-            raise TypeError(msg_tipo_titulo)
-
-        if isinstance(fps, bool) or not isinstance(fps, int):
-            msg_tipo_fps = f"'fps' debe ser un entero, se recibió {fps!r}"
-            raise TypeError(msg_tipo_fps)
-        if fps < 1:
+        validar_entero(ancho, "ancho", admite_none=True)
+        validar_entero(alto, "alto", admite_none=True)
+        validar_cadena(titulo, "titulo")
+        if validar_entero(fps, "fps") < 1:
             msg_rango_fps = f"'fps' debe ser mayor que 0, se recibió {fps!r}"
             raise ValueError(msg_rango_fps)

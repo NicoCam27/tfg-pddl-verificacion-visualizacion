@@ -342,16 +342,17 @@ python -m unittest discover -s tests/regression -p "test_*.py"
 tfg-pddl-verificacion-visualizacion/
 ├── src/
 │   └── simulador_pddl/
-│       ├── acciones/       Acciones del dominio (Mover, CogerCaja, EntregarCaja, ...)
-│       ├── mundo/          Mundo, el punto de entrada de la biblioteca
-│       ├── objetivos/      Objetivos del problema
-│       ├── objetos/        Objetos del dominio (Localizacion, Dron, Caja, ...)
-│       ├── simulacion/     Motor de simulación y veredicto
-│       ├── visualizacion/  Ventana de Pygame: dibujo de la simulación, panel de control y panel lateral
-│       └── __init__.py
+│       ├── acciones/         Acciones del dominio (Mover, CogerCaja, EntregarCaja, ...)
+│       ├── mundo/            Mundo, el punto de entrada de la biblioteca
+│       ├── objetivos/        Objetivos del problema
+│       ├── objetos/          Objetos del dominio (Localizacion, Dron, Caja, ...)
+│       ├── simulacion/       Motor de simulación y veredicto
+│       ├── visualizacion/    Ventana de Pygame: dibujo de la simulación, panel de control y panel lateral
+│       ├── __init__.py
+│       └── tipos_basicos.py  Comprobaciones de los tipos básicos (int, float, str), comunes a todo el paquete
 ├── tests/
-│   ├── regression/         Pruebas de regresión
-│   └── ...                 Ejemplos de uso
+│   ├── regression/           Pruebas de regresión
+│   └── ...                   Ejemplos de uso
 ├── README.md
 ├── pyproject.toml
 └── LICENSE

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from simulador_pddl.objetos.utilidades_objetos import validar_nombre
+from simulador_pddl.tipos_basicos import validar_cadena
 
 if TYPE_CHECKING:
     # Solo para las anotaciones de tipo: importarlos al ejecutar sería circular.
@@ -23,7 +23,7 @@ class Brazo:
     """
 
     def __init__(self, nombre: str) -> None:
-        validar_nombre(nombre)
+        validar_cadena(nombre, "nombre")
 
         self._nombre = nombre
         self._caja: Caja | None = None

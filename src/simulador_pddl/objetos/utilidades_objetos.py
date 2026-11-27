@@ -1,10 +1,11 @@
 """Validadores de los argumentos de los objetos, las acciones y los objetivos.
 
 Cada función comprueba un argumento al construir: lanza ``TypeError`` o
-``ValueError`` con un mensaje que nombra el argumento, o devuelve ``None``. Al
-final están las funciones que escriben partes de los mensajes:
-``con_articulo()`` y ``con_preposicion_a()`` escriben un objeto con su artículo,
-``tipo_en_plural()``, ``tipo_con_articulo_indefinido()`` y
+``ValueError`` con un mensaje que nombra el argumento, o devuelve ``None``. El
+tipo de un número o de una cadena lo comprueban los validadores comunes de
+``simulador_pddl.tipos_basicos``. Al final están las funciones que escriben
+partes de los mensajes: ``con_articulo()`` y ``con_preposicion_a()`` escriben un
+objeto con su artículo, ``tipo_en_plural()``, ``tipo_con_articulo_indefinido()`` y
 ``describir_cantidad()``, un tipo en plural, con su artículo indefinido o con una
 cantidad, y ``describir_necesidades()``, lo que necesita una persona.
 """
@@ -12,6 +13,8 @@ cantidad, y ``describir_necesidades()``, lo que necesita una persona.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
+from simulador_pddl.tipos_basicos import validar_entero
 
 if TYPE_CHECKING:
     from simulador_pddl.objetos import ObjetoDominio
@@ -174,13 +177,6 @@ def validar_lista_brazos(brazos: object) -> None:
         raise ValueError(msg_lista_brazos_unicos)
 
 
-def validar_nombre(nombre: object) -> None:
-    """Lanza ``TypeError`` si ``nombre`` no es una cadena."""
-    if not isinstance(nombre, str):
-        msg_nombre = f"'nombre' debe ser una cadena, se recibió {nombre!r}"
-        raise TypeError(msg_nombre)
-
-
 def validar_capacidad(capacidad: object) -> None:
     """Lanza un error si ``capacidad`` no es un entero mayor que 0.
 
@@ -188,12 +184,7 @@ def validar_capacidad(capacidad: object) -> None:
         TypeError: Si ``capacidad`` no es un entero.
         ValueError: Si ``capacidad`` es 0 o negativa.
     """
-    # bool es una subclase de int, así que True y False se rechazan expresamente.
-    if isinstance(capacidad, bool) or not isinstance(capacidad, int):
-        msg_tipo_capacidad = f"'capacidad' debe ser un entero, se recibió {capacidad!r}"
-        raise TypeError(msg_tipo_capacidad)
-
-    if capacidad < 1:
+    if validar_entero(capacidad, "capacidad") < 1:
         msg_rango_capacidad = (
             f"'capacidad' debe ser mayor que 0, se recibió {capacidad!r}"
         )

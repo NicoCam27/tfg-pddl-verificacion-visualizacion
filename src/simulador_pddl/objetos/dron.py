@@ -10,9 +10,9 @@ from simulador_pddl.objetos.utilidades_objetos import (
     describir_cantidad,
     describir_necesidades,
     validar_lista_brazos,
-    validar_nombre,
     validar_objeto_localizacion,
 )
+from simulador_pddl.tipos_basicos import validar_cadena
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -65,7 +65,7 @@ class Dron:
     def __init__(
         self, nombre: str, localizacion: Localizacion, brazos: Sequence[Brazo]
     ) -> None:
-        validar_nombre(nombre)
+        validar_cadena(nombre, "nombre")
         validar_objeto_localizacion(localizacion)
         validar_lista_brazos(brazos)
 

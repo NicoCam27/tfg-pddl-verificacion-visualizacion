@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING
 
 from simulador_pddl.objetos.utilidades_objetos import (
     validar_capacidad,
-    validar_nombre,
     validar_objeto_localizacion,
 )
+from simulador_pddl.tipos_basicos import validar_cadena
 
 if TYPE_CHECKING:
     from simulador_pddl.objetos.brazo import Brazo
@@ -29,7 +29,7 @@ class Transportador:
     """
 
     def __init__(self, nombre: str, localizacion: Localizacion, capacidad: int) -> None:
-        validar_nombre(nombre)
+        validar_cadena(nombre, "nombre")
         validar_objeto_localizacion(localizacion)
         validar_capacidad(capacidad)
 

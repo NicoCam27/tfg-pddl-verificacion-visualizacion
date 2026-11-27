@@ -1,4 +1,4 @@
-from simulador_pddl.objetos.utilidades_objetos import validar_nombre
+from simulador_pddl.tipos_basicos import validar_cadena
 
 
 class Contenido:
@@ -13,7 +13,7 @@ class Contenido:
     """
 
     def __init__(self, nombre: str) -> None:
-        validar_nombre(nombre)
+        validar_cadena(nombre, "nombre")
 
         self._nombre = nombre
 
