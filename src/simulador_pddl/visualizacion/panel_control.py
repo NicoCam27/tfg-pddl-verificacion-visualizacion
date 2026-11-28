@@ -279,7 +279,7 @@ class PanelControl:
     def __init__(self, ancho_ventana: int, alto_ventana: int) -> None:
         # Los controles se crean sin posición ni tamaño: _redimensionar() los coloca.
         self._boton_reproducir = Boton("Reproducir")
-        self._boton_pausa = Boton("Pausa")
+        self._boton_pausar = Boton("Pausar")
         self._boton_reiniciar = Boton("Reiniciar")
 
         self._deslizador = Deslizador()
@@ -340,12 +340,12 @@ class PanelControl:
         y_botones = self._alto - alto_franja_botones
 
         x_reproducir = margen_lateral
-        x_pausa = x_reproducir + ancho_boton + separacion_botones
-        x_reiniciar = x_pausa + ancho_boton + separacion_botones
+        x_pausar = x_reproducir + ancho_boton + separacion_botones
+        x_reiniciar = x_pausar + ancho_boton + separacion_botones
 
         for boton, x_boton in (
             (self._boton_reproducir, x_reproducir),
-            (self._boton_pausa, x_pausa),
+            (self._boton_pausar, x_pausar),
             (self._boton_reiniciar, x_reiniciar),
         ):
             boton._colocar(
@@ -381,7 +381,7 @@ class PanelControl:
         """Dibuja los controles, el recuento de acciones y la línea de estado."""
         # Cada control se dibuja a sí mismo, en el sitio que le dio _colocar().
         self._boton_reproducir._dibujar(pantalla)
-        self._boton_pausa._dibujar(pantalla)
+        self._boton_pausar._dibujar(pantalla)
         self._boton_reiniciar._dibujar(pantalla)
         self._deslizador._dibujar(pantalla)
 
@@ -425,7 +425,7 @@ class PanelControl:
         if self._boton_reproducir._pulsado(evento):
             return "reproducir"
 
-        if self._boton_pausa._pulsado(evento):
+        if self._boton_pausar._pulsado(evento):
             return "pausar"
 
         if self._boton_reiniciar._pulsado(evento):

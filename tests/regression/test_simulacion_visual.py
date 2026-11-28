@@ -505,7 +505,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
 
         for boton in (
             self.control._boton_reproducir,
-            self.control._boton_pausa,
+            self.control._boton_pausar,
             self.control._boton_reiniciar,
         ):
             with self.subTest(boton=boton._texto):
@@ -543,7 +543,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
             )
             for boton in (
                 self.control._boton_reproducir,
-                self.control._boton_pausa,
+                self.control._boton_pausar,
                 self.control._boton_reiniciar,
             )
         ]
@@ -558,7 +558,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
 
         # Pulsar en el extremo derecho de la barra elige la velocidad más rápida.
         deslizador = self.control._deslizador
-        y = self.control._boton_pausa._rectangulo.centery
+        y = self.control._boton_pausar._rectangulo.centery
         extremo_derecho = (deslizador._x + deslizador._ancho, y)
         self.control._gestionar_evento(
             evento_raton(pygame.MOUSEBUTTONDOWN, extremo_derecho)
@@ -579,7 +579,7 @@ class TestDibujoSinPantalla(unittest.TestCase):
         deslizador cambiaría la velocidad.
         """
         deslizador = self.control._deslizador
-        y = self.control._boton_pausa._rectangulo.centery
+        y = self.control._boton_pausar._rectangulo.centery
         extremo_derecho = (deslizador._x + deslizador._ancho, y)
         otros_botones = (
             pygame.BUTTON_MIDDLE,
@@ -822,13 +822,13 @@ class TestSimulacionVisualSinPantalla(unittest.TestCase):
         )
         self.assertEqual(informe.veredicto, informe.VALIDO)
 
-    def test_boton_pausa_detiene_el_plan(self) -> None:
-        """Comprueba que pulsar pausa detiene el plan donde estaba."""
+    def test_boton_pausar_detiene_el_plan(self) -> None:
+        """Comprueba que el botón de pausar detiene el plan donde estaba."""
         informe = self.ejecutar_ventana(
             fotogramas=60,
             eventos_en={
                 0: [self.clic("_boton_reproducir")],
-                8: [self.clic("_boton_pausa")],
+                8: [self.clic("_boton_pausar")],
             },
         )
         self.assertEqual(informe.veredicto, informe.INCOMPLETO)
