@@ -182,7 +182,7 @@ def _clase_accion(accion: Accion, simulacion: Simulacion) -> str:
 def _detalles_accion(accion: Accion, error: str | None) -> list[str]:
     """Devuelve las líneas que se muestran debajo de una acción.
 
-    La primera dice con qué objetos se hace, y la segunda cuándo empieza y
+    La primera dice con qué objetos se hace, y la segunda, cuándo empieza y
     termina. Si la acción falló, ``error`` es su mensaje, y la tercera lo muestra.
     """
     detalles = [
@@ -197,8 +197,8 @@ def _detalles_accion(accion: Accion, error: str | None) -> list[str]:
 def _detalles_dron(dron: Dron) -> list[str]:
     """Devuelve las líneas que se muestran debajo de un dron.
 
-    Dónde está y, por cada brazo, lo que sujeta: una caja, un transportador o
-    nada.
+    Dicen dónde está y, por cada brazo, lo que sujeta: una caja, un transportador
+    o nada.
     """
     detalles = [f"En {dron.localizacion.nombre}"]
     for brazo in dron.brazos:
@@ -215,8 +215,8 @@ def _detalles_dron(dron: Dron) -> list[str]:
 def _detalles_transportador(transportador: Transportador) -> list[str]:
     """Devuelve las líneas que se muestran debajo de un transportador.
 
-    Dónde está, qué dron lo lleva y con qué brazo, y las cajas que tiene dentro,
-    con cuántas son de su capacidad.
+    Dicen dónde está, qué dron lo lleva y con qué brazo, y las cajas que tiene
+    dentro, con cuántas son de su capacidad.
     """
     if transportador.brazo_actual is None:
         llevado = "No lo lleva ningún dron"
@@ -237,8 +237,8 @@ def _detalles_transportador(transportador: Transportador) -> list[str]:
 def _detalles_caja(caja: Caja) -> list[str]:
     """Devuelve las líneas que se muestran debajo de una caja.
 
-    Quién la tiene, que puede ser un dron, un transportador o la persona a la que
-    se entregó, o que está disponible, y dónde está.
+    Dicen quién la tiene (un dron, un transportador o la persona a la que se
+    entregó), o que está disponible si no la tiene nadie, y dónde está.
     """
     propietario = caja.propietario_actual
     if isinstance(propietario, Dron):
@@ -255,7 +255,7 @@ def _detalles_caja(caja: Caja) -> list[str]:
 def _detalles_persona(persona: Persona) -> list[str]:
     """Devuelve las líneas que se muestran debajo de una persona.
 
-    Dónde está, lo que todavía necesita y las cajas que se le han entregado.
+    Dicen dónde está, lo que todavía necesita y las cajas que se le han entregado.
     """
     necesidades = ", ".join(necesidad.nombre for necesidad in persona.necesidades)
     cajas = ", ".join(Renderizador._describir_caja(caja) for caja in persona.posee)
@@ -298,7 +298,7 @@ class PanelLateral:
     franja a la derecha, encima del panel de control, y el renderizador le deja
     ese ancho libre para no dibujar el mundo debajo. Arriba muestra el tiempo
     simulado, el estado del plan, con su color, y cuántos objetivos se cumplen.
-    Debajo, dos pestañas, cada una con una lista. La del plan tiene sus acciones,
+    Debajo, tres pestañas, cada una con una lista. La del plan tiene sus acciones,
     numeradas, cada una con el color de cómo va, sus objetos, cuándo empieza y
     termina y, mientras se ejecuta, una barra con lo que ha avanzado. Al pulsar
     una, la simulación salta a su inicio. La de objetivos tiene cada objetivo con
@@ -414,7 +414,8 @@ class PanelLateral:
         """El ancho que ocupa el botón sobre el mundo, en píxeles.
 
         Con el panel cerrado, el botón queda encima del mundo, en la esquina
-        superior derecha. Con el panel abierto, queda dentro del panel, así que es 0.
+        superior derecha. Con el panel abierto, queda dentro del panel, así que su
+        ancho es 0.
         """
         if self._abierto:
             return 0
@@ -528,7 +529,7 @@ class PanelLateral:
         # una fracción menor que 0 o mayor que 1, y se lleva al extremo más cercano.
         fraccion = max(0.0, min(1.0, fraccion))
         # La lista baja la misma fracción de su desplazamiento máximo. Es lo contrario
-        # de ``_mando_lista``, que sitúa el mando a partir del desplazamiento.
+        # de _mando_lista, que sitúa el mando a partir del desplazamiento.
         self._desplazamiento = round(fraccion * self._desplazamiento_maximo)
 
     @property
@@ -824,7 +825,7 @@ class PanelLateral:
             ]
 
         # El alto de la fila se conoce antes de dibujarla, para poner debajo el
-        # fondo del ratón.
+        # fondo de la fila bajo el ratón.
         alto_barra = self._margen // 2
         alto = sum(superficie.get_height() for superficie in superficies)
         if progreso is not None:

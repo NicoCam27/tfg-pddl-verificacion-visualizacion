@@ -281,7 +281,7 @@ class Renderizador:
 
         numero_de_localizaciones = len(self._localizaciones)
         if numero_de_localizaciones == 0:
-            # Pasa al construir el renderizador, antes de _poner_localizaciones().
+            # Ocurre al construir el renderizador, antes de _poner_localizaciones().
             # Sin localizaciones no se dibuja nada, así que el radio solo necesita
             # un valor.
             self._radio_localizacion = self._RADIO_MINIMO_LOCALIZACION
@@ -328,7 +328,7 @@ class Renderizador:
         for dron in simulacion._drones:
             posiciones[dron] = self._posiciones_localizaciones[dron.localizacion]
 
-        # Interpolación: mientras un dron se mueve se dibuja entre el origen y el
+        # Interpolación: mientras un dron se mueve, se dibuja entre el origen y el
         # destino, aunque su localización lógica solo cambia cuando termina la
         # acción (``at end``).
         for accion in simulacion._acciones_activas:
@@ -355,7 +355,7 @@ class Renderizador:
 
             if dron_que_lo_sujeta is not None:
                 x, y = posiciones[dron_que_lo_sujeta]
-                # Justo debajo del dron que lo sujeta (0,45 radios más abajo), como
+                # Justo debajo del dron que lo sujeta (0.45 radios más abajo), como
                 # si colgara de él.
                 posiciones[transportador] = (
                     x,
@@ -363,9 +363,9 @@ class Renderizador:
                 )
             else:
                 x, y = self._posiciones_localizaciones[transportador.localizacion]
-                # Abajo a la izquierda del centro (0,75 radios a la izquierda y 0,35
-                # más abajo), para no tapar el nombre de la localización ni los
-                # drones, que se dibujan en el centro, ni las cajas, que van abajo.
+                # Abajo a la izquierda del centro (0.75 radios a la izquierda y 0.35
+                # más abajo), para dejar libre el centro, donde van el nombre de la
+                # localización y los drones, y no tapar las cajas, que van abajo.
                 posiciones[transportador] = (
                     x - int(self._radio_localizacion * 0.75),
                     y + int(self._radio_localizacion * 0.35),
@@ -548,7 +548,8 @@ class Renderizador:
             border_radius=_RADIO_ESQUINA_AYUDA,
         )
 
-        # Las dos columnas empiezan siempre en la misma x, solo y baja en cada línea.
+        # Las dos columnas empiezan siempre en la misma x. Solo la y baja en cada
+        # línea.
         x_izquierda = x + relleno
         x_derecha = x_izquierda + ancho_izquierda + separacion_columnas
         y_linea = y + relleno
@@ -602,8 +603,8 @@ class Renderizador:
         personas = simulacion._personas
         transportadores = simulacion._todos_los_transportadores
 
-        # Solo una ayuda por fotograma: gana el último elemento dibujado bajo el
-        # ratón, que es el que queda encima.
+        # Solo una ayuda por fotograma: de los elementos sobre los que está el ratón,
+        # se muestra la del último que se dibuja, que queda encima de los demás.
         self._ayuda = None
 
         self._pantalla.fill(_COLOR_FONDO)
@@ -837,7 +838,7 @@ class Renderizador:
     ) -> None:
         """Dibuja cada dron como un círculo con su nombre y las cajas que lleva."""
         # Algo menos de un tercio del radio de la localización, con un mínimo para
-        # garantizar su visibilidad. Cada caja que lleva mide algo menos que ese radio.
+        # que se vea. Cada caja que lleva mide algo menos que ese radio.
         radio_dron = max(self._RADIO_MINIMO_DRON, int(self._radio_localizacion * 0.3))
         tamano_caja = max(self._LADO_MINIMO_CAJA_SUJETA, int(radio_dron * 0.7))
         # Lo que el centro del nombre queda por encima del borde superior del dron.

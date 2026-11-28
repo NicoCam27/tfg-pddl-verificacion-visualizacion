@@ -124,7 +124,7 @@ class Boton:
 class Deslizador:
     """Deslizador es la barra con la que el usuario elige la velocidad de reproducción.
 
-    Ofrece siete velocidades fijas, de 0.25x a 16x, cada una es el doble de la
+    Ofrece siete velocidades fijas, de 0.25x a 16x, y cada una es el doble de la
     anterior. Empieza en 1x.
 
     Se crea sin posición ni tamaño: ``_colocar()`` se los da antes de dibujarlo.
@@ -188,7 +188,7 @@ class Deslizador:
 
         x_mando = self._x + self._indice * ancho_tramo
 
-        # Se dibuja el mando
+        # Mando
         pygame.draw.circle(
             pantalla, _COLOR_MANDO_DESLIZADOR, (int(x_mando), self._y), self._radio
         )
@@ -239,7 +239,7 @@ class Deslizador:
         """Devuelve el índice de la velocidad más cercana a ``x_raton``.
 
         Si ``x_raton`` queda fuera de la barra, cuenta como el extremo más próximo,
-        es decir, la velocidad más lenta o la más rápida. Pasa al pulsar en el margen
+        es decir, la velocidad más lenta o la más rápida. Ocurre al pulsar en el margen
         de la zona de clic y al arrastrar el ratón más allá de la barra.
         """
         x = min(max(x_raton, self._x), self._x + self._ancho)
@@ -322,7 +322,7 @@ class PanelControl:
         )
 
         # Cada medida es su valor de diseño (a escala 1) multiplicado por la escala.
-        # Todas son píxeles salvo los tamaños de fuente: el texto dibujado es más
+        # Todas están en píxeles salvo los tamaños de fuente: el texto dibujado es más
         # bajo, y su alto real lo da get_height() (por eso se usa en _alto_linea_info).
         margen_lateral = int(20 * escala)
         separacion_botones = int(12 * escala)
